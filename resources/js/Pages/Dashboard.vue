@@ -213,15 +213,15 @@ const modules = computed(() => {
 
     <div class="py-6 space-y-8">
         <!-- Dashboard Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card class="p-6 relative overflow-hidden group">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+            <Card class="p-4 relative overflow-hidden group">
                 <div class="flex items-center">
                     <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
                         <BriefcaseIcon class="h-8 w-8" />
                     </div>
                     <div class="ml-5">
                         <p class="text-sm font-medium text-gray-500 dark:text-zinc-400">Proyectos en Proceso</p>
-                        <p class="text-3xl font-black text-gray-900 dark:text-white">{{ stats.proyectos_en_proceso }}</p>
+                        <p class="text-2xl font-black text-gray-900 dark:text-white">{{ stats.proyectos_en_proceso }}</p>
                     </div>
                 </div>
                 <div class="absolute -right-4 -bottom-4 h-24 w-24 opacity-5 transform rotate-12 transition-transform group-hover:scale-110">
@@ -229,14 +229,14 @@ const modules = computed(() => {
                 </div>
             </Card>
 
-            <Card class="p-6 relative overflow-hidden group">
+            <Card class="p-4 relative overflow-hidden group">
                 <div class="flex items-center">
                     <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
                         <CurrencyEuroIcon class="h-8 w-8" />
                     </div>
                     <div class="ml-5">
                         <p class="text-sm font-medium text-gray-500 dark:text-zinc-400">Proyectos activos</p>
-                        <p class="text-3xl font-black text-gray-900 dark:text-white">{{ formatCurrency(stats.presupuesto_total_activo) }}</p>
+                        <p class="text-2xl font-black text-gray-900 dark:text-white">{{ formatCurrency(stats.presupuesto_total_activo) }}</p>
                     </div>
                 </div>
                 <div class="absolute -right-4 -bottom-4 h-24 w-24 opacity-5 transform rotate-12 transition-transform group-hover:scale-110">
@@ -244,14 +244,14 @@ const modules = computed(() => {
                 </div>
             </Card>
 
-            <Card class="p-6 relative overflow-hidden group">
+            <Card class="p-4 relative overflow-hidden group">
                 <div class="flex items-center">
                     <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
                         <CurrencyEuroIcon class="h-8 w-8" />
                     </div>
                     <div class="ml-5">
                         <p class="text-sm font-medium text-gray-500 dark:text-zinc-400">Mant. {{ stats.mes_actual }} / {{ stats.anio_actual }}</p>
-                        <p class="text-3xl font-black text-gray-900 dark:text-white">{{ formatCurrency(stats.total_mantenimiento_mes) }}</p>
+                        <p class="text-2xl font-black text-gray-900 dark:text-white">{{ formatCurrency(stats.total_mantenimiento_mes) }}</p>
                     </div>
                 </div>
                 <div class="absolute -right-4 -bottom-4 h-24 w-24 opacity-5 transform rotate-12 transition-transform group-hover:scale-110">
@@ -259,17 +259,19 @@ const modules = computed(() => {
                 </div>
             </Card>
 
-            <Card class="p-6 relative overflow-hidden group">
+            <Card class="p-4 relative overflow-hidden group">
                 <div class="flex items-center">
                     <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
                         <CheckCircleIcon class="h-8 w-8" />
                     </div>
                     <div class="ml-5">
                         <p class="text-sm font-medium text-gray-500 dark:text-zinc-400">Finalizados {{ stats.anio_actual }}</p>
-                        <p class="text-3xl font-black text-gray-900 dark:text-white">{{ stats.proyectos_finalizados_anio }}</p>
-                        <p class="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-1">
-                            {{ formatCurrency(stats.presupuesto_finalizado_anio) }}
-                        </p>
+                        <div class="flex items-baseline gap-2">
+                            <p class="text-2xl font-black text-gray-900 dark:text-white">{{ stats.proyectos_finalizados_anio }}</p>
+                            <p class="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                                {{ formatCurrency(stats.presupuesto_finalizado_anio) }}
+                            </p>
+                        </div>
                     </div>
                 </div>
                 <div class="absolute -right-4 -bottom-4 h-24 w-24 opacity-5 transform rotate-12 transition-transform group-hover:scale-110">
