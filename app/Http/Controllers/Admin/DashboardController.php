@@ -20,11 +20,11 @@ class DashboardController extends Controller
         $currentYear = $now->year;
 
         // 1. Proyectos en proceso y su presupuesto total
-        $proyectosEnProceso = Proyecto::where('estado', 'En proceso')->count();
-        $presupuestoTotalActivo = Proyecto::where('estado', 'En proceso')->sum('presupuesto');
+        $proyectosEnProceso = \App\Models\Proyecto::where('estado', 'En proceso')->count();
+        $presupuestoTotalActivo = \App\Models\Proyecto::where('estado', 'En proceso')->sum('presupuesto');
 
         // 2. Proyectos finalizados en el año actual y su presupuesto total
-        $proyectosFinalizadosAnioQuery = Proyecto::where('estado', 'Finalizado')
+        $proyectosFinalizadosAnioQuery = \App\Models\Proyecto::where('estado', 'Finalizado')
             ->where(function ($query) use ($currentYear) {
                 $query->whereYear('fecha_fin', $currentYear)
                     ->orWhere(function ($q) use ($currentYear) {
@@ -37,7 +37,7 @@ class DashboardController extends Controller
         $presupuestoFinalizadoAnio = $proyectosFinalizadosAnioQuery->sum('presupuesto');
 
         // 3. Mantenimientos a cobrar en el mes en curso
-        $mantenimientos = Mantenimiento::where('estado', 'en curso')->get();
+        $mantenimientos = \App\Models\Mantenimiento::where('estado', 'en curso')->get();
         $totalMantenimientoMes = 0;
 
         foreach ($mantenimientos as $mantenimiento) {
@@ -52,7 +52,7 @@ class DashboardController extends Controller
         }
 
         // Datos para gráfico: Proyectos Activos y su Valor
-        $proyectosActivosData = Proyecto::where('estado', 'En proceso')
+        $proyectosActivosData = \App\Models\Proyecto::where('estado', 'En proceso')
             ->select('proyecto', 'presupuesto')
             ->get()
             ->map(function ($p) {
@@ -63,8 +63,8 @@ class DashboardController extends Controller
             });
 
         // Datos para gráfico: Uso de Extensiones
-        $totalEntidades = Proyecto::count() + Mantenimiento::count();
-        $usoExtensiones = Extension::withCount(['proyectos', 'mantenimientos'])
+        $totalEntidades = \App\Models\Proyecto::count() + \App\Models\Mantenimiento::count();
+        $usoExtensiones = \App\Models\Extension::withCount(['proyectos', 'mantenimientos'])
             ->get()
             ->map(function ($ext) use ($totalEntidades) {
                 $totalUso = $ext->proyectos_count + $ext->mantenimientos_count;

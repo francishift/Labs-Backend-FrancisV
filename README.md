@@ -1,118 +1,110 @@
-# 📂 README del Proyecto (Estado Actual)
+# 🚀 Labs Backend - Enterprise Management System (SaaS)
 
-Este documento resume la arquitectura, componentes y herramientas que conforman la aplicación en su estado actual.
+[![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel)](https://laravel.com)
+[![Vue.js](https://img.shields.io/badge/Vue.js-3.x-4FC08D?style=for-the-badge&logo=vue.js)](https://vuejs.org)
+[![Inertia.js](https://img.shields.io/badge/Inertia.js-1.x-9553E9?style=for-the-badge&logo=inertia)](https://inertiajs.com)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com)
 
-## 🏗️ Arquitectura General
-La aplicación es un **SaaS de gestión (ERP/CRM)** construido con:
-- **Backend**: Laravel 12 (PHP 8.3)
-- **Frontend**: Vue 3 + Inertia.js (Single Page Application)
-- **Estilo**: Tailwind CSS (Vanilla CSS para componentes personalizados)
-- **Visualización**: ECharts + Vue-ECharts para analítica avanzada.
-
-## 📁 Estructura de Carpetas Clave
-
-### Backend (`app/`)
-- `Http/Controllers`: Lógica de negocio (Admin Dashboard, CRUDs).
-- `Models/`: Definición de la base de datos y relaciones.
-- `Helpers/`: Lógica de soporte (Cálculos de rentabilidad, normalización).
-
-### Frontend (`resources/js/`)
-- `Pages/Admin/`: Vistas principales de administración (CRUDs).
-- `Components/`: Componentes Vue reutilizables (DataTable, Modals, Cards).
-- `Layouts/`: Estructura base de navegación y diseño.
-- `Utils/`: Utilidades compartidas (Normalización de fechas, divisas).
-
-## 📊 Modelos de Datos Principales
-
-| Modelo | Descripción |
-| :--- | :--- |
-| `User` | Gestión de usuarios y roles (Spatie Permission). |
-| `Client` | Perfiles de clientes vinculados a proyectos y mantenimientos. |
-| `Proyecto` | Gestión de proyectos de desarrollo con presupuestos y estados. |
-| `Mantenimiento` | Servicios recurrentes (Mensual/Anual) con MRR. |
-| `Extension` | Repositorio de herramientas/licencias usadas en sitios. |
-| `Servicio` | Tareas específicas dentro de proyectos o mantenimientos. |
-| `Configuracion` | Ajustes globales del sistema (Precios hora, descuentos). |
-
-## 🏗️ Diagrama de Arquitectura y Entidades
-
-Vista de pájaro de las relaciones entre los modelos de datos y los controladores que los gestionan.
-
-```mermaid
-erDiagram
-    CLIENT ||--o{ PROYECTO : "tiene"
-    CLIENT ||--o{ MANTENIMIENTO : "tiene"
-    PROYECTO ||--o{ SERVICIO : "contiene"
-    MANTENIMIENTO ||--o{ MANTENIMIENTO_SERVICIO : "contiene"
-    PROYECTO }|--|{ EXTENSION : "usa"
-    MANTENIMIENTO }|--|{ EXTENSION : "usa"
-
-    CLIENT {
-        string name
-        string cif_nif
-        string email
-    }
-
-    PROYECTO {
-        string proyecto
-        decimal presupuesto
-        string estado
-    }
-
-    MANTENIMIENTO {
-        string aplicacion
-        decimal importe
-        string tipo_pago
-    }
-
-    EXTENSION {
-        string nombre
-        decimal precio_base
-    }
-
-    subgraph "Controladores de Gestión"
-        ClientController --> CLIENT
-        ProyectoController --> PROYECTO
-        MantenimientoController --> MANTENIMIENTO
-        ExtensionController --> EXTENSION
-        ServicioController --> SERVICIO
-        MantenimientoServicioController --> MANTENIMIENTO_SERVICIO
-    end
-```
-
-## 🛣️ Mapa de Rutas del Sistema
-
-A continuación se detallan las rutas principales accesibles tras la autenticación, organizadas por módulo.
-
-| Método | URI | Controlador @ Método | Descripción | Permisos |
-| :--- | :--- | :--- | :--- | :--- |
-| **GET** | `/dashboard` | `DashboardController@index` | Vista principal con analítica y KPIs. | `auth` |
-| **GET** | `/admin/proyectos` | `ProyectoController@index` | Listado y búsqueda de proyectos. | `admin, coordin` |
-| **POST** | `/admin/proyectos` | `ProyectoController@store` | Crear un nuevo proyecto. | `admin, coordin` |
-| **GET** | `/admin/proyectos/{id}` | `ProyectoController@show` | Detalle, edición y servicios del proyecto. | `admin, coordin` |
-| **PATCH** | `/admin/proyectos/{id}` | `ProyectoController@update` | Actualizar datos del proyecto. | `admin, coordin` |
-| **GET** | `/admin/mantenimientos` | `MantenimientoController@index` | Gestión de mantenimientos recurrentes. | `admin, coordin` |
-| **GET** | `/admin/mantenimientos/{id}` | `MantenimientoController@show` | Detalle y facturación de mantenimiento. | `admin, coordin` |
-| **GET** | `/admin/extensiones` | `ExtensionController@index` | Gestión del repositorio de extensiones. | `admin, coordin` |
-| **GET** | `/admin/clientes` | `ClientController@index` | Listado maestro de clientes. | `admin` |
-| **POST** | `/admin/clientes/import` | `ClientController@import` | Importación masiva desde Excel. | `admin` |
-| **GET** | `/admin/usuarios` | `UserController@index` | Gestión de accesos y roles (RBAC). | `admin` |
-| **GET** | `/admin/configuracion` | `SettingsController@index` | Ajustes globales de precios e IVA. | `admin` |
-| **GET** | `/profile` | `ProfileController@edit` | Gestión de perfil de usuario actual. | `auth` |
-
-## 🛠️ Dependencias Importantes
-
-### Frontend
-- **Inertia.js**: Puente entre Laravel y Vue.
-- **ECharts / Vue-ECharts**: Motor de gráficos del Dashboard.
-- **Heroicons**: Set de iconos oficial.
-- **Lato (Fontsource)**: Tipografía base del sistema.
-
-### Backend
-- **Spatie Permission**: Sistema de roles y permisos (Admin, Coordinador).
-- **Ziggy**: Inyección de rutas de Laravel en JavaScript.
-- **Maatwebsite Excel**: Exportación de reportes y datos.
+A premium, full-featured **Enterprise Resource Planning (ERP) and CRM solution** designed for digital agencies and freelancers. This system provides a centralized dashboard for managing projects, recurring maintenance services, client relationships, and team performance with advanced analytics.
 
 ---
-> [!NOTE]
-> Este documento debe actualizarse al añadir nuevos módulos core o cambiar dependencias estructurales.
+
+## ✨ Key Features
+
+- **📊 Advanced Analytics Dashboard**: Real-time KPIs tracking project profitability, Monthly Recurring Revenue (MRR), and resource allocation using ECharts.
+- **💼 Comprehensive CRM**: Multi-faceted client profiles with detailed histories of projects, maintenance contracts, and communication logs.
+- **🏗️ Project Lifecycle Management**: Granular control over project stages, from estimation and budgeting to final delivery and service tracking.
+- **🔄 Recurring Service Automation**: Automated management of monthly and annual maintenance services, including automated profitability calculations.
+- **🔌 Extension Ecosystem**: Centralized repository of tools and licenses used across different projects for optimized cost management.
+- **🔐 Secure RBAC**: Fine-grained access control using Spatie's permission system (Admin, Coordinator, Viewer roles).
+- **📥 Smart Data Import**: Bulk import system for legacy client data with automatic normalization.
+- **🌓 Adaptive UI**: Fully responsive interface with built-in dark mode and high-performance Inertia.js-driven navigation.
+
+---
+
+## 🛠️ Technology Stack
+
+| Layer | Technologies |
+| :--- | :--- |
+| **Backend** | Laravel 12, PHP 8.3, Eloquent ORM |
+| **Frontend** | Vue 3 (Composition API), Inertia.js |
+| **Styling** | Tailwind CSS, Headless UI |
+| **Analytics** | Apache ECharts, Vue-ECharts |
+| **Auth/Security** | Laravel Breeze, Spatie Permissions |
+| **Automation** | Custom Composables, Debounced Search, Advanced Filtering |
+
+---
+
+## 🏗️ System Architecture
+
+The application follows a clean-architecture approach, separating business logic from representation through custom Helpers and Vue Composables for maximum reusability.
+
+```mermaid
+graph TD
+    A[Public Web] --> B[Inertia.js SPA]
+    B --> C[Laravel Controllers]
+    C --> D[Business Logic & Helpers]
+    D --> E[Eloquent Models]
+    E --> F[(PostgreSQL/MySQL)]
+    C --> G[Spatie Permissions]
+```
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- PHP 8.3+
+- Node.js 20+
+- Composer
+- MySQL/MariaDB
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone git@github.com:tu-usuario-git/Labs-Backend-FrancisV.git
+   cd Labs-Backend-FrancisV
+   ```
+
+2. **Install dependencies**
+   ```bash
+   composer install
+   npm install
+   ```
+
+3. **Configure Environment**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+
+4. **Run Migrations & Seeders**
+   ```bash
+   php artisan migrate --seed
+   ```
+
+5. **Start Development Server**
+   ```bash
+   npm run dev
+   # In another terminal:
+   php artisan serve
+   ```
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 👨‍💻 Author
+
+**Francis Valenzuela**
+- GitHub: [@tu-usuario-git](https://github.com/tu-usuario-git)
+- Web: [TU_DOMINIO](https://TU_DOMINIO)
+
+---
+> *This repository is part of my professional portfolio. Feel free to explore the codebase and reach out for collaborations!*
