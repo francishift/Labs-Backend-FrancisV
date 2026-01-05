@@ -169,13 +169,13 @@ const modules = computed(() => {
             name: 'Mantenimientos',
             icon: ClockIcon,
             route: 'admin.mantenimientos.index',
-            roles: ['admin', 'coordinador'],
+            roles: ['admin'],
         },
         {
             name: 'Extensiones',
             icon: PuzzlePieceIcon,
             route: 'admin.extensiones.index',
-            roles: ['admin', 'coordinador'],
+            roles: ['admin'],
         },
         {
             name: 'Servicios',
@@ -187,7 +187,7 @@ const modules = computed(() => {
             name: 'Servicios Mant.',
             icon: ClipboardDocumentCheckIcon,
             route: 'admin.mantenimiento-servicios.index',
-            roles: ['admin', 'coordinador'],
+            roles: ['admin'],
         },
         {
             name: 'Usuarios',
@@ -201,6 +201,8 @@ const modules = computed(() => {
         module.roles.some(role => userRoles.value.includes(role))
     )
 })
+
+const isAdmin = computed(() => userRoles.value.includes('admin'))
 </script>
 
 <template>
@@ -212,8 +214,8 @@ const modules = computed(() => {
     </template>
 
     <div class="py-6 space-y-8">
-        <!-- Dashboard Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        <!-- Dashboard Stats Cards (Solo Admin) -->
+        <div v-if="isAdmin" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             <Card class="p-4 relative overflow-hidden group">
                 <div class="flex items-center">
                     <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
@@ -280,8 +282,8 @@ const modules = computed(() => {
             </Card>
         </div>
 
-        <!-- Charts Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Charts Section (Solo Admin) -->
+        <div v-if="isAdmin" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card class="p-6 h-[450px] flex flex-col">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">

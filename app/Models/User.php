@@ -63,4 +63,15 @@ class User extends Authenticatable implements MustVerifyEmail
         // Para el botón "Reenviar verificación", usamos nuestra notificación en español.
         $this->notify(new \App\Notifications\VerifyEmailSpanish);
     }
+
+    /**
+     * Send the password reset notification.
+     *
+     * @param  string  $token
+     * @return void
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new \App\Notifications\ResetPasswordSpanish($token));
+    }
 }

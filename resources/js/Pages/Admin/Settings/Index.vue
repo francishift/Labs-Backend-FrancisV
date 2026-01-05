@@ -6,7 +6,6 @@ import Card from '@/Components/Card.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import TextInput from '@/Components/TextInput.vue'
 import InputError from '@/Components/InputError.vue'
-import FlashMessages from '@/Components/FlashMessages.vue'
 import PageHeader from '@/Components/PageHeader.vue'
 
 const props = defineProps({
@@ -34,8 +33,6 @@ const submit = () => {
         </template>
 
         <div class="py-6 space-y-6">
-                <FlashMessages />
-
                 <Card class="p-6 max-w-2xl">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Ajustes Generales</h3>
                     

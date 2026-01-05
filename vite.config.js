@@ -17,4 +17,22 @@ export default defineConfig({
             },
         }),
     ],
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (id.includes('node_modules')) {
+                        if (id.includes('echarts')) {
+                            return 'vendor-echarts';
+                        }
+                        if (id.includes('@heroicons') || id.includes('lodash')) {
+                            return 'vendor-utils';
+                        }
+                        return 'vendor';
+                    }
+                }
+            }
+        },
+        chunkSizeWarningLimit: 600,
+    }
 });

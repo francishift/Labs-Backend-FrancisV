@@ -3,7 +3,6 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm.vue';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm.vue';
 import DeleteUserForm from './Partials/DeleteUserForm.vue';
-import FlashMessages from '@/Components/FlashMessages.vue';
 import Card from '@/Components/Card.vue';
 import { Head } from '@inertiajs/vue3';
 
@@ -30,7 +29,6 @@ defineProps({
         </template>
 
         <div class="py-6 space-y-6">
-            <FlashMessages />
                 <!-- Forms Grid -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <Card class="p-4 sm:p-8">
