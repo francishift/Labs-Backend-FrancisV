@@ -26,4 +26,14 @@ class Client extends Model
     protected $casts = [
         'excel_created_at' => 'datetime',
     ];
+
+    public function proyectos()
+    {
+        return $this->hasMany(Proyecto::class);
+    }
+
+    public function mantenimientos()
+    {
+        return $this->hasMany(Mantenimiento::class);
+    }
 }

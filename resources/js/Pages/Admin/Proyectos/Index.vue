@@ -1,13 +1,12 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import { Head, useForm, Link } from '@inertiajs/vue3'
+import { Head, useForm, Link, router } from '@inertiajs/vue3'
 import PrimaryButton from '@/Components/PrimaryButton.vue'
 import SecondaryButton from '@/Components/SecondaryButton.vue'
 import DangerButton from '@/Components/DangerButton.vue'
 import DialogModal from '@/Components/DialogModal.vue'
 import Pagination from '@/Components/Pagination.vue'
 import SearchInput from '@/Components/SearchInput.vue'
-import FlashMessages from '@/Components/FlashMessages.vue'
 import Card from '@/Components/Card.vue'
 import ConfirmModal from '@/Components/ConfirmModal.vue'
 import DataTable from '@/Components/DataTable.vue'
@@ -65,6 +64,10 @@ const getStatusVariant = (status) => {
     default: return 'gray'
   }
 }
+
+const navigateToShow = (item) => {
+  router.visit(route('admin.proyectos.show', item.id))
+}
 </script>
 
 <template>
@@ -83,8 +86,6 @@ const getStatusVariant = (status) => {
     </template>
 
     <div class="py-6 space-y-6">
-        <FlashMessages />
-
         <Card class="p-6">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white">Gestión de proyectos</h3>
@@ -97,11 +98,12 @@ const getStatusVariant = (status) => {
             <DataTable
               :columns="columns"
               :items="proyectos.data"
+              @row-click="navigateToShow"
             >
               <template #cell-proyecto="{ item }">
-                <Link :href="route('admin.proyectos.show', item.id)" class="text-emerald-600 hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium">
+                <span class="font-medium text-gray-900 dark:text-zinc-200">
                   {{ item.proyecto }}
-                </Link>
+                </span>
               </template>
               <template #cell-client="{ item }">
                 {{ item.client?.name || 'S/N' }}

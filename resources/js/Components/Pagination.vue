@@ -8,6 +8,10 @@ const props = defineProps({
     type: Array,
     required: true,
   },
+  prefetch: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const paginationLinks = usePaginationWindow(toRef(props, 'links'))
@@ -46,6 +50,7 @@ const scrollToContent = () => {
         :href="link.url"
         v-html="link.label"
         preserve-scroll
+        :prefetch="prefetch"
         @click="scrollToContent"
       />
     </template>

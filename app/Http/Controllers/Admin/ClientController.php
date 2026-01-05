@@ -14,6 +14,7 @@ class ClientController extends Controller
     public function index(Request $request)
     {
         $clients = Client::query()
+            ->select(['id', 'name', 'cif_nif', 'email', 'city'])
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
@@ -93,5 +94,54 @@ class ClientController extends Controller
 
         return back()
             ->with('success', 'Importación finalizada. Los datos existentes han sido actualizados y los nuevos añadidos.');
+    }
+
+    public function show(Client $client)
+    {
+        $client->load([
+            'proyectos:id,proyecto,presupuesto,estado,fecha_inicio,fecha_fin,client_id,updated_at',
+            'proyectos.extensiones:id,nombre',
+            'mantenimientos:id,aplicacion,importe,estado,fecha_inicio,tipo_pago,client_id',
+            'mantenimientos.extensiones:id,nombre'
+        ]);
+
+        // Pagination between clients
+        $allClientIds = Client::query()
+            ->orderBy('name')
+            ->pluck('id')
+            ->toArray();
+
+        $currentIndex = array_search($client->id, $allClientIds);
+        $currentPage = $currentIndex !== false ? $currentIndex + 1 : 1;
+
+        $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+            [$client],
+            count($allClientIds),
+            1,
+            $currentPage,
+            ['path' => route('admin.clientes.index')]
+        );
+
+        $paginationData = $paginator->toArray();
+        foreach ($paginationData['links'] as &$link) {
+            if ($link['url']) {
+                $urlParts = parse_url($link['url'], PHP_URL_QUERY);
+                if ($urlParts) {
+                    parse_str($urlParts, $query);
+                    if (isset($query['page'])) {
+                        $targetPageIndex = (int)$query['page'] - 1;
+                        if (isset($allClientIds[$targetPageIndex])) {
+                            $targetId = $allClientIds[$targetPageIndex];
+                            $link['url'] = route('admin.clientes.show', $targetId);
+                        }
+                    }
+                }
+            }
+        }
+
+        return Inertia::render('Admin/Clients/Show', [
+            'client' => $client,
+            'pagination' => $paginationData
+        ]);
     }
 }

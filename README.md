@@ -21,6 +21,8 @@ Una solución **ERP y CRM completa y premium**, diseñada para agencias digitale
 - **🔐 RBAC Seguro**: Control de acceso detallado mediante el sistema de permisos de Spatie (roles de Admin, Coordinador y Visor).
 - **📥 Importación Inteligente de Datos**: Sistema de importación masiva para datos de clientes heredados con normalización automática.
 - **🌓 Interfaz Adaptativa**: Interfaz totalmente responsiva con modo oscuro integrado y navegación de alto rendimiento impulsada por Inertia.js.
+- **⚡ Optimización de Alto Rendimiento**: Carga selectiva de columnas en base de datos, pre-fetching de enlaces inteligente para navegación instantánea y carga diferida (Lazy Loading) de componentes.
+- **🔔 Notificaciones Globales**: Sistema de feedback centralizado mediante "Toast Messages" para una experiencia de usuario fluida y consistente.
 
 ---
 
@@ -125,6 +127,8 @@ A premium, full-featured **Enterprise Resource Planning (ERP) and CRM solution**
 - **🔐 Secure RBAC**: Fine-grained access control using Spatie's permission system (Admin, Coordinator, Viewer roles).
 - **📥 Smart Data Import**: Bulk import system for legacy client data with automatic normalization.
 - **🌓 Adaptive UI**: Fully responsive interface with built-in dark mode and high-performance Inertia.js-driven navigation.
+- **⚡ High-Performance Optimization**: Selective database column loading, intelligent link pre-fetching for instant navigation, and component lazy loading.
+- **🔔 Global Notifications**: Centralized toast message system for a fluid and consistent user feedback experience.
 
 ---
 

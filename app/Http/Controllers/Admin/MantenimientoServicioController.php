@@ -16,7 +16,8 @@ class MantenimientoServicioController extends Controller
     public function index(Request $request)
     {
         $servicios = MantenimientoServicio::query()
-            ->with('mantenimiento.cliente')
+            ->select(['id', 'mantenimiento_id', 'descripcion', 'duracion_minutos', 'fecha'])
+            ->with(['mantenimiento:id,aplicacion,client_id', 'mantenimiento.cliente:id,name'])
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('descripcion', 'like', "%{$search}%")

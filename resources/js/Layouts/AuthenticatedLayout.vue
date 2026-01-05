@@ -8,6 +8,7 @@ import Footer from '@/Components/Footer.vue';
 import Sidebar from './Partials/Sidebar.vue';
 import UserDropdown from './Partials/UserDropdown.vue';
 import DarkModeToggle from './Partials/DarkModeToggle.vue';
+import FlashMessages from '@/Components/FlashMessages.vue';
 
 const page = usePage();
 const isDark = ref(false);
@@ -100,6 +101,7 @@ onUnmounted(() => {
             <!-- Page Content -->
             <main class="flex-1 pb-8 px-5">
                 <div class="mx-auto max-w-7xl">
+                    <FlashMessages />
                     <slot />
                 </div>
             </main>

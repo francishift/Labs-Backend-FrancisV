@@ -37,7 +37,9 @@ class DashboardController extends Controller
         $presupuestoFinalizadoAnio = $proyectosFinalizadosAnioQuery->sum('presupuesto');
 
         // 3. Mantenimientos a cobrar en el mes en curso
-        $mantenimientos = \App\Models\Mantenimiento::where('estado', 'en curso')->get();
+        $mantenimientos = \App\Models\Mantenimiento::select(['id', 'importe', 'tipo_pago'])
+            ->where('estado', 'en curso')
+            ->get();
         $totalMantenimientoMes = 0;
 
         foreach ($mantenimientos as $mantenimiento) {

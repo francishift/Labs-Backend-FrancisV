@@ -34,8 +34,9 @@ const adminNavigation = [
     { name: 'Mantenimientos', href: route('admin.mantenimientos.index'), icon: ClockIcon, active: route().current('admin.mantenimientos.*'), role: 'coordinador' },
     { name: 'Tareas mantenimientos', href: route('admin.mantenimiento-servicios.index'), icon: ClipboardDocumentCheckIcon, active: route().current('admin.mantenimiento-servicios.*'), role: 'coordinador' },
     { name: 'Usuarios', href: route('admin.usuarios.index'), icon: UsersIcon, active: route().current('admin.usuarios.*'), role: 'admin' },
-    { name: 'Ajustes', href: route('admin.settings.index'), icon: Cog6ToothIcon, active: route().current('admin.settings.*'), role: 'coordinador' },
 ]
+
+const settingsLink = { name: 'Ajustes', href: route('admin.settings.index'), icon: Cog6ToothIcon, active: route().current('admin.settings.*'), role: 'coordinador' }
 
 const hasRole = (auth, role) => {
     if (role === 'coordinador') {
@@ -70,6 +71,7 @@ const hasRole = (auth, role) => {
                                 : 'text-zinc-400 hover:text-white hover:bg-zinc-800',
                             'group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200'
                         ]"
+                        prefetch
                     >
                         <component :is="item.icon" class="me-3 flex-shrink-0 h-5 w-5" aria-hidden="true" />
                         {{ item.name }}
@@ -92,6 +94,7 @@ const hasRole = (auth, role) => {
                                         : 'text-zinc-400 hover:text-white hover:bg-zinc-800',
                                     'group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200'
                                 ]"
+                                prefetch
                             >
                                 <component :is="item.icon" class="me-3 flex-shrink-0 h-5 w-5" aria-hidden="true" />
                                 {{ item.name }}
@@ -101,12 +104,29 @@ const hasRole = (auth, role) => {
                 </div>
             </nav>
 
-            <!-- Bottom Section (Settings or Info) -->
-            <div class="p-4 bg-zinc-900/50 border-t border-zinc-800/50">
-                <div class="flex items-center gap-3 px-2 py-2 text-zinc-400 italic text-xs">
-                    <ShieldCheckIcon class="h-4 w-4" />
-                    <span>Acceso de {{ auth.user.name.split(' ')[0] }}</span>
+            <!-- Bottom Section (Compact Username + Settings) -->
+            <div class="p-4 bg-zinc-900/50 border-t border-zinc-800/50 flex items-center justify-between gap-x-2">
+                <div class="flex items-center gap-x-2 overflow-hidden">
+                    <ShieldCheckIcon class="h-4 w-4 text-emerald-500/80 flex-shrink-0" />
+                    <span class="text-zinc-400 text-xs font-medium truncate" :title="auth.user.name">
+                        {{ auth.user.name }}
+                    </span>
                 </div>
+
+                <Link
+                    v-if="hasRole(auth, settingsLink.role)"
+                    :href="settingsLink.href"
+                    title="Ajustes de sistema"
+                    :class="[
+                        settingsLink.active
+                            ? 'text-white bg-zinc-800 border border-zinc-700/50'
+                            : 'text-zinc-400 hover:text-white hover:bg-zinc-800',
+                        'p-2 rounded-lg transition-all duration-200 flex-shrink-0'
+                    ]"
+                    prefetch
+                >
+                    <component :is="settingsLink.icon" class="h-5 w-5" aria-hidden="true" />
+                </Link>
             </div>
         </div>
     </aside>
@@ -196,6 +216,31 @@ const hasRole = (auth, role) => {
                                 </div>
                             </div>
                         </nav>
+                    </div>
+
+                    <!-- Pie del Sidebar Móvil -->
+                    <div class="mt-auto p-4 border-t border-zinc-800/50 flex items-center justify-between gap-x-2">
+                        <div class="flex items-center gap-x-3 overflow-hidden">
+                            <ShieldCheckIcon class="h-5 w-5 text-emerald-500/80 flex-shrink-0" />
+                            <span class="text-zinc-300 text-sm font-semibold truncate">
+                                {{ auth.user.name }}
+                            </span>
+                        </div>
+
+                        <Link
+                            v-if="hasRole(auth, settingsLink.role)"
+                            :href="settingsLink.href"
+                            @click="$emit('close')"
+                            title="Ajustes de sistema"
+                            :class="[
+                                settingsLink.active
+                                    ? 'text-white bg-zinc-800 border border-zinc-700/50'
+                                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800',
+                                'p-2.5 rounded-xl transition-all duration-200 flex-shrink-0'
+                            ]"
+                        >
+                            <component :is="settingsLink.icon" class="h-6 w-6" aria-hidden="true" />
+                        </Link>
                     </div>
                 </div>
             </transition>

@@ -142,7 +142,7 @@ const destroyService = () => {
             <PageHeader :title="mantenimiento.aplicacion" inline>
                 <template #actions>
                     <div class="flex gap-2">
-                        <Link :href="route('admin.mantenimientos.index')">
+                        <Link :href="route('admin.mantenimientos.index')" prefetch>
                             <SecondaryButton :title="`Volver a todos los mantenimientos`" class="flex items-center">
                                 <ChevronLeftIcon class="h-4 w-4" />
                             </SecondaryButton>
@@ -310,7 +310,7 @@ const destroyService = () => {
                         </table>
                     </div>
                     <div class="mt-4">
-                        <Pagination v-if="servicios.links?.length > 3" :links="servicios.links" />
+                        <Pagination v-if="servicios.links?.length > 3" :links="servicios.links" prefetch />
                     </div>
                 </Card>
 
@@ -335,7 +335,7 @@ const destroyService = () => {
                 <!-- Record Navigation Pagination -->
                 <div class="flex justify-center pb-8 pt-6">
                     <div class="text-center">
-                        <Pagination :links="pagination.links" />
+                        <Pagination :links="pagination.links" prefetch />
                     </div>
                 </div>
 

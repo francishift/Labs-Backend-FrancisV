@@ -1,13 +1,12 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import { Head, useForm } from '@inertiajs/vue3'
+import { Head, useForm, Link, router } from '@inertiajs/vue3'
 import PrimaryButton from '@/Components/PrimaryButton.vue'
 import SecondaryButton from '@/Components/SecondaryButton.vue'
 import DangerButton from '@/Components/DangerButton.vue'
 import DialogModal from '@/Components/DialogModal.vue'
 import Pagination from '@/Components/Pagination.vue'
 import SearchInput from '@/Components/SearchInput.vue'
-import FlashMessages from '@/Components/FlashMessages.vue'
 import Card from '@/Components/Card.vue'
 import ConfirmModal from '@/Components/ConfirmModal.vue'
 import DataTable from '@/Components/DataTable.vue'
@@ -16,7 +15,7 @@ import PageHeader from '@/Components/PageHeader.vue'
 import CreateClientForm from './Partials/CreateClientForm.vue'
 import EditClientForm from './Partials/EditClientForm.vue'
 import ImportClientForm from './Partials/ImportClientForm.vue'
-import { PencilIcon, TrashIcon, ArrowUpTrayIcon, UserPlusIcon } from '@heroicons/vue/24/outline'
+import { PencilIcon, TrashIcon, ArrowUpTrayIcon, UserPlusIcon, EyeIcon } from '@heroicons/vue/24/outline'
 
 import { useDebouncedSearch } from '@/Composables/useDebouncedSearch'
 import { useCRUDModals } from '@/Composables/useCRUDModals'
@@ -57,6 +56,10 @@ const destroyClient = () => {
     onFinish: () => closeConfirmModal()
   })
 }
+
+const navigateToClient = (item) => {
+  router.visit(route('admin.clientes.show', item.id))
+}
 </script>
 
 <template>
@@ -80,8 +83,6 @@ const destroyClient = () => {
     </template>
 
     <div class="py-6 space-y-6">
-        <FlashMessages />
-
         <Card class="p-6">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <h3 class="text-lg font-medium text-gray-900 dark:text-white">Listado de clientes</h3>
@@ -94,10 +95,15 @@ const destroyClient = () => {
               <DataTable
                 :columns="columns"
                 :items="clients.data"
-                @row-click="openEditModal"
+                @row-click="navigateToClient"
               >
                 <template #cell-actions="{ item }">
                   <div class="flex justify-end gap-2">
+                    <Link :href="route('admin.clientes.show', item.id)" @click.stop>
+                      <SecondaryButton>
+                        <EyeIcon class="h-4 w-4" />
+                      </SecondaryButton>
+                    </Link>
                     <SecondaryButton @click.stop="openEditModal(item)">
                       <PencilIcon class="h-4 w-4" />
                     </SecondaryButton>

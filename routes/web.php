@@ -73,6 +73,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/admin/usuarios/{user}', [UserController::class, 'destroy'])->name('admin.usuarios.destroy'); 
 
         Route::get('/admin/clientes', [ClientController::class, 'index'])->name('admin.clientes.index');
+        Route::get('/admin/clientes/{client}', [ClientController::class, 'show'])->name('admin.clientes.show');
         Route::post('/admin/clientes', [ClientController::class, 'store'])->name('admin.clientes.store');
         Route::patch('/admin/clientes/{client}', [ClientController::class, 'update'])->name('admin.clientes.update');
         Route::delete('/admin/clientes/{client}', [ClientController::class, 'destroy'])->name('admin.clientes.destroy');

@@ -20,6 +20,7 @@ class UserController extends Controller
             ->values();
 
         $users = User::query()
+            ->select(['id', 'name', 'email', 'created_at'])
             ->with('roles:id,name')
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {

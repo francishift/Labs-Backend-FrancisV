@@ -95,7 +95,7 @@ const columns = [
                         <SearchInput v-model="search" placeholder="Busca por descripción o aplicación..." />
                     </div>
 
-                    <DataTable :columns="columns" :items="servicios.data">
+                    <DataTable :columns="columns" :items="servicios.data" @row-click="openEditModal">
                         <template #cell-aplicacion="{ item }">
                             <div class="flex flex-col">
                                 <span class="font-bold text-gray-900 dark:text-zinc-100">{{ item.mantenimiento?.aplicacion || 'N/A' }}</span>
@@ -117,15 +117,15 @@ const columns = [
 
                         <template #cell-actions="{ item }">
                             <div class="flex justify-end gap-2">
-                                <Link :href="route('admin.mantenimientos.show', item.mantenimiento_id)">
+                                <Link :href="route('admin.mantenimientos.show', item.mantenimiento_id)" @click.stop>
                                     <SecondaryButton title="Ver Mantenimiento">
                                         <EyeIcon class="h-4 w-4" />
                                     </SecondaryButton>
                                 </Link>
-                                <SecondaryButton @click="openEditModal(item)" title="Editar">
+                                <SecondaryButton @click.stop="openEditModal(item)" title="Editar">
                                     <PencilIcon class="h-4 w-4" />
                                 </SecondaryButton>
-                                <DangerButton @click="confirmDelete(item)" title="Eliminar">
+                                <DangerButton @click.stop="confirmDelete(item)" title="Eliminar">
                                     <TrashIcon class="h-4 w-4" />
                                 </DangerButton>
                             </div>

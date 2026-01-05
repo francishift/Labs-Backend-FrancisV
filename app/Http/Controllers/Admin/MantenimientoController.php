@@ -17,7 +17,8 @@ class MantenimientoController extends Controller
     public function index(Request $request)
     {
         $mantenimientos = Mantenimiento::query()
-            ->with(['cliente', 'extensiones'])
+            ->select(['id', 'aplicacion', 'url', 'fecha_inicio', 'tipo_pago', 'importe', 'estado', 'client_id'])
+            ->with(['cliente:id,name', 'extensiones:id,nombre'])
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('aplicacion', 'like', "%{$search}%")
@@ -72,7 +73,10 @@ class MantenimientoController extends Controller
      */
     public function show(Request $request, Mantenimiento $mantenimiento)
     {
-        $mantenimiento->load(['cliente', 'extensiones']);
+        $mantenimiento->load([
+            'cliente:id,name,email,phone,mobile',
+            'extensiones:id,nombre,precio,tipo_licencia'
+        ]);
         
         $year = $request->input('year', date('Y'));
         $month = $request->input('month', date('n')); // 1-12 o 'all'

@@ -17,7 +17,8 @@ class ProyectoController extends Controller
     public function index(Request $request)
     {
         $proyectos = Proyecto::query()
-            ->with(['client', 'extensiones'])
+            ->select(['id', 'proyecto', 'fecha_inicio', 'presupuesto', 'estado', 'client_id'])
+            ->with(['client:id,name', 'extensiones:id,nombre'])
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('proyecto', 'like', "%{$search}%")
@@ -79,7 +80,11 @@ class ProyectoController extends Controller
      */
     public function show(Proyecto $proyecto)
     {
-        $proyecto->load(['client', 'servicios', 'extensiones']);
+        $proyecto->load([
+            'client:id,name,email,phone,mobile',
+            'servicios',
+            'extensiones:id,nombre,precio,tipo_licencia'
+        ]);
 
         // Obtenemos todos los IDs en el orden correcto para encontrar la "página" del proyecto actual
         $allProjectIds = Proyecto::query()

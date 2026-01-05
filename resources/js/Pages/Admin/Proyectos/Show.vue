@@ -96,7 +96,7 @@ const destroyService = () => {
             <PageHeader :title="proyecto.proyecto" inline>
                 <template #actions>
                     <div class="flex gap-2">
-                        <Link :href="route('admin.proyectos.index')">
+                        <Link :href="route('admin.proyectos.index')" prefetch>
                             <SecondaryButton :title="`Volver a todos los proyectos`" class="flex items-center">
                                 <ChevronLeftIcon class="h-4 w-4" />
                             </SecondaryButton>
@@ -277,7 +277,7 @@ const destroyService = () => {
                 <!-- Full Pagination -->
                 <div class="flex justify-center pb-8  pt-6">
                     <div class="text-center">
-                        <Pagination :links="pagination.links" />
+                        <Pagination :links="pagination.links" prefetch />
                     </div>
                 </div>
 
