@@ -1,3 +1,9 @@
+<script>
+export default {
+    inheritAttrs: false
+}
+</script>
+
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { ChevronUpDownIcon, MagnifyingGlassIcon, CheckIcon, XMarkIcon } from '@heroicons/vue/20/solid';
@@ -131,6 +137,7 @@ onUnmounted(() => {
                         </div>
                         <input
                             v-model="search"
+                            v-bind="$attrs"
                             type="text"
                             class="block w-full rounded-md border-gray-300 pl-10 focus:border-gray-500 focus:ring-gray-500 sm:text-sm dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-300 dark:focus:border-zinc-500"
                             placeholder="Buscar..."

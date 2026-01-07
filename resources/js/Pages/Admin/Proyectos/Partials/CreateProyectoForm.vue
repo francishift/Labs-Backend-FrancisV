@@ -48,6 +48,7 @@ const submitCreate = () => {
             <div class="md:col-span-2">
                 <InputLabel for="create_client_id" value="Cliente" />
                 <SearchableSelect
+                    id="create_client_id"
                     v-model="createForm.client_id"
                     :options="clients"
                     placeholder="Buscar y seleccionar cliente..."

@@ -63,6 +63,7 @@ const submitEdit = () => {
             <div class="md:col-span-2">
                 <InputLabel for="edit_client_id" value="Cliente" />
                 <SearchableSelect
+                    id="edit_client_id"
                     v-model="editForm.client_id"
                     :options="clients"
                     placeholder="Buscar y seleccionar cliente..."

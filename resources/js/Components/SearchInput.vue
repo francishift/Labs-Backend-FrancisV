@@ -1,3 +1,9 @@
+<script>
+export default {
+    inheritAttrs: false
+}
+</script>
+
 <script setup>
 import { XMarkIcon } from '@heroicons/vue/24/solid';
 
@@ -21,6 +27,7 @@ const clear = () => {
 <template>
     <div class="relative">
         <input
+            v-bind="$attrs"
             type="text"
             class="w-full rounded-md border-gray-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 shadow-sm focus:border-zinc-500 focus:ring-zinc-500 pl-4 pr-10 dark:[color-scheme:dark]"
             :placeholder="placeholder"
