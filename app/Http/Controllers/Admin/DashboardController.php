@@ -85,11 +85,11 @@ class DashboardController extends Controller
         
         // Proyectos activos por cliente
         $proyectosPorCliente = \App\Models\Proyecto::where('estado', 'En proceso')
-            ->with('cliente:id,name')
+            ->with('client:id,name')
             ->get();
         
         foreach ($proyectosPorCliente as $p) {
-            $clientName = $p->cliente->name ?? 'Sin Cliente';
+            $clientName = $p->client->name ?? 'Sin Cliente';
             $clientesData[$clientName] = ($clientesData[$clientName] ?? 0) + (float)$p->presupuesto;
         }
         
