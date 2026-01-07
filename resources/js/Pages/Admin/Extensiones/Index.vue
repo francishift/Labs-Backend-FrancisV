@@ -95,8 +95,14 @@ const destroyExtension = () => {
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white">Gestión de extensiones</h3>
             <div class="w-full md:w-80">
-              <SearchInput placeholder="Buscar por nombre o descripción..." class="w-full" v-model="search" />
-            </div>
+              <SearchInput 
+                id="search-extensiones"
+                name="search-extensiones"
+                placeholder="Buscar por nombre o descripción..." 
+                class="w-full" 
+                v-model="search" 
+              />
+           </div>
           </div>
 
           <div class="mt-4">

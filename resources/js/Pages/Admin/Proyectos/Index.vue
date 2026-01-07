@@ -128,8 +128,14 @@ const navigateToShow = (item) => {
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white">Gestión de proyectos</h3>
             <div class="w-full md:w-80">
-              <SearchInput placeholder="Buscar por proyecto o cliente..." class="w-full" v-model="search" />
-            </div>
+              <SearchInput 
+                id="search-proyectos"
+                name="search-proyectos"
+                placeholder="Buscar por proyecto o cliente..." 
+                class="w-full" 
+                v-model="search" 
+              />
+           </div>
           </div>
 
           <div class="mt-4">

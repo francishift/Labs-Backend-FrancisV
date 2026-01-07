@@ -117,7 +117,13 @@ const navigateToShow = (item) => {
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white">Gestión de mantenimientos</h3>
             <div class="w-full md:w-80">
-              <SearchInput placeholder="Buscar por aplicación o cliente..." class="w-full" v-model="search" />
+              <SearchInput 
+                id="search-mantenimientos"
+                name="search-mantenimientos"
+                placeholder="Buscar por aplicación o cliente..." 
+                class="w-full" 
+                v-model="search" 
+              />
             </div>
           </div>
 

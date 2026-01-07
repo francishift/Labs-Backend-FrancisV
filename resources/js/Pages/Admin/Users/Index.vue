@@ -75,8 +75,14 @@ const destroyUser = () => {
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <h3 class="text-lg font-medium text-gray-900 dark:text-white">Listado</h3>
               <div class="w-full md:w-80">
-                <SearchInput placeholder="Buscar por nombre o email..." class="w-full" v-model="search" />
-              </div>
+                <SearchInput 
+                  id="search-usuarios"
+                  name="search-usuarios"
+                  placeholder="Buscar por nombre o email..." 
+                  class="w-full" 
+                  v-model="search" 
+                />
+             </div>
             </div>
 
             <div class="mt-4">

@@ -92,8 +92,13 @@ const columns = [
         <div class="py-6 space-y-6">
                 <Card class="p-6">
                     <div class="mb-6">
-                        <SearchInput v-model="search" placeholder="Busca por descripción o aplicación..." />
-                    </div>
+                        <SearchInput 
+                          id="search-mantenimiento-servicios"
+                          name="search-mantenimiento-servicios"
+                          v-model="search" 
+                          placeholder="Busca por descripción o aplicación..." 
+                        />
+                   </div>
 
                     <DataTable :columns="columns" :items="servicios.data" @row-click="openEditModal">
                         <template #cell-aplicacion="{ item }">
