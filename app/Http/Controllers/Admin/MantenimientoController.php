@@ -61,14 +61,9 @@ class MantenimientoController extends Controller
 
         $data['precio_hora'] = Mantenimiento::getDiscountedHourlyRate();
         $mantenimiento = Mantenimiento::create($data);
-
+        
         if ($request->has('extensiones')) {
-            $extensionesConPrecio = [];
-            foreach ($request->extensiones as $extId) {
-                $ext = Extension::find($extId);
-                $extensionesConPrecio[$extId] = ['precio_aplicado' => $ext->precio];
-            }
-            $mantenimiento->extensiones()->sync($extensionesConPrecio);
+            $mantenimiento->syncExtensionSnapshots($request->extensiones);
         }
 
         return back()->with('success', 'Mantenimiento creado correctamente.');
@@ -100,25 +95,8 @@ class MantenimientoController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10, ['*'], 'servicios_page')
             ->withQueryString();
-
-        // Cálculos de costes de servicios en el periodo usando el snapshot si existe o el global de reserva
-        $precioHoraAplicado = $mantenimiento->precio_hora ?: Mantenimiento::getDiscountedHourlyRate();
-        $totalMinutosPeriodo = $serviciosQuery->sum('duracion_minutos');
-        $totalCosteServiciosPeriodo = ($totalMinutosPeriodo / 60) * $precioHoraAplicado;
-
-        // Cálculo de ingresos proporcionales
-        $ingresoPeriodo = $mantenimiento->calculatePeriodIncome($month);
-        $costeExtensionesPeriodo = $mantenimiento->extensiones->sum(function($ext) use ($month) {
-            // Usamos el precio capturado si existe, de lo contrario usamos el actual (fallback)
-            $precioSnapshot = $ext->pivot->precio_aplicado ?? $ext->precio;
             
-            // Replicamos la lógica de calculatePeriodCost pero con el precio snapshot
-            $esAnual = $ext->tipo_licencia === 'anual';
-            if ($month === 'all') {
-                return $esAnual ? $precioSnapshot : $precioSnapshot * 12;
-            }
-            return $esAnual ? $precioSnapshot / 12 : $precioSnapshot;
-        });
+        $financialStats = $mantenimiento->getFinancialStats($month, $year);
 
         // Datos para los selectores de filtro
         $aniosDisponibles = $mantenimiento->servicios()->selectRaw('YEAR(fecha) as year')->distinct()->pluck('year')->toArray();
@@ -168,16 +146,12 @@ class MantenimientoController extends Controller
             'pagination' => $paginationData,
             'clients' => \App\Models\Client::orderBy('name')->get(['id', 'name']),
             'availableExtensions' => \App\Models\Extension::orderBy('nombre')->get(['id', 'nombre']),
-            'stats' => [
-                'ingreso' => $ingresoPeriodo,
-                'coste_servicios' => $totalCosteServiciosPeriodo,
-                'coste_extensiones' => $costeExtensionesPeriodo,
-                'balance' => $ingresoPeriodo - $totalCosteServiciosPeriodo - $costeExtensionesPeriodo,
+            'stats' => array_merge($financialStats, [
                 'periodo' => [
                     'month' => $month === 'all' ? 'all' : (int)$month,
                     'year' => (int)$year
                 ]
-            ],
+            ]),
             'aniosDisponibles' => array_reverse($aniosDisponibles),
         ]);
     }
@@ -202,14 +176,9 @@ class MantenimientoController extends Controller
         ]);
 
         $mantenimiento->update($data);
-
+        
         if ($request->has('extensiones')) {
-            $extensionesConPrecio = [];
-            foreach ($request->extensiones as $extId) {
-                $ext = Extension::find($extId);
-                $extensionesConPrecio[$extId] = ['precio_aplicado' => $ext->precio];
-            }
-            $mantenimiento->extensiones()->sync($extensionesConPrecio);
+            $mantenimiento->syncExtensionSnapshots($request->extensiones);
         }
 
         return back()->with('success', 'Mantenimiento actualizado correctamente.');

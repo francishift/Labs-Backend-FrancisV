@@ -54,6 +54,28 @@ class Extension extends Model
 
     public function mantenimientos()
     {
-        return $this->belongsToMany(Mantenimiento::class, 'mantenimiento_extension', 'extension_id', 'mantenimiento_id');
+        return $this->belongsToMany(Mantenimiento::class, 'mantenimiento_extension', 'extension_id', 'mantenimiento_id')->withPivot('precio_aplicado')->withTimestamps();
+    }
+
+    /**
+     * Obtiene estadísticas de uso de extensiones para el dashboard.
+     */
+    public static function getUsageStatsForDashboard()
+    {
+        $totalEntidades = Proyecto::count() + Mantenimiento::count();
+        
+        return self::withCount(['proyectos', 'mantenimientos'])
+            ->get()
+            ->map(function ($ext) use ($totalEntidades) {
+                $totalUso = $ext->proyectos_count + $ext->mantenimientos_count;
+                return [
+                    'name' => $ext->nombre,
+                    'value' => $totalUso,
+                    'percentage' => $totalEntidades > 0 ? round(($totalUso / $totalEntidades) * 100, 1) : 0
+                ];
+            })
+            ->filter(fn($item) => $item['value'] > 0)
+            ->sortByDesc('value')
+            ->values();
     }
 }

@@ -70,12 +70,7 @@ class ProyectoController extends Controller
         $proyecto = Proyecto::create($data);
 
         if ($request->has('extensiones')) {
-            $extensionesConPrecio = [];
-            foreach ($request->extensiones as $extId) {
-                $ext = Extension::find($extId);
-                $extensionesConPrecio[$extId] = ['precio_aplicado' => $ext->precio];
-            }
-            $proyecto->extensiones()->sync($extensionesConPrecio);
+            $proyecto->syncExtensionSnapshots($request->extensiones);
         }
 
         return back()
@@ -166,16 +161,7 @@ class ProyectoController extends Controller
         $proyecto->update($data);
 
         if ($request->has('extensiones')) {
-            $extensionesConPrecio = [];
-            foreach ($request->extensiones as $extId) {
-                $ext = Extension::find($extId);
-                // Si ya existe en el pivot, quizás queramos mantenerlo? 
-                // Pero el user está actualizando, así que probablemente quiera el precio actual si añade nuevas.
-                // En un update, si ya existe, solemos sobreescribir con el actual del maestro para simplificar,
-                // o buscar el que ya tenía. Vamos a simplificar: si se sincroniza, se aplica el precio vigente.
-                $extensionesConPrecio[$extId] = ['precio_aplicado' => $ext->precio];
-            }
-            $proyecto->extensiones()->sync($extensionesConPrecio);
+            $proyecto->syncExtensionSnapshots($request->extensiones);
         }
 
         return back()

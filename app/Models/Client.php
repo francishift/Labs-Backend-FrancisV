@@ -36,4 +36,36 @@ class Client extends Model
     {
         return $this->hasMany(Mantenimiento::class);
     }
+
+    /**
+     * Obtiene los datos del Top 10 clientes por valor anualizado (Proyectos + Mantenimientos).
+     */
+    public static function getAnnualValueDataForChart()
+    {
+        $clientesData = [];
+
+        // Proyectos activos
+        Proyecto::where('estado', 'En proceso')
+            ->with('client:id,name')
+            ->get()
+            ->each(function ($p) use (&$clientesData) {
+                $name = $p->client->name ?? 'Sin Cliente';
+                $clientesData[$name] = ($clientesData[$name] ?? 0) + (float)$p->presupuesto;
+            });
+
+        // Mantenimientos activos
+        Mantenimiento::where('estado', 'en curso')
+            ->with('cliente:id,name')
+            ->get()
+            ->each(function ($m) use (&$clientesData) {
+                $name = $m->cliente->name ?? 'Sin Cliente';
+                $clientesData[$name] = ($clientesData[$name] ?? 0) + $m->calculatePeriodIncome('all');
+            });
+
+        return collect($clientesData)
+            ->map(fn($value, $name) => ['name' => $name, 'value' => $value])
+            ->sortByDesc('value')
+            ->values()
+            ->take(10);
+    }
 }
