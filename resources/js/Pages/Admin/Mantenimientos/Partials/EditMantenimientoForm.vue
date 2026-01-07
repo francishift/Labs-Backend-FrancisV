@@ -95,6 +95,7 @@ const submitUpdate = () => {
                 <InputError class="mt-2" :message="editForm.errors.extensiones" />
             </div>
 
+
             <div class="md:col-span-2">
                 <InputLabel for="edit_descripcion" value="Descripción" />
                 <TextArea

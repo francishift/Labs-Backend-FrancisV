@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\ExtensionController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\MantenimientoController;
 use App\Http\Controllers\Admin\MantenimientoServicioController;
+use App\Http\Controllers\Admin\SoftwareController;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
@@ -75,6 +76,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/admin/servicios', [ServicioController::class, 'store'])->name('admin.servicios.store');
         Route::patch('/admin/servicios/{servicio}', [ServicioController::class, 'update'])->name('admin.servicios.update');
         Route::delete('/admin/servicios/{servicio}', [ServicioController::class, 'destroy'])->name('admin.servicios.destroy');
+
+        Route::get('/admin/software-hosting', [SoftwareController::class, 'index'])->name('admin.softwares.index');
+        Route::post('/admin/software-hosting', [SoftwareController::class, 'store'])->name('admin.softwares.store');
+        Route::patch('/admin/software-hosting/{software}', [SoftwareController::class, 'update'])->name('admin.softwares.update');
+        Route::delete('/admin/software-hosting/{software}', [SoftwareController::class, 'destroy'])->name('admin.softwares.destroy');
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

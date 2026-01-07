@@ -23,6 +23,7 @@ const props = defineProps({
     pagination: Object,
     clients: Array,
     availableExtensions: Array,
+    stats: Object,
 })
 
 const page = usePage()
@@ -72,7 +73,7 @@ const calculateServiceHoursCost = (service) => {
 
 const servicesTotal = computed(() => props.proyecto.servicios?.reduce((acc, s) => acc + calculateServiceTotal(s), 0) || 0)
 const extensionsTotal = computed(() => props.proyecto.extensiones?.reduce((acc, e) => acc + parseFloat(e.pivot?.precio_aplicado || e.precio || 0), 0) || 0)
-const grandTotal = computed(() => servicesTotal.value + extensionsTotal.value)
+const grandTotal = computed(() => servicesTotal.value + extensionsTotal.value + (props.stats?.coste_software || 0))
 
 const formatMinutesToHours = (minutes) => {
     const h = Math.floor(minutes / 60)
@@ -155,6 +156,10 @@ const destroyService = () => {
                             <div class="flex justify-between items-center text-sm">
                                 <span class="text-emerald-700 dark:text-emerald-300">Total Extensiones</span>
                                 <span class="font-medium text-emerald-900 dark:text-emerald-200 text-right">{{ formatCurrency(extensionsTotal) }}</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-emerald-700 dark:text-emerald-300">Software / Hosting (Gasto Global)</span>
+                                <span class="font-medium text-emerald-900 dark:text-emerald-200 text-right">{{ formatCurrency(props.stats?.coste_software || 0) }}</span>
                             </div>
                             <div class="border-t border-emerald-200 dark:border-emerald-800 pt-3 flex justify-between items-center">
                                 <span class="text-base font-bold text-emerald-900 dark:text-emerald-400">Coste Total</span>
@@ -274,6 +279,7 @@ const destroyService = () => {
                         </div>
                     </div>
                 </Card>
+
 
                 <!-- Full Pagination -->
                 <div class="flex justify-center pb-8  pt-6">

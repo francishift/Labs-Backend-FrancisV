@@ -12,7 +12,8 @@ import {
     ClockIcon,
     ClipboardDocumentCheckIcon,
     XMarkIcon,
-    Cog6ToothIcon
+    Cog6ToothIcon,
+    ComputerDesktopIcon
 } from '@heroicons/vue/24/outline'
 
 defineProps({
@@ -27,12 +28,13 @@ const navigation = [
 ]
 
 const adminNavigation = [
-    { name: 'Clientes', href: route('admin.clientes.index'), icon: UserGroupIcon, active: route().current('admin.clientes.*'), role: 'admin' },
     { name: 'Proyectos', href: route('admin.proyectos.index'), icon: BriefcaseIcon, active: route().current('admin.proyectos.*'), role: 'coordinador' },
-    { name: 'Servicios', href: route('admin.servicios.index'), icon: WrenchScrewdriverIcon, active: route().current('admin.servicios.*'), role: 'coordinador' },
-    { name: 'Extensiones', href: route('admin.extensiones.index'), icon: PuzzlePieceIcon, active: route().current('admin.extensiones.*'), role: 'admin' },
     { name: 'Mantenimientos', href: route('admin.mantenimientos.index'), icon: ClockIcon, active: route().current('admin.mantenimientos.*'), role: 'admin' },
-    { name: 'Tareas mantenimientos', href: route('admin.mantenimiento-servicios.index'), icon: ClipboardDocumentCheckIcon, active: route().current('admin.mantenimiento-servicios.*'), role: 'admin' },
+    { name: 'Clientes', href: route('admin.clientes.index'), icon: UserGroupIcon, active: route().current('admin.clientes.*'), role: 'admin' },
+    { name: 'Extensiones', href: route('admin.extensiones.index'), icon: PuzzlePieceIcon, active: route().current('admin.extensiones.*'), role: 'admin' },
+    { name: 'Software / Hosting', href: route('admin.softwares.index'), icon: ComputerDesktopIcon, active: route().current('admin.softwares.*'), role: 'admin' },
+    { name: 'Tareas de Mantenimiento', href: route('admin.mantenimiento-servicios.index'), icon: ClipboardDocumentCheckIcon, active: route().current('admin.mantenimiento-servicios.*'), role: 'admin' },
+    { name: 'Servicios', href: route('admin.servicios.index'), icon: WrenchScrewdriverIcon, active: route().current('admin.servicios.*'), role: 'coordinador' },
     { name: 'Usuarios', href: route('admin.usuarios.index'), icon: UsersIcon, active: route().current('admin.usuarios.*'), role: 'admin' },
 ]
 

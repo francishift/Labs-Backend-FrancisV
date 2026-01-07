@@ -38,6 +38,7 @@ class ProyectoController extends Controller
             'filters' => $request->only(['search']),
             'clients' => Client::orderBy('name')->get(['id', 'name']),
             'availableExtensions' => Extension::orderBy('nombre')->get(['id', 'nombre', 'precio']),
+            'stats' => Proyecto::getAggregatedStatsForYear(),
         ]);
     }
 
@@ -67,6 +68,9 @@ class ProyectoController extends Controller
         ]);
 
         $data['precio_hora'] = Configuracion::get('precio_hora', 0);
+        $data['porcentaje_software'] = (float) Configuracion::get('porcentaje_software', 2);
+        $data['coste_software_anual'] = \App\Models\Software::getTotalAnual();
+        
         $proyecto = Proyecto::create($data);
 
         if ($request->has('extensiones')) {
@@ -85,7 +89,7 @@ class ProyectoController extends Controller
         $proyecto->load([
             'client:id,name,email,phone,mobile',
             'servicios',
-            'extensiones:id,nombre,precio,tipo_licencia'
+            'extensiones:id,nombre,precio,tipo_licencia',
         ]);
 
         // Obtenemos todos los IDs en el orden correcto para encontrar la "página" del proyecto actual
@@ -130,6 +134,9 @@ class ProyectoController extends Controller
             'pagination' => $paginationData,
             'clients' => \App\Models\Client::orderBy('name')->get(['id', 'name']),
             'availableExtensions' => \App\Models\Extension::orderBy('nombre')->get(['id', 'nombre']),
+            'stats' => [
+                'coste_software' => (($proyecto->coste_software_anual ?? \App\Models\Software::getTotalAnual()) * (float)($proyecto->porcentaje_software ?? \App\Models\Configuracion::get('porcentaje_software', 2))) / 100
+            ]
         ]);
     }
 

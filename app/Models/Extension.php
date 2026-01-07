@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\CalculatesPeriodCosts;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Extension extends Model
 {
-    use HasFactory;
+    use HasFactory, CalculatesPeriodCosts, SoftDeletes;
 
     protected $table = 'extensiones';
 
@@ -22,30 +24,6 @@ class Extension extends Model
     protected $casts = [
         'precio' => 'decimal:2',
     ];
-
-    /**
-     * Calcula el coste de la extensión para un periodo dado.
-     * 
-     * @param string|int $month 'all' para anual o 1-12 para un mes específico.
-     * @return float
-     */
-    public function calculatePeriodCost($month = 'all'): float
-    {
-        $precio = (float) $this->precio;
-        $tipo = strtolower($this->tipo_licencia);
-
-        if ($month === 'all') {
-            // Vista anual
-            if ($tipo === 'anual') return $precio;
-            if ($tipo === 'mensual') return $precio * 12;
-            return $precio; // Pago único o desconocido
-        } else {
-            // Vista mensual
-            if ($tipo === 'anual') return $precio / 12;
-            if ($tipo === 'mensual') return $precio;
-            return $precio / 12; // Pago único - lo prorrateamos por 12
-        }
-    }
 
     public function proyectos()
     {
@@ -64,7 +42,8 @@ class Extension extends Model
     {
         $totalEntidades = Proyecto::count() + Mantenimiento::count();
         
-        return self::withCount(['proyectos', 'mantenimientos'])
+        return self::withTrashed()
+            ->withCount(['proyectos', 'mantenimientos'])
             ->get()
             ->map(function ($ext) use ($totalEntidades) {
                 $totalUso = $ext->proyectos_count + $ext->mantenimientos_count;
@@ -77,5 +56,23 @@ class Extension extends Model
             ->filter(fn($item) => $item['value'] > 0)
             ->sortByDesc('value')
             ->values();
+    }
+
+    /**
+     * Obtiene estadísticas agregadas de extensiones combinando proyectos y mantenimientos.
+     */
+    public static function getAggregatedYearlyStats($year = null)
+    {
+        $year = $year ?: date('Y');
+        
+        $proyectoStats = Proyecto::getAggregatedStatsForYear($year);
+        $mantenimientoStats = Mantenimiento::getAggregatedStatsForYear($year);
+
+        $totalAnual = $proyectoStats['total_fijo'] + $mantenimientoStats['total_fijo'];
+        
+        return [
+            'total_anual' => $totalAnual,
+            'total_mensual' => $totalAnual / 12,
+        ];
     }
 }

@@ -12,10 +12,11 @@ import ConfirmModal from '@/Components/ConfirmModal.vue'
 import DataTable from '@/Components/DataTable.vue'
 import Badge from '@/Components/Badge.vue'
 import PageHeader from '@/Components/PageHeader.vue'
+import StatCard from '@/Components/StatCard.vue'
 
 import CreateMantenimientoForm from './Partials/CreateMantenimientoForm.vue'
 import EditMantenimientoForm from './Partials/EditMantenimientoForm.vue'
-import { PencilIcon, TrashIcon, PlusIcon, EyeIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/outline'
+import { PencilIcon, TrashIcon, PlusIcon, EyeIcon, ArrowTopRightOnSquareIcon, CurrencyEuroIcon, ClockIcon, WrenchScrewdriverIcon } from '@heroicons/vue/24/outline'
 
 import { useDebouncedSearch } from '@/Composables/useDebouncedSearch'
 import { useFormatters } from '@/Composables/useFormatters'
@@ -26,9 +27,10 @@ const props = defineProps({
   filters: Object,
   clients: Array,
   availableExtensions: Array,
+  stats: Object,
 })
 
-const { formatDate, formatCurrency } = useFormatters()
+const { formatDate, formatCurrency, formatDuration } = useFormatters()
 const { search } = useDebouncedSearch(props.filters.search, 'admin.mantenimientos.index')
 const {
     showCreateModal, showEditModal, showConfirmModal, 
@@ -86,6 +88,31 @@ const navigateToShow = (item) => {
     </template>
 
     <div class="py-6 space-y-6">
+        <!-- Stats Cards Area -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <StatCard
+            title="Ingreso Mantenimientos (Anual)"
+            :value="stats.total_ingresos"
+            :icon="CurrencyEuroIcon"
+            variant="emerald"
+            :is-currency="true"
+          />
+          <StatCard
+            title="Extensiones + Software (Anual)"
+            :value="stats.total_fijo"
+            :icon="WrenchScrewdriverIcon"
+            variant="indigo"
+            :is-currency="true"
+          />
+          <StatCard
+            title="Horas realizadas (Anual)"
+            :value="formatDuration(stats.total_minutos)"
+            :icon="ClockIcon"
+            variant="rose"
+            :is-currency="false"
+          />
+        </div>
+
         <Card class="p-6">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white">Gestión de mantenimientos</h3>
@@ -153,8 +180,8 @@ const navigateToShow = (item) => {
       <template #content>
         <CreateMantenimientoForm 
           :clients="props.clients" 
-          :availableExtensions="props.availableExtensions"
-          :closeCreateModal="closeCreateModal" 
+          :available-extensions="props.availableExtensions"
+          :close-create-modal="closeCreateModal" 
         />
       </template>
       <template #footer>
@@ -170,8 +197,8 @@ const navigateToShow = (item) => {
         <EditMantenimientoForm 
           :mantenimiento="editingItem" 
           :clients="props.clients" 
-          :availableExtensions="props.availableExtensions"
-          :closeEditModal="closeEditModal" 
+          :available-extensions="props.availableExtensions"
+          :close-edit-modal="closeEditModal" 
         />
       </template>
       <template #footer>

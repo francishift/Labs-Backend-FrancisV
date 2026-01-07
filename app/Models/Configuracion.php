@@ -17,13 +17,23 @@ class Configuracion extends Model
         'descripcion',
     ];
 
+    protected static array $cache = [];
+
     /**
      * Get setting value by key.
      */
     public static function get($key, $default = null)
     {
+        if (array_key_exists($key, self::$cache)) {
+            return self::$cache[$key];
+        }
+
         $setting = self::where('key', $key)->first();
-        return $setting ? $setting->value : $default;
+        $value = $setting ? $setting->value : $default;
+        
+        self::$cache[$key] = $value;
+        
+        return $value;
     }
 
     /**

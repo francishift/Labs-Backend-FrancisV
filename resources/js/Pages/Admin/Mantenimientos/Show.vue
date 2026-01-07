@@ -87,6 +87,7 @@ const calculateExtensionPeriodCost = (extension) => {
     }
 }
 
+
 const month = ref(props.stats.periodo.month)
 const year = ref(props.stats.periodo.year)
 
@@ -119,6 +120,7 @@ watch([month, year], () => {
 
 const totalCost = computed(() => props.stats.coste_servicios || 0)
 const totalExtensionsCost = computed(() => props.stats.coste_extensiones || 0)
+const totalSoftwareCost = computed(() => props.stats.coste_software || 0)
 const totalIncome = computed(() => props.stats.ingreso || 0)
 const balance = computed(() => props.stats.balance || 0)
 
@@ -220,6 +222,10 @@ const destroyService = () => {
                             <div class="flex justify-between items-center text-sm">
                                 <span class="text-gray-600 dark:text-zinc-400">Coste Extensiones</span>
                                 <span class="font-medium text-red-600 dark:text-red-400">{{ formatCurrency(totalExtensionsCost) }}</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-gray-600 dark:text-zinc-400">Coste Software / Hosting</span>
+                                <span class="font-medium text-red-600 dark:text-red-400">{{ formatCurrency(totalSoftwareCost) }}</span>
                             </div>
                             <div class="flex justify-between items-center text-sm">
                                 <span class="text-gray-600 dark:text-zinc-400">Coste Servicios</span>
@@ -337,6 +343,7 @@ const destroyService = () => {
                         </div>
                     </div>
                 </Card>
+
 
                 <!-- Record Navigation Pagination -->
                 <div class="flex justify-center pb-8 pt-6">

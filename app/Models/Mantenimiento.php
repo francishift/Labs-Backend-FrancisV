@@ -4,13 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\HandlesExtensionSnapshots;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Mantenimiento extends Model
 {
-    use HasFactory;
+    use HasFactory, HandlesExtensionSnapshots;
 
     protected $fillable = [
         'aplicacion',
@@ -23,6 +24,8 @@ class Mantenimiento extends Model
         'estado',
         'descripcion',
         'precio_hora',
+        'porcentaje_software',
+        'coste_software_anual',
     ];
 
     protected $casts = [
@@ -36,10 +39,24 @@ class Mantenimiento extends Model
         return $this->belongsTo(Client::class, 'client_id');
     }
 
-    public function extensiones(): BelongsToMany
+    /**
+     * Scope para mantenimientos en curso.
+     */
+    public function scopeActive($query)
     {
-        return $this->belongsToMany(Extension::class, 'mantenimiento_extension', 'mantenimiento_id', 'extension_id')->withPivot('precio_aplicado')->withTimestamps();
+        return $query->where('estado', 'en curso');
     }
+
+    /**
+     * Scope para mantenimientos finalizados en el año actual.
+     */
+    public function scopeFinishedThisYear($query, $year = null)
+    {
+        $year = $year ?: date('Y');
+        return $query->where('estado', 'finalizado')
+            ->whereYear('fecha_fin', $year);
+    }
+
 
     public function servicios(): HasMany
     {
@@ -61,11 +78,6 @@ class Mantenimiento extends Model
         $month = (int)$period;
         if ($this->tipo_pago === 'mensual') return $this->importe;
         if ($this->tipo_pago === 'trimestral') {
-            $months = match ($this->fecha_inicio->month % 3 ?: 3) {
-                1 => [$this->fecha_inicio->month, $this->fecha_inicio->month + 3, $this->fecha_inicio->month + 6, $this->fecha_inicio->month + 9],
-                2 => [$this->fecha_inicio->month, $this->fecha_inicio->month + 3, $this->fecha_inicio->month + 6, $this->fecha_inicio->month + 9],
-                0 => [$this->fecha_inicio->month, $this->fecha_inicio->month + 3, $this->fecha_inicio->month + 6, $this->fecha_inicio->month + 9],
-            };
             // Simplificación: si el mes coincide con el trimestre de inicio o sus múltiplos
             return (($month - $this->fecha_inicio->month) % 3 === 0) ? $this->importe : 0;
         }
@@ -76,20 +88,6 @@ class Mantenimiento extends Model
         return 0;
     }
 
-    /**
-     * Sincroniza extensiones capturando su precio actual como snapshot.
-     */
-    public function syncExtensionSnapshots(array $extensionIds)
-    {
-        $extensionesConPrecio = [];
-        foreach ($extensionIds as $extId) {
-            $ext = Extension::find($extId);
-            if ($ext) {
-                $extensionesConPrecio[$extId] = ['precio_aplicado' => $ext->precio];
-            }
-        }
-        return $this->extensiones()->sync($extensionesConPrecio);
-    }
 
     /**
      * Obtiene los datos financieros para un periodo específico.
@@ -109,14 +107,16 @@ class Mantenimiento extends Model
 
         // Coste de extensiones
         $costeExtensiones = $this->extensiones->sum(function($ext) use ($month) {
-            $precio = $ext->pivot->precio_aplicado ?? $ext->precio;
-            $esAnual = $ext->tipo_licencia === 'anual';
-            
-            if ($month === 'all') {
-                return $esAnual ? $precio : $precio * 12;
-            }
-            return $esAnual ? $precio / 12 : $precio;
+            $precioSnapshot = $ext->pivot->precio_aplicado ?? null;
+            return $ext->calculatePeriodCost($month, $precioSnapshot ? (float)$precioSnapshot : null);
         });
+
+        // Coste de software/hosting (Global Overhead - Snapshot or Current)
+        $totalSoftwareAnual = $this->coste_software_anual ?? Software::getTotalAnual();
+        $porcentajeSoftware = $this->porcentaje_software ?? (float) Configuracion::get('porcentaje_software', 2);
+        $costeSoftwareTotal = ($totalSoftwareAnual * $porcentajeSoftware) / 100;
+
+        $costeSoftware = $month === 'all' ? $costeSoftwareTotal : ($costeSoftwareTotal / 12);
 
         $ingreso = $this->calculatePeriodIncome($month);
 
@@ -124,7 +124,8 @@ class Mantenimiento extends Model
             'ingreso' => $ingreso,
             'coste_servicios' => $costeServicios,
             'coste_extensiones' => $costeExtensiones,
-            'balance' => $ingreso - $costeServicios - $costeExtensiones,
+            'coste_software' => $costeSoftware,
+            'balance' => $ingreso - $costeServicios - $costeExtensiones - $costeSoftware,
             'minutos' => $minutos
         ];
     }
@@ -134,7 +135,7 @@ class Mantenimiento extends Model
      */
     public static function getActiveDataForChart()
     {
-        return self::where('estado', 'en curso')
+        return self::active()
             ->get()
             ->map(fn($m) => [
                 'name' => $m->aplicacion,
@@ -149,7 +150,7 @@ class Mantenimiento extends Model
      */
     public static function getDashboardStats($month)
     {
-        $mantenimientos = self::where('estado', 'en curso')->get();
+        $mantenimientos = self::active()->get();
         return [
             'total_mes' => $mantenimientos->sum(fn($m) => $m->calculatePeriodIncome($month)),
             'count' => $mantenimientos->count()
@@ -167,5 +168,37 @@ class Mantenimiento extends Model
         $descuento = (float) Configuracion::get('descuento_mantenimiento', 0);
         
         return $precioHora * (1 - ($descuento / 100));
+    }
+
+    /**
+     * Obtiene estadísticas agregadas anuales de todos los mantenimientos activos.
+     */
+    public static function getAggregatedStatsForYear($year = null)
+    {
+        $year = $year ?: date('Y');
+        $mantenimientos = self::active()
+            ->orWhere(fn($q) => $q->finishedThisYear($year))
+            ->get();
+       
+        $totalIngresos = 0;
+        $totalFijo = 0;
+        $totalSoftware = 0;
+        $totalMinutos = 0;
+
+        foreach ($mantenimientos as $mantenimiento) {
+            $stats = $mantenimiento->getFinancialStats('all', $year);
+            $totalIngresos += $stats['ingreso'];
+            $totalFijo += $stats['coste_extensiones'] + $stats['coste_software'];
+            $totalSoftware += $stats['coste_software'];
+            $totalMinutos += $stats['minutos'];
+        }
+
+        return [
+            'total_ingresos' => $totalIngresos,
+            'total_fijo' => $totalFijo,
+            'total_software' => $totalSoftware,
+            'total_minutos' => $totalMinutos,
+            'total_gastos' => $totalFijo + ($totalMinutos / 60 * self::getDiscountedHourlyRate()),
+        ];
     }
 }

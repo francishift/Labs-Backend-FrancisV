@@ -68,6 +68,7 @@ const submitCreate = () => {
                 <InputError class="mt-2" :message="createForm.errors.extensiones" />
             </div>
 
+
             <div class="md:col-span-2">
                 <InputLabel for="create_descripcion" value="Descripción" />
                 <TextArea

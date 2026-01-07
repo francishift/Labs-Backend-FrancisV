@@ -37,6 +37,7 @@ class MantenimientoController extends Controller
             'filters' => $request->only(['search']),
             'clients' => Client::orderBy('name')->get(['id', 'name']),
             'availableExtensions' => Extension::orderBy('nombre')->get(['id', 'nombre', 'precio']),
+            'stats' => Mantenimiento::getAggregatedStatsForYear(),
         ]);
     }
 
@@ -60,6 +61,9 @@ class MantenimientoController extends Controller
         ]);
 
         $data['precio_hora'] = Mantenimiento::getDiscountedHourlyRate();
+        $data['porcentaje_software'] = (float) \App\Models\Configuracion::get('porcentaje_software', 2);
+        $data['coste_software_anual'] = \App\Models\Software::getTotalAnual();
+        
         $mantenimiento = Mantenimiento::create($data);
         
         if ($request->has('extensiones')) {
@@ -76,7 +80,7 @@ class MantenimientoController extends Controller
     {
         $mantenimiento->load([
             'cliente:id,name,email,phone,mobile',
-            'extensiones:id,nombre,precio,tipo_licencia'
+            'extensiones:id,nombre,precio,tipo_licencia',
         ]);
         
         $year = $request->input('year', date('Y'));

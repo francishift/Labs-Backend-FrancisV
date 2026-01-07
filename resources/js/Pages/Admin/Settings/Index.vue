@@ -15,6 +15,7 @@ const props = defineProps({
 const form = useForm({
     precio_hora: props.config.precio_hora,
     descuento_mantenimiento: props.config.descuento_mantenimiento,
+    porcentaje_software: props.config.porcentaje_software,
 })
 
 const submit = () => {
@@ -65,6 +66,22 @@ const submit = () => {
                                 required
                             />
                             <InputError class="mt-2" :message="form.errors.descuento_mantenimiento" />
+                        </div>
+
+                        <div>
+                            <InputLabel for="porcentaje_software" value="Gasto Software / Hosting (%)" />
+                            <p class="text-xs text-gray-500 dark:text-zinc-400 mb-2">Porcentaje del total anual de software/hosting aplicado como gasto global a proyectos y mantenimientos.</p>
+                            <TextInput
+                                id="porcentaje_software"
+                                v-model="form.porcentaje_software"
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="0.1"
+                                class="mt-1 block w-full"
+                                required
+                            />
+                            <InputError class="mt-2" :message="form.errors.porcentaje_software" />
                         </div>
 
                         <div class="flex items-center gap-4">

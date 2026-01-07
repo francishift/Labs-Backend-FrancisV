@@ -7,15 +7,16 @@ import Card from '@/Components/Card.vue'
 import { 
     UsersIcon, 
     UserGroupIcon, 
-    BriefcaseIcon, 
-    WrenchScrewdriverIcon,
-    PuzzlePieceIcon,
-    ClockIcon,
-    ClipboardDocumentCheckIcon,
-    CurrencyEuroIcon,
     CheckCircleIcon,
-    ChartBarIcon
+    ChartBarIcon,
+    BriefcaseIcon,
+    ClockIcon,
+    CurrencyEuroIcon,
+    PuzzlePieceIcon,
+    WrenchScrewdriverIcon,
+    ClipboardDocumentCheckIcon
 } from '@heroicons/vue/24/outline'
+import StatCard from '@/Components/StatCard.vue'
 
 const props = defineProps({
     auth: Object,
@@ -79,7 +80,7 @@ const proyectosChartOption = computed(() => ({
             center: isMobile.value ? ['50%', '42%'] : ['40%', '50%'],
             avoidLabelOverlap: true,
             itemStyle: {
-                borderRadius: 0
+                borderRadius: 10
             },
             label: {
                 show: false
@@ -144,7 +145,7 @@ const extensionesChartOption = computed(() => ({
             })),
             type: 'bar',
             itemStyle: {
-                borderRadius: 0
+                borderRadius: [0, 4, 4, 0]
             },
             barWidth: '60%'
         }
@@ -177,8 +178,9 @@ const mantenimientosChartOption = computed(() => ({
         data: props.charts.valor_mantenimientos.map(i => i.name),
         axisLabel: { 
             color: isDark.value ? '#a1a1aa' : '#6b7280',
-            interval: 0,
-            rotate: props.charts.valor_mantenimientos.length > 5 ? 30 : 0
+            interval: isMobile.value ? 'auto' : 0,
+            rotate: isMobile.value ? 45 : (props.charts.valor_mantenimientos.length > 5 ? 30 : 0),
+            fontSize: isMobile.value ? 9 : 12
         },
         axisTick: { show: false },
         axisLine: { lineStyle: { color: isDark.value ? '#3f3f46' : '#e5e7eb' } }
@@ -335,70 +337,36 @@ const isAdmin = computed(() => userRoles.value.includes('admin'))
     <div class="py-6 space-y-8">
         <!-- Dashboard Stats Cards (Solo Admin) -->
         <div v-if="isAdmin" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-            <Card class="p-4 relative overflow-hidden group">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
-                        <BriefcaseIcon class="h-8 w-8" />
-                    </div>
-                    <div class="ml-5">
-                        <p class="text-sm font-medium text-gray-500 dark:text-zinc-400">Proyectos en Proceso</p>
-                        <p class="text-2xl font-black text-gray-900 dark:text-white">{{ stats.proyectos_en_proceso }}</p>
-                    </div>
-                </div>
-                <div class="absolute -right-4 -bottom-4 h-24 w-24 opacity-5 transform rotate-12 transition-transform group-hover:scale-110">
-                    <BriefcaseIcon />
-                </div>
-            </Card>
+            <StatCard 
+                title="Proyectos en Proceso"
+                :value="stats.proyectos_en_proceso"
+                :is-currency="false"
+                :icon="BriefcaseIcon"
+                variant="emerald"
+            />
 
-            <Card class="p-4 relative overflow-hidden group">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
-                        <CurrencyEuroIcon class="h-8 w-8" />
-                    </div>
-                    <div class="ml-5">
-                        <p class="text-sm font-medium text-gray-500 dark:text-zinc-400">Proyectos activos</p>
-                        <p class="text-2xl font-black text-gray-900 dark:text-white">{{ formatCurrency(stats.presupuesto_total_activo) }}</p>
-                    </div>
-                </div>
-                <div class="absolute -right-4 -bottom-4 h-24 w-24 opacity-5 transform rotate-12 transition-transform group-hover:scale-110">
-                    <CurrencyEuroIcon />
-                </div>
-            </Card>
+            <StatCard 
+                title="Proyectos activos"
+                :value="stats.presupuesto_total_activo"
+                :icon="CurrencyEuroIcon"
+                variant="emerald"
+            />
 
-            <Card class="p-4 relative overflow-hidden group">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
-                        <CurrencyEuroIcon class="h-8 w-8" />
-                    </div>
-                    <div class="ml-5">
-                        <p class="text-sm font-medium text-gray-500 dark:text-zinc-400">Mant. {{ stats.mes_actual }} / {{ stats.anio_actual }}</p>
-                        <p class="text-2xl font-black text-gray-900 dark:text-white">{{ formatCurrency(stats.total_mantenimiento_mes) }}</p>
-                    </div>
-                </div>
-                <div class="absolute -right-4 -bottom-4 h-24 w-24 opacity-5 transform rotate-12 transition-transform group-hover:scale-110">
-                    <CurrencyEuroIcon />
-                </div>
-            </Card>
+            <StatCard 
+                :title="`Mant. ${stats.mes_actual} / ${stats.anio_actual}`"
+                :value="stats.total_mantenimiento_mes"
+                :icon="CurrencyEuroIcon"
+                variant="emerald"
+            />
 
-            <Card class="p-4 relative overflow-hidden group">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
-                        <CheckCircleIcon class="h-8 w-8" />
-                    </div>
-                    <div class="ml-5">
-                        <p class="text-sm font-medium text-gray-500 dark:text-zinc-400">Finalizados {{ stats.anio_actual }}</p>
-                        <div class="flex items-baseline gap-2">
-                            <p class="text-2xl font-black text-gray-900 dark:text-white">{{ stats.proyectos_finalizados_anio }}</p>
-                            <p class="text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                                {{ formatCurrency(stats.presupuesto_finalizado_anio) }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-                <div class="absolute -right-4 -bottom-4 h-24 w-24 opacity-5 transform rotate-12 transition-transform group-hover:scale-110">
-                    <CheckCircleIcon />
-                </div>
-            </Card>
+            <StatCard 
+                :title="`Finalizados ${stats.anio_actual}`"
+                :value="stats.proyectos_finalizados_anio"
+                :secondary-value="stats.presupuesto_finalizado_anio"
+                :is-currency="false"
+                :icon="CheckCircleIcon"
+                variant="emerald"
+            />
         </div>
 
         <!-- Charts Section (Solo Admin) -->
