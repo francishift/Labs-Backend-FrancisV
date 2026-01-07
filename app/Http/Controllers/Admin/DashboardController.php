@@ -38,7 +38,7 @@ class DashboardController extends Controller
                 'proyectos_activos' => Proyecto::getActiveDataForChart(),
                 'valor_mantenimientos' => Mantenimiento::getActiveDataForChart(),
                 'valor_por_cliente' => Client::getAnnualValueDataForChart(),
-                'uso_extensiones' => Extension::getUsageStatsForDashboard(),
+                'repercutido_fijos' => Extension::getFinancialStatsForChart(),
             ]
         ]);
     }

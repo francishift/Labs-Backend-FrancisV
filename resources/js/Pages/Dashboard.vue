@@ -110,8 +110,8 @@ const extensionesChartOption = computed(() => ({
         borderColor: isDark.value ? '#3f3f46' : '#e5e7eb',
         textStyle: { color: isDark.value ? '#e4e4e7' : '#111827' },
         formatter: (params) => {
-            const data = props.charts.uso_extensiones[params[0].dataIndex];
-            return `${data.name}<br/><b>Uso: ${data.value}</b><br/>Adopción: ${data.percentage}%`;
+            const data = props.charts.repercutido_fijos[params[0].dataIndex];
+            return `${data.name}<br/><b>Repercutido: ${formatCurrency(data.value)}</b>`;
         }
     },
     grid: {
@@ -123,18 +123,21 @@ const extensionesChartOption = computed(() => ({
     },
     xAxis: {
         type: 'value',
-        axisLabel: { color: isDark.value ? '#a1a1aa' : '#6b7280' },
+        axisLabel: { 
+            color: isDark.value ? '#a1a1aa' : '#6b7280',
+            formatter: (value) => formatCurrency(value)
+        },
         splitLine: { lineStyle: { color: isDark.value ? '#27272a' : '#f3f4f6' } }
     },
     yAxis: {
         type: 'category',
-        data: props.charts.uso_extensiones.map(i => i.name),
+        data: props.charts.repercutido_fijos.map(i => i.name),
         axisLabel: { color: isDark.value ? '#a1a1aa' : '#6b7280' },
         inverse: true
     },
     series: [
         {
-            data: props.charts.uso_extensiones.map((i, idx) => ({
+            data: props.charts.repercutido_fijos.map((i, idx) => ({
                 value: i.value,
                 itemStyle: {
                     color: [
@@ -412,7 +415,7 @@ const isAdmin = computed(() => userRoles.value.includes('admin'))
                     <div class="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
                         <PuzzlePieceIcon class="h-5 w-5" />
                     </div>
-                    <h3 class="font-bold text-gray-900 dark:text-zinc-100">Adopción de Extensiones</h3>
+                    <h3 class="font-bold text-gray-900 dark:text-zinc-100">Repercutido por Extensiones/Software</h3>
                 </div>
                 <div class="flex-1">
                     <v-chart class="h-full w-full" :option="extensionesChartOption" autoresize />

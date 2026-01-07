@@ -36,26 +36,53 @@ class Extension extends Model
     }
 
     /**
-     * Obtiene estadísticas de uso de extensiones para el dashboard.
+     * Obtiene estadísticas financieras (repercutido) de extensiones y software para el dashboard.
      */
-    public static function getUsageStatsForDashboard()
+    public static function getFinancialStatsForChart($year = null)
     {
-        $totalEntidades = Proyecto::count() + Mantenimiento::count();
+        $year = $year ?: date('Y');
         
-        return self::withTrashed()
-            ->withCount(['proyectos', 'mantenimientos'])
-            ->get()
-            ->map(function ($ext) use ($totalEntidades) {
-                $totalUso = $ext->proyectos_count + $ext->mantenimientos_count;
-                return [
-                    'name' => $ext->nombre,
-                    'value' => $totalUso,
-                    'percentage' => $totalEntidades > 0 ? round(($totalUso / $totalEntidades) * 100, 1) : 0
-                ];
-            })
-            ->filter(fn($item) => $item['value'] > 0)
+        $proyectos = Proyecto::active()
+            ->orWhere(fn($q) => $q->finishedThisYear($year))
+            ->with('extensiones')
+            ->get();
+            
+        $mantenimientos = Mantenimiento::active()
+            ->orWhere(fn($q) => $q->finishedThisYear($year))
+            ->with('extensiones')
+            ->get();
+            
+        $results = [];
+        $totalSoftware = 0;
+        
+        foreach ($proyectos as $p) {
+            foreach ($p->extensiones as $ext) {
+                $valor = (float) ($ext->pivot->precio_aplicado ?? $ext->precio);
+                $results[$ext->nombre] = ($results[$ext->nombre] ?? 0) + $valor;
+            }
+            $totalSoftware += ($p->coste_software_anual * $p->porcentaje_software) / 100;
+        }
+        
+        foreach ($mantenimientos as $m) {
+            foreach ($m->extensiones as $ext) {
+                $valor = (float) ($ext->pivot->precio_aplicado ?? $ext->precio);
+                $results[$ext->nombre] = ($results[$ext->nombre] ?? 0) + $valor;
+            }
+            $totalSoftware += ($m->coste_software_anual * $m->porcentaje_software) / 100;
+        }
+        
+        if ($totalSoftware > 0) {
+            $results['Software/Hosting'] = $totalSoftware;
+        }
+        
+        return collect($results)
+            ->map(fn($val, $key) => [
+                'name' => $key,
+                'value' => round($val, 2)
+            ])
             ->sortByDesc('value')
-            ->values();
+            ->values()
+            ->all();
     }
 
     /**
