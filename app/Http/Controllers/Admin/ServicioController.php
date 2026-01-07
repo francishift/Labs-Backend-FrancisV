@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Servicio;
 use App\Models\Proyecto;
+use App\Models\Configuracion;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -51,6 +52,9 @@ class ServicioController extends Controller
             'duracion_minutos' => 'required|integer|min:1',
             'precio' => 'nullable|numeric|min:0',
         ]);
+
+        $proyecto = Proyecto::find($data['proyecto_id']);
+        $data['precio_hora'] = $proyecto->precio_hora ?: Configuracion::get('precio_hora', 0);
 
         Servicio::create($data);
 

@@ -14,7 +14,7 @@ import PageHeader from '@/Components/PageHeader.vue'
 
 import CreateExtensionForm from './Partials/CreateExtensionForm.vue'
 import EditExtensionForm from './Partials/EditExtensionForm.vue'
-import { PencilIcon, TrashIcon, PlusIcon, PuzzlePieceIcon } from '@heroicons/vue/24/outline'
+import { PencilIcon, TrashIcon, PlusIcon, PuzzlePieceIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/outline'
 
 import { useDebouncedSearch } from '@/Composables/useDebouncedSearch'
 import { useFormatters } from '@/Composables/useFormatters'
@@ -36,6 +36,7 @@ const {
 
 const columns = [
   { key: 'nombre', label: 'Nombre' },
+  { key: 'url', label: 'URL', align: 'center' },
   { key: 'tipo_licencia', label: 'Licencia' },
   { key: 'descripcion', label: 'Descripción' },
   { key: 'precio', label: 'Precio' },
@@ -85,13 +86,15 @@ const destroyExtension = () => {
             >
               <template #cell-nombre="{ item }">
                 <div class="flex items-center">
-                  <PuzzlePieceIcon class="h-5 w-5 text-gray-400 mr-2 shrink-0" v-if="!item.url" />
-                  <a v-if="item.url" :href="item.url" target="_blank" class="text-emerald-600 hover:text-emerald-900 dark:text-emerald-400 dark:hover:text-emerald-300 flex items-center" @click.stop>
-                    <PuzzlePieceIcon class="h-5 w-5 mr-2 shrink-0" />
-                    {{ item.nombre }}
-                  </a>
-                  <span v-else>{{ item.nombre }}</span>
+                  <PuzzlePieceIcon class="h-5 w-5 text-gray-400 mr-2 shrink-0" />
+                  <span class="font-medium text-gray-900 dark:text-zinc-200">{{ item.nombre }}</span>
                 </div>
+              </template>
+              <template #cell-url="{ item }">
+                <a v-if="item.url" :href="item.url" target="_blank" class="text-gray-400 hover:text-emerald-500 transition-colors" title="Visitar sitio" @click.stop>
+                  <ArrowTopRightOnSquareIcon class="h-5 w-5 mx-auto" />
+                </a>
+                <span v-else class="text-gray-300 dark:text-zinc-700">-</span>
               </template>
               <template #cell-tipo_licencia="{ item }">
                 <Badge variant="zinc">{{ item.tipo_licencia }}</Badge>

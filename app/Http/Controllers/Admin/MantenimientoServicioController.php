@@ -50,6 +50,9 @@ class MantenimientoServicioController extends Controller
             'fecha' => 'required|date',
         ]);
 
+        $mantenimiento = Mantenimiento::find($data['mantenimiento_id']);
+        $data['precio_hora'] = $mantenimiento->precio_hora ?: Mantenimiento::getDiscountedHourlyRate();
+
         MantenimientoServicio::create($data);
 
         return back()->with('success', 'Servicio de mantenimiento registrado correctamente.');

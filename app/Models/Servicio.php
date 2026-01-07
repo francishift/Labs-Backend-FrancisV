@@ -17,6 +17,7 @@ class Servicio extends Model
         'fecha',
         'duracion_minutos',
         'precio',
+        'precio_hora',
     ];
 
     protected $casts = [

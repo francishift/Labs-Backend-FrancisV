@@ -17,6 +17,7 @@ class Proyecto extends Model
         'presupuesto',
         'estado',
         'client_id',
+        'precio_hora',
     ];
 
     protected $casts = [
@@ -37,6 +38,6 @@ class Proyecto extends Model
 
     public function extensiones()
     {
-        return $this->belongsToMany(Extension::class, 'proyecto_extension');
+        return $this->belongsToMany(Extension::class, 'proyecto_extension')->withPivot('precio_aplicado')->withTimestamps();
     }
 }

@@ -67,12 +67,15 @@ const precioHoraConDescuento = computed(() => {
 })
 
 const calculateServiceCost = (service) => {
-    return (service.duracion_minutos / 60) * precioHoraConDescuento.value
+    // Usamos el snapshot del servicio o el del mantenimiento o el global como último recurso
+    const precioHora = service.precio_hora || props.mantenimiento.precio_hora || precioHoraConDescuento.value
+    return (service.duracion_minutos / 60) * precioHora
 }
 
 const calculateExtensionPeriodCost = (extension) => {
     const isAnnualView = month.value === 'all'
-    const precio = parseFloat(extension.precio)
+    // Usamos el precio capturado en el pivot o el actual si no existe
+    const precio = parseFloat(extension.pivot?.precio_aplicado || extension.precio)
     const tipo = (extension.tipo_licencia || '').toLowerCase()
 
     if (isAnnualView) {
@@ -275,7 +278,10 @@ const destroyService = () => {
                                         {{ formatDate(service.fecha) }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-zinc-200">
-                                        {{ formatMinutesToHours(service.duracion_minutos) }}
+                                        <div class="flex flex-col items-center">
+                                            <span>{{ formatMinutesToHours(service.duracion_minutos) }}</span>
+                                            <span class="text-[10px] text-gray-500">({{ formatCurrency(service.precio_hora || mantenimiento.precio_hora || precioHoraConDescuento) }}/h)</span>
+                                        </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-red-600 dark:text-red-400 font-medium">
                                         {{ formatCurrency(calculateServiceCost(service)) }}

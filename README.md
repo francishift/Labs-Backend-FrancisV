@@ -21,8 +21,10 @@ Una solución **ERP y CRM completa y premium**, diseñada para agencias digitale
 - **🔐 RBAC Seguro**: Control de acceso detallado mediante el sistema de permisos de Spatie (roles de Admin, Coordinador y Visor).
 - **📥 Importación Inteligente de Datos**: Sistema de importación masiva para datos de clientes heredados con normalización automática.
 - **🌓 Interfaz Adaptativa**: Interfaz totalmente responsiva con modo oscuro integrado y navegación de alto rendimiento impulsada por Inertia.js.
-- **⚡ Optimización de Alto Rendimiento**: Carga selectiva de columnas en base de datos, pre-fetching de enlaces inteligente para navegación instantánea y carga diferida (Lazy Loading) de componentes.
+- **⚡ Optimización de Alto Rendimiento**: Carga selectiva de columnas en base de datos, pre-fetching de enlaces inteligente para navegación instantánea y optimización de bundles de Vite (manual chunking para librerías pesadas).
 - **🔔 Notificaciones Globales**: Sistema de feedback centralizado mediante "Toast Messages" para una experiencia de usuario fluida y consistente.
+- **🛡️ Inmutabilidad de Datos**: Sistema de snapshots de precios que garantiza la integridad de los informes históricos ante cambios en las tarifas globales.
+- **🎨 Refinamiento UI**: Interfaz coherente sistema de gestión de extensiones alineado con mantenimientos y mejoras en la legibilidad de tablas.
 
 ---
 
@@ -127,8 +129,10 @@ A premium, full-featured **Enterprise Resource Planning (ERP) and CRM solution**
 - **🔐 Secure RBAC**: Fine-grained access control using Spatie's permission system (Admin, Coordinator, Viewer roles).
 - **📥 Smart Data Import**: Bulk import system for legacy client data with automatic normalization.
 - **🌓 Adaptive UI**: Fully responsive interface with built-in dark mode and high-performance Inertia.js-driven navigation.
-- **⚡ High-Performance Optimization**: Selective database column loading, intelligent link pre-fetching for instant navigation, and component lazy loading.
+- **⚡ High-Performance Optimization**: Selective database column loading, intelligent link pre-fetching for instant navigation, and Vite bundle optimization (manual chunking for heavy libraries).
 - **🔔 Global Notifications**: Centralized toast message system for a fluid and consistent user feedback experience.
+- **🛡️ Data Immutability**: Price snapshot system ensuring the integrity of historical reports against changes in global rates.
+- **🎨 UI Refinement**: Consistent interface for extension management aligned with maintenance modules and improved table readability.
 
 ---
 

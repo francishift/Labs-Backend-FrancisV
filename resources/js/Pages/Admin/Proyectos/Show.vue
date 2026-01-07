@@ -58,19 +58,20 @@ const getStatusVariant = (status) => {
 
 // Calculations
 const calculateServiceTotal = (service) => {
-    const precioHora = page.props.config?.precio_hora || 0
+    // Usamos el precio_hora guardado en el servicio como snapshot
+    const precioHora = service.precio_hora || page.props.config?.precio_hora || 0
     const costeHoras = (service.duracion_minutos / 60) * precioHora
     const importeFijo = parseFloat(service.precio || 0)
     return costeHoras + importeFijo
 }
 
 const calculateServiceHoursCost = (service) => {
-    const precioHora = page.props.config?.precio_hora || 0
+    const precioHora = service.precio_hora || page.props.config?.precio_hora || 0
     return (service.duracion_minutos / 60) * precioHora
 }
 
 const servicesTotal = computed(() => props.proyecto.servicios?.reduce((acc, s) => acc + calculateServiceTotal(s), 0) || 0)
-const extensionsTotal = computed(() => props.proyecto.extensiones?.reduce((acc, e) => acc + parseFloat(e.precio || 0), 0) || 0)
+const extensionsTotal = computed(() => props.proyecto.extensiones?.reduce((acc, e) => acc + parseFloat(e.pivot?.precio_aplicado || e.precio || 0), 0) || 0)
 const grandTotal = computed(() => servicesTotal.value + extensionsTotal.value)
 
 const formatMinutesToHours = (minutes) => {
@@ -208,7 +209,7 @@ const destroyService = () => {
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-900 dark:text-zinc-200">
                                         <div class="flex flex-col items-center">
                                             <span>{{ formatMinutesToHours(service.duracion_minutos) }}</span>
-                                            <span class="text-[10px] text-gray-500">({{ formatCurrency(page.props.config?.precio_hora || 0) }}/h)</span>
+                                            <span class="text-[10px] text-gray-500">({{ formatCurrency(service.precio_hora || page.props.config?.precio_hora || 0) }}/h)</span>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-red-600/70 dark:text-red-400/70">
@@ -263,7 +264,7 @@ const destroyService = () => {
                                 </div>
                                 <div class="mt-3 flex items-baseline gap-2">
                                     <span class="text-emerald-600 dark:text-emerald-400 font-bold text-lg">
-                                        {{ formatCurrency(extension.precio) }}
+                                        {{ formatCurrency(extension.pivot?.precio_aplicado || extension.precio) }}
                                     </span>
                                     <span class="text-[10px] text-gray-500 dark:text-zinc-500 uppercase font-bold tracking-tighter">
                                         {{ extension.tipo_licencia }}

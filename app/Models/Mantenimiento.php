@@ -22,6 +22,7 @@ class Mantenimiento extends Model
         'importe',
         'estado',
         'descripcion',
+        'precio_hora',
     ];
 
     protected $casts = [
@@ -37,7 +38,7 @@ class Mantenimiento extends Model
 
     public function extensiones(): BelongsToMany
     {
-        return $this->belongsToMany(Extension::class, 'mantenimiento_extension', 'mantenimiento_id', 'extension_id');
+        return $this->belongsToMany(Extension::class, 'mantenimiento_extension', 'mantenimiento_id', 'extension_id')->withPivot('precio_aplicado')->withTimestamps();
     }
 
     public function servicios(): HasMany

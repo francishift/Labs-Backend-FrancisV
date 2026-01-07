@@ -15,6 +15,7 @@ class MantenimientoServicio extends Model
         'descripcion',
         'duracion_minutos',
         'fecha',
+        'precio_hora',
     ];
 
     protected $casts = [
