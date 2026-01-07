@@ -1,13 +1,12 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { ChevronUpDownIcon, MagnifyingGlassIcon, CheckIcon } from '@heroicons/vue/20/solid';
+import { ChevronUpDownIcon, CheckIcon } from '@heroicons/vue/20/solid';
 
 const props = defineProps({
     modelValue: [String, Number],
     options: {
         type: Array,
         required: true,
-        // Expected: [{ id: 1, name: 'Option 1' }]
     },
     placeholder: {
         type: String,
@@ -26,31 +25,60 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue']);
 
 const isOpen = ref(false);
-const search = ref('');
+const query = ref('');
 const selectRef = ref(null);
-
-const filteredOptions = computed(() => {
-    if (!search.value) return props.options;
-    const s = search.value.toLowerCase();
-    return props.options.filter(option => 
-        String(option[props.labelKey]).toLowerCase().includes(s)
-    );
-});
+const inputRef = ref(null);
 
 const selectedOption = computed(() => {
     return props.options.find(option => option[props.valueKey] === props.modelValue);
 });
 
+// Update query when modelValue changes or on initialization
+watch(() => props.modelValue, () => {
+    query.value = selectedOption.value ? selectedOption.value[props.labelKey] : '';
+}, { immediate: true });
+
+const filteredOptions = computed(() => {
+    const s = query.value.toLowerCase();
+    // If query matches the current selected label exactly, show all options (for quick re-selection)
+    if (selectedOption.value && selectedOption.value[props.labelKey] === query.value) {
+        return props.options;
+    }
+    
+    if (!query.value) return props.options;
+    
+    return props.options.filter(option => 
+        String(option[props.labelKey]).toLowerCase().includes(s)
+    );
+});
+
 const toggle = () => {
     isOpen.value = !isOpen.value;
     if (isOpen.value) {
-        search.value = '';
+        inputRef.value?.focus();
     }
+};
+
+const onInput = (e) => {
+    isOpen.value = true;
+    query.value = e.target.value;
 };
 
 const select = (option) => {
     emit('update:modelValue', option[props.valueKey]);
+    query.value = option[props.labelKey];
     isOpen.value = false;
+};
+
+const onBlur = () => {
+    // Small delay to allow click events on the list to fire
+    setTimeout(() => {
+        isOpen.value = false;
+        // Restore label if no valid selection was made or input was cleared
+        if (!selectedOption.value || query.value !== selectedOption.value[props.labelKey]) {
+            query.value = selectedOption.value ? selectedOption.value[props.labelKey] : '';
+        }
+    }, 200);
 };
 
 const handleClickOutside = (event) => {
@@ -70,66 +98,75 @@ onUnmounted(() => {
 
 <template>
     <div class="relative" ref="selectRef">
-        <button
-            type="button"
-            @click="toggle"
-            class="relative w-full cursor-default rounded-md bg-white py-2 pl-3 pr-10 text-left border border-gray-300 shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500 sm:text-sm dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-300 dark:focus:border-zinc-500 dark:focus:ring-zinc-500 transition-colors duration-200"
-        >
-            <span class="block truncate" :class="{ 'text-gray-500 dark:text-zinc-500': !selectedOption }">
-                {{ selectedOption ? selectedOption[labelKey] : placeholder }}
-            </span>
-            <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-                <ChevronUpDownIcon class="h-5 w-5 text-gray-400 dark:text-zinc-500" aria-hidden="true" />
-            </span>
-        </button>
+        <div class="relative">
+            <input
+                ref="inputRef"
+                type="text"
+                class="w-full rounded-lg border-gray-300 py-2 pl-3 pr-10 text-left shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500 sm:text-sm dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-300 dark:focus:border-zinc-500 dark:focus:ring-zinc-500 transition-all duration-200"
+                :placeholder="placeholder"
+                :value="query"
+                @input="onInput"
+                @focus="isOpen = true"
+                @blur="onBlur"
+            />
+            <button
+                type="button"
+                @click="toggle"
+                class="absolute inset-y-0 right-0 flex items-center pr-2"
+            >
+                <ChevronUpDownIcon class="h-5 w-5 text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-300 transition-colors" aria-hidden="true" />
+            </button>
+        </div>
 
         <transition
             leave-active-class="transition ease-in duration-100"
             leave-from-class="opacity-100"
             leave-to-class="opacity-0"
         >
-            <div
-                v-if="isOpen"
-                class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm dark:bg-zinc-800 dark:ring-zinc-700"
+            <ul
+                v-if="isOpen && filteredOptions.length > 0"
+                class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm dark:bg-zinc-800 dark:ring-zinc-700 custom-scrollbar border border-gray-100 dark:border-zinc-700"
             >
-                <div class="sticky top-0 z-10 bg-white dark:bg-zinc-800 px-2 py-2">
-                    <div class="relative">
-                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                            <MagnifyingGlassIcon class="h-4 w-4 text-gray-400 dark:text-zinc-500" aria-hidden="true" />
-                        </div>
-                        <input
-                            v-model="search"
-                            type="text"
-                            class="block w-full rounded-md border-gray-300 pl-10 focus:border-gray-500 focus:ring-gray-500 sm:text-sm dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-300 dark:focus:border-zinc-500"
-                            placeholder="Buscar..."
-                            @click.stop
-                        />
-                    </div>
-                </div>
+                <li
+                    v-for="option in filteredOptions"
+                    :key="option[valueKey]"
+                    @mousedown="select(option)"
+                    class="relative cursor-pointer select-none py-2.5 pl-10 pr-4 text-gray-900 hover:bg-emerald-50 dark:text-zinc-300 dark:hover:bg-emerald-900/20 group transition-colors"
+                >
+                    <span :class="[option[valueKey] === modelValue ? 'font-bold text-emerald-600 dark:text-emerald-400' : 'font-normal', 'block truncate group-hover:text-emerald-700 dark:group-hover:text-emerald-300']">
+                        {{ option[labelKey] }}
+                    </span>
 
-                <ul class="mt-1">
-                    <li
-                        v-for="option in filteredOptions"
-                        :key="option[valueKey]"
-                        @click="select(option)"
-                        class="relative cursor-default select-none py-2 pl-10 pr-4 text-gray-900 hover:bg-gray-100 dark:text-zinc-300 dark:hover:bg-zinc-700/50"
+                    <span
+                        v-if="option[valueKey] === modelValue"
+                        class="absolute inset-y-0 left-0 flex items-center pl-3 text-emerald-600 dark:text-emerald-400"
                     >
-                        <span :class="[option[valueKey] === modelValue ? 'font-semibold text-gray-900 dark:text-white' : 'font-normal', 'block truncate']">
-                            {{ option[labelKey] }}
-                        </span>
-
-                        <span
-                            v-if="option[valueKey] === modelValue"
-                            class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-600 dark:text-zinc-400"
-                        >
-                            <CheckIcon class="h-5 w-5" aria-hidden="true" />
-                        </span>
-                    </li>
-                    <li v-if="filteredOptions.length === 0" class="px-4 py-2 text-gray-500 dark:text-zinc-500 italic">
-                        No se encontraron resultados
-                    </li>
-                </ul>
+                        <CheckIcon class="h-5 w-5" aria-hidden="true" />
+                    </span>
+                </li>
+            </ul>
+            <div 
+                v-else-if="isOpen && query" 
+                class="absolute z-50 mt-1 w-full rounded-xl bg-white p-4 text-sm text-gray-500 dark:bg-zinc-800 dark:text-zinc-500 italic shadow-xl border border-gray-100 dark:border-zinc-700"
+            >
+                No se encontraron resultados para "{{ query }}"
             </div>
         </transition>
     </div>
 </template>
+
+<style scoped>
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #e5e7eb;
+    border-radius: 10px;
+}
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #3f3f46;
+}
+</style>
