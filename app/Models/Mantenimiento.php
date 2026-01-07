@@ -55,13 +55,17 @@ class Mantenimiento extends Model
     public function calculatePeriodIncome($month = 'all'): float
     {
         $importe = (float) $this->importe;
-        $esAnual = $this->tipo_pago === 'anual';
+        $tipo = strtolower($this->tipo_pago);
 
         if ($month === 'all') {
-            return $esAnual ? $importe : $importe * 12;
+            if ($tipo === 'mensual') return $importe * 12;
+            if ($tipo === 'trimestral') return $importe * 4;
+            return $importe; // Anual
         }
 
-    return $esAnual ? $importe / 12 : $importe;
+        if ($tipo === 'mensual') return $importe;
+        if ($tipo === 'trimestral') return $importe / 3;
+        return $importe / 12; // Anual
     }
 
     /**

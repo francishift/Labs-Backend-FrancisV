@@ -36,22 +36,22 @@ class DashboardController extends Controller
         $proyectosFinalizadosAnio = $proyectosFinalizadosAnioQuery->count();
         $presupuestoFinalizadoAnio = $proyectosFinalizadosAnioQuery->sum('presupuesto');
 
-        // 3. Mantenimientos a cobrar en el mes en curso
-        $mantenimientos = \App\Models\Mantenimiento::select(['id', 'importe', 'tipo_pago'])
-            ->where('estado', 'en curso')
-            ->get();
-        $totalMantenimientoMes = 0;
-
         foreach ($mantenimientos as $mantenimiento) {
-            $tipo = strtolower($mantenimiento->tipo_pago);
-            $importe = (float) $mantenimiento->importe;
-            
-            if ($tipo === 'mensual') {
-                $totalMantenimientoMes += $importe;
-            } elseif ($tipo === 'anual') {
-                $totalMantenimientoMes += ($importe / 12);
-            }
+            $totalMantenimientoMes += $mantenimiento->calculatePeriodIncome($currentMonth);
         }
+
+        // 4. Datos para gráfico: Valor Anual de Mantenimientos Activos
+        $mantenimientosActivosData = \App\Models\Mantenimiento::where('estado', 'en curso')
+            ->select('aplicacion', 'importe', 'tipo_pago')
+            ->get()
+            ->map(function ($m) {
+                return [
+                    'name' => $m->aplicacion,
+                    'value' => (float) $m->calculatePeriodIncome('all')
+                ];
+            })
+            ->sortByDesc('value')
+            ->values();
 
         // Datos para gráfico: Proyectos Activos y su Valor
         $proyectosActivosData = \App\Models\Proyecto::where('estado', 'En proceso')
@@ -92,6 +92,7 @@ class DashboardController extends Controller
             ],
             'charts' => [
                 'proyectos_activos' => $proyectosActivosData,
+                'valor_mantenimientos' => $mantenimientosActivosData,
                 'uso_extensiones' => $usoExtensiones,
             ]
         ]);

@@ -2,6 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Head, Link } from '@inertiajs/vue3'
 import { computed, ref, onMounted, onUnmounted } from 'vue'
+import * as echarts from 'echarts/core'
 import { useFormatters } from '@/Composables/useFormatters'
 import Card from '@/Components/Card.vue'
 import { 
@@ -151,6 +152,63 @@ const extensionesChartOption = computed(() => ({
     ]
 }));
 
+const mantenimientosChartOption = computed(() => ({
+    backgroundColor: 'transparent',
+    title: {
+        show: false
+    },
+    tooltip: {
+        trigger: 'axis',
+        backgroundColor: isDark.value ? '#18181b' : '#ffffff',
+        borderColor: isDark.value ? '#3f3f46' : '#e5e7eb',
+        textStyle: { color: isDark.value ? '#e4e4e7' : '#111827' },
+        formatter: (params) => {
+            return `${params[0].name}<br/><b>Valor Anual: ${formatCurrency(params[0].value)}</b>`;
+        }
+    },
+    grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        top: '5%',
+        containLabel: true
+    },
+    xAxis: {
+        type: 'category',
+        data: props.charts.valor_mantenimientos.map(i => i.name),
+        axisLabel: { 
+            color: isDark.value ? '#a1a1aa' : '#6b7280',
+            interval: 0,
+            rotate: props.charts.valor_mantenimientos.length > 5 ? 30 : 0
+        },
+        axisTick: { show: false },
+        axisLine: { lineStyle: { color: isDark.value ? '#3f3f46' : '#e5e7eb' } }
+    },
+    yAxis: {
+        type: 'value',
+        axisLabel: { color: isDark.value ? '#a1a1aa' : '#6b7280' },
+        splitLine: { lineStyle: { color: isDark.value ? '#27272a' : '#f3f4f6' } }
+    },
+    series: [
+        {
+            data: props.charts.valor_mantenimientos.map((i, idx) => ({
+                value: i.value,
+                itemStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: '#10b981' },
+                        { offset: 1, color: '#059669' }
+                    ])
+                }
+            })),
+            type: 'bar',
+            barWidth: '50%',
+            itemStyle: {
+                borderRadius: [4, 4, 0, 0]
+            }
+        }
+    ]
+}));
+
 const modules = computed(() => {
     const allModules = [
         {
@@ -295,8 +353,20 @@ const isAdmin = computed(() => userRoles.value.includes('admin'))
                     <v-chart class="h-full w-full" :option="proyectosChartOption" autoresize />
                 </div>
             </Card>
-            
+
             <Card class="p-6 h-[450px] flex flex-col">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
+                        <ClockIcon class="h-5 w-5" />
+                    </div>
+                    <h3 class="font-bold text-gray-900 dark:text-zinc-100">Valor Anual de Mantenimientos Activos</h3>
+                </div>
+                <div class="flex-1">
+                    <v-chart class="h-full w-full" :option="mantenimientosChartOption" autoresize />
+                </div>
+            </Card>
+            
+            <Card class="p-6 h-[450px] flex flex-col lg:col-span-2">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
                         <PuzzlePieceIcon class="h-5 w-5" />
