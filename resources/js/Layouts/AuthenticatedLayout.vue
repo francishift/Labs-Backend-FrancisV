@@ -40,7 +40,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="min-h-screen bg-gray-50 dark:bg-zinc-950 transition-colors duration-300 scroll-pt-20">
+    <div class="min-h-screen bg-gray-100 dark:bg-zinc-950 transition-colors duration-300 scroll-pt-20">
         <!-- Sidebar component (Desktop and Mobile) -->
         <Sidebar 
             :auth="$page.props.auth" 
@@ -51,7 +51,7 @@ onUnmounted(() => {
         <!-- Main Area -->
         <div class="lg:pl-72 flex flex-col flex-1 min-h-screen">
             <!-- Topbar -->
-            <nav class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/50 backdrop-blur-md px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+            <nav class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 dark:border-zinc-800 bg-gray-50/80 dark:bg-zinc-900/50 backdrop-blur-md px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
                 <!-- Mobile Toggle -->
                 <button 
                     type="button" 
@@ -92,7 +92,7 @@ onUnmounted(() => {
             </nav>
 
             <!-- Page Heading -->
-            <header class="bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 px-5" v-if="$slots.header">
+            <header class="bg-gray-50 dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 px-5" v-if="$slots.header">
                 <div class="mx-auto max-w-7xl py-3">
                     <slot name="header" />
                 </div>
