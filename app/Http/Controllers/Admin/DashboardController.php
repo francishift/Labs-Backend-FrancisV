@@ -35,6 +35,8 @@ class DashboardController extends Controller
 
         $proyectosFinalizadosAnio = $proyectosFinalizadosAnioQuery->count();
         $presupuestoFinalizadoAnio = $proyectosFinalizadosAnioQuery->sum('presupuesto');
+        $mantenimientos = \App\Models\Mantenimiento::where('estado', 'en curso')->get();
+        $totalMantenimientoMes = 0;
 
         foreach ($mantenimientos as $mantenimiento) {
             $totalMantenimientoMes += $mantenimiento->calculatePeriodIncome($currentMonth);
@@ -76,9 +78,36 @@ class DashboardController extends Controller
                     'percentage' => $totalEntidades > 0 ? round(($totalUso / $totalEntidades) * 100, 1) : 0
                 ];
             })
-            ->filter(fn($item) => $item['value'] > 0)
-            ->sortByDesc('value')
             ->values();
+
+        // 5. Datos para gráfico: Valor Total por Cliente (Anualizado)
+        $clientesData = [];
+        
+        // Proyectos activos por cliente
+        $proyectosPorCliente = \App\Models\Proyecto::where('estado', 'En proceso')
+            ->with('cliente:id,name')
+            ->get();
+        
+        foreach ($proyectosPorCliente as $p) {
+            $clientName = $p->cliente->name ?? 'Sin Cliente';
+            $clientesData[$clientName] = ($clientesData[$clientName] ?? 0) + (float)$p->presupuesto;
+        }
+        
+        // Mantenimientos activos por cliente
+        $mantenimientosPorCliente = \App\Models\Mantenimiento::where('estado', 'en curso')
+            ->with('cliente:id,name')
+            ->get();
+            
+        foreach ($mantenimientosPorCliente as $m) {
+            $clientName = $m->cliente->name ?? 'Sin Cliente';
+            $clientesData[$clientName] = ($clientesData[$clientName] ?? 0) + $m->calculatePeriodIncome('all');
+        }
+        
+        $valorPorCliente = collect($clientesData)
+            ->map(fn($value, $name) => ['name' => $name, 'value' => $value])
+            ->sortByDesc('value')
+            ->values()
+            ->take(10);
 
         return Inertia::render('Dashboard', [
             'stats' => [
@@ -93,6 +122,7 @@ class DashboardController extends Controller
             'charts' => [
                 'proyectos_activos' => $proyectosActivosData,
                 'valor_mantenimientos' => $mantenimientosActivosData,
+                'valor_por_cliente' => $valorPorCliente,
                 'uso_extensiones' => $usoExtensiones,
             ]
         ]);
