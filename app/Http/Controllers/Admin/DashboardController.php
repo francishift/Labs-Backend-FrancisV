@@ -78,6 +78,8 @@ class DashboardController extends Controller
                     'percentage' => $totalEntidades > 0 ? round(($totalUso / $totalEntidades) * 100, 1) : 0
                 ];
             })
+            ->filter(fn($item) => $item['value'] > 0)
+            ->sortByDesc('value')
             ->values();
 
         // 5. Datos para gráfico: Valor Total por Cliente (Anualizado)
