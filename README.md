@@ -24,6 +24,7 @@ Una solución **ERP y CRM completa y premium**, diseñada para agencias digitale
 - **⚡ Optimización de Alto Rendimiento**: Carga selectiva de columnas en base de datos, pre-fetching de enlaces inteligente para navegación instantánea y optimización de bundles de Vite (manual chunking para librerías pesadas).
 - **🔔 Notificaciones Globales**: Sistema de feedback centralizado mediante "Toast Messages" para una experiencia de usuario fluida y consistente.
 - **🛡️ Inmutabilidad de Datos**: Sistema de snapshots de precios que garantiza la integridad de los informes históricos ante cambios en las tarifas globales.
+- **📄 Exportación Proactiva (PDF)**: Generación de informes financieros en PDF con opciones de previsualización y descarga directa, optimizado para máxima compatibilidad (Safari fix).
 - **🎨 Refinamiento UI**: Interfaz coherente sistema de gestión de extensiones alineado con mantenimientos y mejoras en la legibilidad de tablas.
 
 ---
@@ -132,6 +133,7 @@ A premium, full-featured **Enterprise Resource Planning (ERP) and CRM solution**
 - **⚡ High-Performance Optimization**: Selective database column loading, intelligent link pre-fetching for instant navigation, and Vite bundle optimization (manual chunking for heavy libraries).
 - **🔔 Global Notifications**: Centralized toast message system for a fluid and consistent user feedback experience.
 - **🛡️ Data Immutability**: Price snapshot system ensuring the integrity of historical reports against changes in global rates.
+- **📄 Proactive Export (PDF)**: PDF financial report generation with preview and direct download options, optimized for maximum compatibility (Safari fix).
 - **🎨 UI Refinement**: Consistent interface for extension management aligned with maintenance modules and improved table readability.
 
 ---

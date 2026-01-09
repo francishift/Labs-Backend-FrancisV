@@ -18,7 +18,7 @@ class ProyectoController extends Controller
     public function index(Request $request)
     {
         $proyectos = Proyecto::query()
-            ->select(['id', 'proyecto', 'fecha_inicio', 'presupuesto', 'estado', 'client_id'])
+            ->select(['id', 'proyecto', 'descripcion', 'fecha_inicio', 'presupuesto', 'estado', 'client_id'])
             ->with(['client:id,name', 'extensiones:id,nombre'])
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
@@ -88,7 +88,7 @@ class ProyectoController extends Controller
     {
         $proyecto->load([
             'client:id,name,email,phone,mobile',
-            'servicios',
+            'servicios' => fn($q) => $q->orderBy('fecha', 'desc')->orderBy('created_at', 'desc'),
             'extensiones:id,nombre,precio,tipo_licencia',
         ]);
 
@@ -138,6 +138,36 @@ class ProyectoController extends Controller
                 'coste_software' => (($proyecto->coste_software_anual ?? \App\Models\Software::getTotalAnual()) * (float)($proyecto->porcentaje_software ?? \App\Models\Configuracion::get('porcentaje_software', 2))) / 100
             ]
         ]);
+    }
+
+    public function exportPdf(Request $request, Proyecto $proyecto)
+    {
+        $proyecto->load([
+            'client',
+            'servicios' => fn($q) => $q->orderBy('fecha', 'desc')->orderBy('created_at', 'desc'),
+            'extensiones',
+        ]);
+
+        $stats = $proyecto->getFinancialStats();
+        
+        $logoPath = public_path('img/logo.png');
+        $logoBase64 = '';
+        if (file_exists($logoPath)) {
+            $type = pathinfo($logoPath, PATHINFO_EXTENSION);
+            $data = file_get_contents($logoPath);
+            $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.proyecto', array_merge(
+            compact('proyecto', 'logoBase64'),
+            $stats
+        ));
+        
+        if ($request->has('download')) {
+            return $pdf->download("Proyecto-{$proyecto->id}.pdf");
+        }
+
+        return $pdf->stream("Proyecto-{$proyecto->id}.pdf");
     }
 
     /**

@@ -14,7 +14,7 @@ import Pagination from '@/Components/Pagination.vue'
 import DialogModal from '@/Components/DialogModal.vue'
 import ConfirmModal from '@/Components/ConfirmModal.vue'
 import { useCRUDModals } from '@/Composables/useCRUDModals'
-import { ChevronLeftIcon, PencilIcon, TrashIcon, PlusIcon } from '@heroicons/vue/24/outline'
+import { ChevronLeftIcon, PencilIcon, TrashIcon, PlusIcon, PrinterIcon, ArrowDownTrayIcon } from '@heroicons/vue/24/outline'
 
 import CreateMantenimientoServicioForm from './Partials/CreateMantenimientoServicioForm.vue'
 import EditMantenimientoServicioForm from './Partials/EditMantenimientoServicioForm.vue'
@@ -155,6 +155,18 @@ const destroyService = () => {
                         <PrimaryButton @click="openEditMainModal" title="Editar Mantenimiento" class="flex items-center">
                             <PencilIcon class="h-4 w-4" />
                         </PrimaryButton>
+
+                        <a :href="route('admin.mantenimientos.pdf', { mantenimiento: mantenimiento.id, month, year })" target="_blank">
+                            <SecondaryButton title="Imprimir PDF" class="flex items-center">
+                                <PrinterIcon class="h-4 w-4" />
+                            </SecondaryButton>
+                        </a>
+
+                        <a :href="route('admin.mantenimientos.pdf', { mantenimiento: mantenimiento.id, month, year, download: 1 })">
+                            <SecondaryButton title="Descargar PDF" class="flex items-center">
+                                <ArrowDownTrayIcon class="h-4 w-4" />
+                            </SecondaryButton>
+                        </a>
                     </div>
                 </template>
             </PageHeader>

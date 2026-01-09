@@ -17,7 +17,7 @@ class MantenimientoController extends Controller
     public function index(Request $request)
     {
         $mantenimientos = Mantenimiento::query()
-            ->select(['id', 'aplicacion', 'url', 'fecha_inicio', 'tipo_pago', 'importe', 'estado', 'client_id'])
+            ->select(['id', 'aplicacion', 'descripcion', 'url', 'fecha_inicio', 'tipo_pago', 'importe', 'estado', 'client_id'])
             ->with(['cliente:id,name', 'extensiones:id,nombre'])
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
@@ -96,6 +96,7 @@ class MantenimientoController extends Controller
             });
 
         $servicios = (clone $serviciosQuery)
+            ->orderBy('fecha', 'desc')
             ->orderBy('created_at', 'desc')
             ->paginate(10, ['*'], 'servicios_page')
             ->withQueryString();
@@ -196,5 +197,44 @@ class MantenimientoController extends Controller
         $mantenimiento->delete();
 
         return back()->with('success', 'Mantenimiento eliminado correctamente.');
+    }
+
+    public function exportPdf(Request $request, Mantenimiento $mantenimiento)
+    {
+        $mantenimiento->load([
+            'cliente:id,name,email,phone,mobile',
+            'extensiones:id,nombre,precio,tipo_licencia',
+            'servicios' => fn($q) => $q->orderBy('fecha', 'desc')->orderBy('created_at', 'desc'),
+        ]);
+
+        $year = (int) $request->input('year', date('Y'));
+        $month = $request->input('month', date('n'));
+        if ($month !== 'all') $month = (int) $month;
+
+        $stats = $mantenimiento->getFinancialStats($month, $year);
+
+        $logoPath = public_path('img/logo.png');
+        $logoBase64 = '';
+        if (file_exists($logoPath)) {
+            $type = pathinfo($logoPath, PATHINFO_EXTENSION);
+            $data = file_get_contents($logoPath);
+            $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.mantenimiento', [
+            'mantenimiento' => $mantenimiento,
+            'logoBase64' => $logoBase64,
+            'stats' => $stats,
+            'periodo' => [
+                'month' => $month,
+                'year' => $year
+            ]
+        ]);
+
+        if ($request->has('download')) {
+            return $pdf->download("Mantenimiento-{$mantenimiento->id}.pdf");
+        }
+
+        return $pdf->stream("Mantenimiento-{$mantenimiento->id}.pdf");
     }
 }

@@ -124,8 +124,7 @@ const extensionesChartOption = computed(() => ({
     xAxis: {
         type: 'value',
         axisLabel: { 
-            color: isDark.value ? '#a1a1aa' : '#6b7280',
-            formatter: (value) => formatCurrency(value)
+            show: false
         },
         splitLine: { lineStyle: { color: isDark.value ? '#27272a' : '#f3f4f6' } }
     },
@@ -242,8 +241,7 @@ const clientesChartOption = computed(() => ({
     xAxis: {
         type: 'value',
         axisLabel: { 
-            color: isDark.value ? '#a1a1aa' : '#6b7280',
-            formatter: (value) => value >= 1000 ? (value / 1000) + 'k' : value
+            show: false
         },
         splitLine: { lineStyle: { color: isDark.value ? '#27272a' : '#f3f4f6' } }
     },

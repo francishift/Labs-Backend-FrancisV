@@ -68,6 +68,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('role:admin|coordinador')->group(function () {
         Route::get('/admin/proyectos', [ProyectoController::class, 'index'])->name('admin.proyectos.index');
         Route::get('/admin/proyectos/{proyecto}', [ProyectoController::class, 'show'])->name('admin.proyectos.show');
+        Route::get('/admin/proyectos/{proyecto}/export-pdf', [ProyectoController::class, 'exportPdf'])->name('admin.proyectos.pdf');
+        Route::get('/admin/mantenimientos/{mantenimiento}/export-pdf', [MantenimientoController::class, 'exportPdf'])->name('admin.mantenimientos.pdf');
         Route::post('/admin/proyectos', [ProyectoController::class, 'store'])->name('admin.proyectos.store');
         Route::patch('/admin/proyectos/{proyecto}', [ProyectoController::class, 'update'])->name('admin.proyectos.update');
         Route::delete('/admin/proyectos/{proyecto}', [ProyectoController::class, 'destroy'])->name('admin.proyectos.destroy');

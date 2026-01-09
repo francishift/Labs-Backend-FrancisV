@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\HandlesExtensionSnapshots;
+use App\Models\Configuracion;
+use App\Models\Software;
 
 class Proyecto extends Model
 {
@@ -145,6 +147,34 @@ class Proyecto extends Model
             'total_servicios' => $totalServicios,
             'total_minutos' => $totalMinutos,
             'total_gastos' => $totalExtensiones + $totalSoftware + $totalServicios,
+        ];
+    }
+
+    /**
+     * Obtiene los datos financieros detallados del proyecto.
+     */
+    public function getFinancialStats()
+    {
+        $servicesTotal = $this->servicios->reduce(function ($acc, $s) {
+            $precioHora = $s->precio_hora ?? Configuracion::get('precio_hora', 0);
+            return $acc + (($s->duracion_minutos / 60) * $precioHora) + ($s->precio ?? 0);
+        }, 0);
+
+        $extensionsTotal = $this->extensiones->reduce(function ($acc, $e) {
+            return $acc + (float)($e->pivot->precio_aplicado ?? $e->precio ?? 0);
+        }, 0);
+
+        $totalSoftwareAnual = $this->coste_software_anual ?? Software::getTotalAnual();
+        $porcentajeSoftware = (float)($this->porcentaje_software ?? Configuracion::get('porcentaje_software', 2));
+        $costeSoftware = ($totalSoftwareAnual * $porcentajeSoftware) / 100;
+
+        $grandTotal = $servicesTotal + $extensionsTotal + $costeSoftware;
+
+        return [
+            'servicesTotal' => $servicesTotal,
+            'extensionsTotal' => $extensionsTotal,
+            'costeSoftware' => $costeSoftware,
+            'grandTotal' => $grandTotal,
         ];
     }
 }

@@ -16,7 +16,7 @@ import EditServicioForm from '@/Pages/Admin/Servicios/Partials/EditServicioForm.
 import CreateServicioForm from '@/Pages/Admin/Servicios/Partials/CreateServicioForm.vue'
 import EditProyectoForm from './Partials/EditProyectoForm.vue'
 import { useCRUDModals } from '@/Composables/useCRUDModals'
-import { ChevronLeftIcon, PencilIcon, PlusIcon, TrashIcon } from '@heroicons/vue/24/outline'
+import { ChevronLeftIcon, PencilIcon, PlusIcon, TrashIcon, PrinterIcon, ArrowDownTrayIcon } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
     proyecto: Object,
@@ -106,6 +106,16 @@ const destroyService = () => {
                         <PrimaryButton @click="openEditMainModal" title="Editar Proyecto" class="flex items-center">
                             <PencilIcon class="h-4 w-4" />
                         </PrimaryButton>
+                        <a :href="route('admin.proyectos.pdf', proyecto.id)" target="_blank">
+                            <SecondaryButton title="Imprimir PDF" class="flex items-center gap-2">
+                                <PrinterIcon class="h-4 w-4" />
+                            </SecondaryButton>
+                        </a>
+                        <a :href="route('admin.proyectos.pdf', { proyecto: proyecto.id, download: 1 })">
+                            <SecondaryButton title="Descargar PDF" class="flex items-center gap-2">
+                                <ArrowDownTrayIcon class="h-4 w-4" />
+                            </SecondaryButton>
+                        </a>
                     </div>
                 </template>
             </PageHeader>

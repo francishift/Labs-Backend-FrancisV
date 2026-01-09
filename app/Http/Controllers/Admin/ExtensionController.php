@@ -14,7 +14,7 @@ class ExtensionController extends Controller
     public function index(Request $request)
     {
         $extensiones = Extension::query()
-            ->select(['id', 'nombre', 'url', 'precio', 'tipo_licencia'])
+            ->select(['id', 'nombre', 'descripcion', 'url', 'precio', 'tipo_licencia'])
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('nombre', 'like', "%{$search}%")

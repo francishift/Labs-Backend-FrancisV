@@ -17,7 +17,7 @@ class ServicioController extends Controller
     public function index(Request $request)
     {
         $servicios = Servicio::query()
-            ->select(['id', 'servicio', 'fecha', 'duracion_minutos', 'precio', 'proyecto_id'])
+            ->select(['id', 'servicio', 'descripcion', 'fecha', 'duracion_minutos', 'precio', 'proyecto_id'])
             ->with('proyecto:id,proyecto')
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
