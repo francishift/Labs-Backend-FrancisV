@@ -22,7 +22,7 @@ class RolesAndAdminSeeder extends Seeder
             Role::firstOrCreate(['name' => $role]);
         }
 
-        $adminEmail = 'correo@TU_DOMINIO';
+        $adminEmail = config('app.admin_email', env('ADMIN_EMAIL', 'admin@example.com'));
 
         $user = User::where('email', $adminEmail)->first();
 
