@@ -62,6 +62,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/admin/mantenimiento-servicios', [MantenimientoServicioController::class, 'store'])->name('admin.mantenimiento-servicios.store');
         Route::patch('/admin/mantenimiento-servicios/{mantenimientoServicio}', [MantenimientoServicioController::class, 'update'])->name('admin.mantenimiento-servicios.update');
         Route::delete('/admin/mantenimiento-servicios/{mantenimientoServicio}', [MantenimientoServicioController::class, 'destroy'])->name('admin.mantenimiento-servicios.destroy');
+
+        // Holded
+        Route::prefix('admin/holded')->name('admin.holded.')->group(function () {
+            Route::get('/presupuestos', [\App\Http\Controllers\Admin\Holded\PresupuestoController::class, 'index'])->name('presupuestos.index');
+            Route::get('/presupuestos/{id}/pdf', [\App\Http\Controllers\Admin\Holded\PresupuestoController::class, 'downloadPdf'])->name('presupuestos.pdf');
+        });
     });
 
     // Rutas accesibles por Admin y Coordinador

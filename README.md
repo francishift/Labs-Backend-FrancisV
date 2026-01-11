@@ -25,6 +25,7 @@ Una solución **ERP y CRM completa y premium**, diseñada para agencias digitale
 - **🔔 Notificaciones Globales**: Sistema de feedback centralizado mediante "Toast Messages" para una experiencia de usuario fluida y consistente.
 - **🛡️ Inmutabilidad de Datos**: Sistema de snapshots de precios que garantiza la integridad de los informes históricos ante cambios en las tarifas globales.
 - **📄 Exportación Proactiva (PDF)**: Generación de informes financieros en PDF con opciones de previsualización y descarga directa, optimizado para máxima compatibilidad (Safari fix).
+- **📦 Integración con Holded (CRM/ERP)**: Sincronización en tiempo real de presupuestos mediante API oficial, con visualización de documentos PDF integrada y filtrado avanzado por fecha.
 - **🎨 Refinamiento UI**: Interfaz coherente sistema de gestión de extensiones alineado con mantenimientos y mejoras en la legibilidad de tablas.
 
 ---
@@ -134,6 +135,7 @@ A premium, full-featured **Enterprise Resource Planning (ERP) and CRM solution**
 - **🔔 Global Notifications**: Centralized toast message system for a fluid and consistent user feedback experience.
 - **🛡️ Data Immutability**: Price snapshot system ensuring the integrity of historical reports against changes in global rates.
 - **📄 Proactive Export (PDF)**: PDF financial report generation with preview and direct download options, optimized for maximum compatibility (Safari fix).
+- **📦 Holded Integration (CRM/ERP)**: Real-time synchronization of estimates via official API, with integrated PDF document viewing and advanced date filtering.
 - **🎨 UI Refinement**: Consistent interface for extension management aligned with maintenance modules and improved table readability.
 
 ---

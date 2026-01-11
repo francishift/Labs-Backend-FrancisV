@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'holded' => [
+        'key' => env('HOLDED_API_KEY'),
+    ],
+
 ];

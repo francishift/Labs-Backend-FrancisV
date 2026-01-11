@@ -15,18 +15,32 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $costeAnual = Software::getTotalAnual();
-        $porcentaje = (float) Configuracion::get('porcentaje_software', 2);
+        $softwares = DB::table('softwares')->whereIn('estado', ['Activa', 'activo'])->get();
+        
+        $costeAnual = $softwares->sum(function($s) {
+            $precio = (float) $s->precio;
+            $tipo = strtolower($s->tipo_licencia ?? '');
+            if ($tipo === 'anual') return $precio;
+            if ($tipo === 'mensual') return $precio * 12;
+            return $precio;
+        });
 
-        Mantenimiento::whereNull('coste_software_anual')->update([
-            'coste_software_anual' => $costeAnual,
-            'porcentaje_software' => $porcentaje
-        ]);
+        $config = DB::table('configuraciones')->where('key', 'porcentaje_software')->first();
+        $porcentaje = $config ? (float) $config->value : 2.0;
 
-        Proyecto::whereNull('coste_software_anual')->update([
-            'coste_software_anual' => $costeAnual,
-            'porcentaje_software' => $porcentaje
-        ]);
+        DB::table('mantenimientos')
+            ->whereNull('coste_software_anual')
+            ->update([
+                'coste_software_anual' => $costeAnual,
+                'porcentaje_software' => $porcentaje
+            ]);
+
+        DB::table('proyectos')
+            ->whereNull('coste_software_anual')
+            ->update([
+                'coste_software_anual' => $costeAnual,
+                'porcentaje_software' => $porcentaje
+            ]);
     }
 
     /**
