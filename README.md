@@ -24,8 +24,8 @@ Una solución **ERP y CRM completa y premium**, diseñada para agencias digitale
 - **⚡ Optimización de Alto Rendimiento**: Carga selectiva de columnas en base de datos, pre-fetching de enlaces inteligente para navegación instantánea y optimización de bundles de Vite (manual chunking para librerías pesadas).
 - **🔔 Notificaciones Globales**: Sistema de feedback centralizado mediante "Toast Messages" para una experiencia de usuario fluida y consistente.
 - **🛡️ Inmutabilidad de Datos**: Sistema de snapshots de precios que garantiza la integridad de los informes históricos ante cambios en las tarifas globales.
-- **📄 Exportación Proactiva (PDF)**: Generación de informes financieros en PDF con opciones de previsualización y descarga directa, optimizado para máxima compatibilidad (Safari fix).
-- **📦 Integración con Holded (CRM/ERP)**: Sincronización bidireccional de presupuestos y contactos mediante API oficial, con persistencia en base de datos local para máximo rendimiento y visualización de documentos integrada.
+- **📄 Visor de PDF Profesional**: Visualización integrada de documentos (Proyectos, Mantenimiento y Holded) con cabecera de navegación fija, optimizada para experiencia móvil y flujo "back-to-app".
+- **📦 Integración con Holded (CRM/ERP)**: Sincronización bidireccional de presupuestos y contactos mediante API oficial, con persistencia en base de datos local para máximo rendimiento.
 - **🎨 Refinamiento UI**: Interfaz coherente sistema de gestión de extensiones alineado con mantenimientos y mejoras en la legibilidad de tablas.
 
 ---
