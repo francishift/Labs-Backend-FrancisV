@@ -1,14 +1,22 @@
 <script setup>
+import { onMounted } from 'vue'
 import { Head, Link } from '@inertiajs/vue3'
 import { 
     ArrowLeftIcon, 
     ArrowDownTrayIcon 
 } from '@heroicons/vue/24/outline'
+import { useBodyScrollLock } from '@/Composables/useBodyScrollLock'
 
 const props = defineProps({
     pdfUrl: String,
     title: String,
     backUrl: String,
+})
+
+const { lock } = useBodyScrollLock()
+
+onMounted(() => {
+    lock()
 })
 
 const downloadPdf = () => {
@@ -58,10 +66,3 @@ const downloadPdf = () => {
         </main>
     </div>
 </template>
-
-<style>
-/* Ensure the body doesn't scroll when viewer is open */
-body {
-    overflow: hidden !important;
-}
-</style>
