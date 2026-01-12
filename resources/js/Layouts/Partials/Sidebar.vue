@@ -40,7 +40,7 @@ const adminNavigation = [
 ]
 
 const holdedNavigation = [
-    { name: 'Holded Presupuestos', href: route('admin.holded.presupuestos.index'), icon: DocumentTextIcon, active: route().current('admin.holded.presupuestos.*'), role: 'admin' },
+    { name: 'Presupuestos', href: route('admin.holded.presupuestos.index'), icon: DocumentTextIcon, active: route().current('admin.holded.presupuestos.*'), role: 'admin' },
 ]
 
 const settingsLink = { name: 'Ajustes', href: route('admin.settings.index'), icon: Cog6ToothIcon, active: route().current('admin.settings.*'), role: 'admin' }

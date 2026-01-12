@@ -9,12 +9,22 @@ import SecondaryButton from '@/Components/SecondaryButton.vue'
 import TextInput from '@/Components/TextInput.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import debounce from 'lodash/debounce'
+import Pagination from '@/Components/Pagination.vue'
+import SearchInput from '@/Components/SearchInput.vue'
 import { EyeIcon } from '@heroicons/vue/24/outline'
+import { useDebouncedSearch } from '@/Composables/useDebouncedSearch'
+import { useFormatters } from '@/Composables/useFormatters'
 
 const props = defineProps({
-  presupuestos: Array,
+  presupuestos: Object,
   filters: Object,
   errorMessage: String,
+})
+
+const { formatDate: baseFormatDate } = useFormatters()
+const { search } = useDebouncedSearch(props.filters.search, 'admin.holded.presupuestos.index', {
+    start: props.filters.start,
+    end: props.filters.end
 })
 
 const filters = reactive({
@@ -55,6 +65,7 @@ const updateResults = debounce(() => {
   router.get(route('admin.holded.presupuestos.index'), {
     start: filters.start,
     end: filters.end,
+    search: search.value
   }, {
     preserveState: true,
     replace: true,
@@ -78,11 +89,11 @@ const viewPdf = (item) => {
 </script>
 
 <template>
-  <Head title="Presupuestos Holded" />
+  <Head title="Presupuestos" />
 
   <AuthenticatedLayout>
     <template #header>
-      <PageHeader title="Holded: Presupuestos" />
+      <PageHeader title="Presupuestos" />
     </template>
 
     <div class="py-6 space-y-6">
@@ -118,12 +129,22 @@ const viewPdf = (item) => {
                 v-model="filters.end"
               />
             </div>
+            <div class="w-full sm:w-64">
+              <InputLabel for="search-budgets" value="Buscar" />
+              <SearchInput 
+                id="search-budgets"
+                name="search"
+                placeholder="Contacto o ID..."
+                class="mt-1 block w-full"
+                v-model="search"
+              />
+            </div>
           </div>
         </div>
         
         <DataTable
           :columns="columns"
-          :items="presupuestos"
+          :items="presupuestos.data"
           @row-click="viewPdf"
           class="cursor-pointer"
         >
@@ -169,7 +190,9 @@ const viewPdf = (item) => {
           </template>
         </DataTable>
 
-        <div v-if="presupuestos.length === 0 && !errorMessage" class="text-center py-8 text-gray-500">
+        <Pagination :links="presupuestos.links" class="mt-6" />
+
+        <div v-if="presupuestos.data.length === 0 && !errorMessage" class="text-center py-8 text-gray-500">
           No se encontraron presupuestos en el rango seleccionado.
         </div>
       </Card>
