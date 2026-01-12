@@ -80,10 +80,10 @@ Para evitar redundancia de consultas (problema N+1):
 - **Motor**: Uso de `dompdf` para renderizar plantillas Blade en formato PDF.
 - **Contexto Financiero**: Los PDFs de mantenimiento y proyectos incluyen el desglose completo de servicios y el balance calculado en el momento de la generación, respetando los filtros de período (mes/año) aplicados en la vista.
 
-### 6.2 Modos de Entrega
-- **Imprimir (Stream)**: Abre el PDF en una nueva pestaña del navegador. Útil para visualización rápida.
-- **Descargar (Attachment)**: Fuerza la descarga del archivo con un nombre predefinido (`Mantenimiento-ID.pdf` o `Proyecto-ID.pdf`).
-- **Compatibilidad**: La opción de descarga directa es la preferida para usuarios de Safari, ya que el visor integrado del navegador nativo en ocasiones oculta los controles de guardado.
+### 6.2 Modos de Entrega y Visualización
+- **Visor Profesional (In-App)**: El sistema utiliza un componente dedicado (`PdfViewer.vue`) para embeber los PDFs. Esto permite mantener al usuario dentro de la aplicación, proporcionando una cabecera fija con controles de navegación ("Volver") y descarga. Es la solución estándar para evitar que los usuarios pierdan el contexto de navegación en dispositivos móviles.
+- **Descargar (Attachment)**: Para casos donde se requiere el archivo físico (e.g. Safari compatibility), se ofrece un botón de descarga directa que fuerza el header `Content-Disposition: attachment`.
+- **Compatibilidad Extensa**: Al usar un `<iframe>` dentro de un layout controlado, se resuelven los problemas de barras de navegación de navegadores móviles que ocultaban botones de retroceso.
 
 ## 7. Integración con Holded (API & Local Sync)
 
@@ -101,7 +101,7 @@ Los contactos de Holded se sincronizan proactivamente con nuestra tabla de `clie
 
 ### 7.3 Exportación y Visualización de PDF
 - **Proxy de PDF**: El sistema utiliza el `holded_id` almacenado localmente para recuperar el binario del PDF desde la API de Holded.
-- **Visualización Directa**: Al hacer clic en cualquier fila, se abre una pestaña nueva que sirve el PDF con los headers correctos.
+- **Visor Integrado**: La visualización se realiza a través del `PdfViewer` del sistema, permitiendo al usuario ver el presupuesto de Holded sin salir de la ficha del cliente y pudiendo volver atrás con un solo clic.
 
 ### 7.4 Gestión de Errores
 - **Feedback Visual**: El frontend muestra avisos específicos si la sincronización con Holded falla por temas de conexión o API Key, permitiendo seguir trabajando con los datos cacheados localmente.

@@ -106,11 +106,17 @@ const destroyService = () => {
                         <PrimaryButton @click="openEditMainModal" title="Editar Proyecto" class="flex items-center">
                             <PencilIcon class="h-4 w-4" />
                         </PrimaryButton>
-                        <a :href="route('admin.proyectos.pdf', proyecto.id)" target="_blank">
+                        <Link 
+                            :href="route('admin.visor-pdf', { 
+                                url: route('admin.proyectos.pdf', proyecto.id),
+                                title: `Proyecto: ${proyecto.proyecto}`,
+                                backUrl: route('admin.proyectos.show', proyecto.id)
+                            })"
+                        >
                             <SecondaryButton title="Imprimir PDF" class="flex items-center gap-2">
                                 <PrinterIcon class="h-4 w-4" />
                             </SecondaryButton>
-                        </a>
+                        </Link>
                         <a :href="route('admin.proyectos.pdf', { proyecto: proyecto.id, download: 1 })">
                             <SecondaryButton title="Descargar PDF" class="flex items-center gap-2">
                                 <ArrowDownTrayIcon class="h-4 w-4" />

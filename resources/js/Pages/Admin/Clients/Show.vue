@@ -23,15 +23,20 @@ import {
     PhoneIcon,
     IdentificationIcon,
     MapPinIcon,
-    PencilIcon
+    PencilIcon,
+    DocumentTextIcon,
+    EyeIcon
 } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
     client: Object,
+    presupuestos: Array,
     pagination: Object
 })
 
 const { formatCurrency, formatDate } = useFormatters()
+
+const currentUrl = typeof window !== 'undefined' ? window.location.href : ''
 
 // Edit Modal state
 const isEditModalOpen = ref(false)
@@ -80,6 +85,24 @@ const getStatusColor = (status) => {
         'cancelado': 'rose'
     }
     return colors[status] || 'zinc'
+}
+
+const getHoldedStatusColor = (status) => {
+    const colors = {
+        '0': 'amber', // Pendiente
+        '1': 'emerald', // Aceptado
+        '2': 'rose', // Rechazado
+    }
+    return colors[status] || 'zinc'
+}
+
+const getHoldedStatusLabel = (status) => {
+    const labels = {
+        '0': 'Pendiente',
+        '1': 'Aceptado',
+        '2': 'Rechazado',
+    }
+    return labels[status] || 'Desconocido'
 }
 </script>
 
@@ -247,29 +270,46 @@ const getStatusColor = (status) => {
                 </Card>
             </div>
 
-            <!-- Bottom Section -->
+            <!-- Middle Section: Budgets & Extensions -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Finished Projects -->
+                <!-- Holded Budgets -->
                 <Card class="p-0 overflow-hidden">
                     <div class="p-4 border-b border-gray-100 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-800/50 flex items-center justify-between">
                         <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                            <BriefcaseIcon class="h-5 w-5 text-gray-400" />
-                            Proyectos Finalizados
+                            <DocumentTextIcon class="h-5 w-5 text-blue-500" />
+                            Presupuestos Holded (IVA incluido)
                         </h3>
-                        <Badge color="zinc">{{ finishedProjects.length }}</Badge>
+                        <Badge color="blue">{{ presupuestos.length }}</Badge>
                     </div>
                     <div class="divide-y divide-gray-100 dark:divide-zinc-700 max-h-80 overflow-y-auto">
-                        <div v-for="proyecto in finishedProjects" :key="proyecto.id" class="p-4 opacity-75 grayscale hover:grayscale-0 hover:opacity-100 transition-all">
-                            <div class="flex justify-between items-start mb-1">
-                                <span class="font-bold text-gray-900 dark:text-white">{{ proyecto.proyecto }}</span>
-                                <span class="font-black text-gray-900 dark:text-white">{{ formatCurrency(proyecto.presupuesto) }}</span>
-                            </div>
-                            <div class="flex items-center gap-4 text-xs text-gray-500">
-                                <span>Fin: {{ formatDate(proyecto.fecha_fin || proyecto.updated_at) }}</span>
+                        <div v-for="presu in presupuestos" :key="presu.id" class="p-4 hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <p class="font-bold text-gray-900 dark:text-white text-sm">
+                                        {{ presu.raw_data?.docNumber || 'Nº Desconocido' }} - {{ formatDate(presu.date * 1000) }}
+                                    </p>
+                                    <Badge :color="getHoldedStatusColor(presu.status)" size="xs" class="mt-1">
+                                        {{ getHoldedStatusLabel(presu.status) }}
+                                    </Badge>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-black text-gray-900 dark:text-white leading-tight">{{ formatCurrency(presu.total) }}</p>
+                                    <Link 
+                                        :href="route('admin.visor-pdf', { 
+                                            url: route('admin.holded.presupuestos.pdf', presu.holded_id),
+                                            title: `Presupuesto: ${presu.raw_data?.docNumber || presu.holded_id}`,
+                                            backUrl: currentUrl
+                                        })" 
+                                        class="inline-flex items-center gap-1 text-[10px] uppercase font-bold text-blue-600 hover:text-blue-800 transition-colors mt-2"
+                                    >
+                                        <EyeIcon class="h-3 w-3" />
+                                        Ver PDF
+                                    </Link>
+                                </div>
                             </div>
                         </div>
-                        <div v-if="finishedProjects.length === 0" class="p-8 text-center text-gray-500 italic">
-                            No hay proyectos finalizados registrados.
+                        <div v-if="presupuestos.length === 0" class="p-8 text-center text-gray-500 italic">
+                            No hay presupuestos sincronizados de Holded.
                         </div>
                     </div>
                 </Card>
@@ -294,6 +334,31 @@ const getStatusColor = (status) => {
                         </div>
                         <div v-if="clientExtensions.length === 0" class="p-4 text-center text-gray-500 italic">
                             No se han detectado extensiones vinculadas.
+                        </div>
+                    </div>
+                </Card>
+            </div>
+
+            <!-- Bottom Section: Finished Projects -->
+            <div v-if="finishedProjects.length > 0" class="grid grid-cols-1 gap-6">
+                <!-- Finished Projects -->
+                <Card class="p-0 overflow-hidden">
+                    <div class="p-4 border-b border-gray-100 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-800/50 flex items-center justify-between">
+                        <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <BriefcaseIcon class="h-5 w-5 text-gray-400" />
+                            Proyectos Finalizados
+                        </h3>
+                        <Badge color="zinc">{{ finishedProjects.length }}</Badge>
+                    </div>
+                    <div class="divide-y divide-gray-100 dark:divide-zinc-700 max-h-80 overflow-y-auto">
+                        <div v-for="proyecto in finishedProjects" :key="proyecto.id" class="p-4 opacity-75 grayscale hover:grayscale-0 hover:opacity-100 transition-all">
+                            <div class="flex justify-between items-start mb-1">
+                                <span class="font-bold text-gray-900 dark:text-white">{{ proyecto.proyecto }}</span>
+                                <span class="font-black text-gray-900 dark:text-white">{{ formatCurrency(proyecto.presupuesto) }}</span>
+                            </div>
+                            <div class="flex items-center gap-4 text-xs text-gray-500">
+                                <span>Fin: {{ formatDate(proyecto.fecha_fin || proyecto.updated_at) }}</span>
+                            </div>
                         </div>
                     </div>
                 </Card>

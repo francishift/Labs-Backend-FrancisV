@@ -40,7 +40,7 @@ class PresupuestoController extends Controller
 
         return Inertia::render('Admin/Holded/Presupuestos/Index', [
             'presupuestos' => $presupuestos,
-            'errorMessage' => $syncResult['error'],
+            'errorMessage' => $syncResult['error'] ?? null,
             'filters' => [
                 'start' => $start,
                 'end' => $end,

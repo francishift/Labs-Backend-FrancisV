@@ -156,11 +156,17 @@ const destroyService = () => {
                             <PencilIcon class="h-4 w-4" />
                         </PrimaryButton>
 
-                        <a :href="route('admin.mantenimientos.pdf', { mantenimiento: mantenimiento.id, month, year })" target="_blank">
+                        <Link 
+                            :href="route('admin.visor-pdf', { 
+                                url: route('admin.mantenimientos.pdf', { mantenimiento: mantenimiento.id, month, year }),
+                                title: `Mantenimiento: ${mantenimiento.aplicacion}`,
+                                backUrl: route('admin.mantenimientos.show', { mantenimiento: mantenimiento.id, month, year })
+                            })"
+                        >
                             <SecondaryButton title="Imprimir PDF" class="flex items-center">
                                 <PrinterIcon class="h-4 w-4" />
                             </SecondaryButton>
-                        </a>
+                        </Link>
 
                         <a :href="route('admin.mantenimientos.pdf', { mantenimiento: mantenimiento.id, month, year, download: 1 })">
                             <SecondaryButton title="Descargar PDF" class="flex items-center">

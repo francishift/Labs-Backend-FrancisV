@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Inertia\Inertia;
 use App\Services\HoldedService;
+use App\Models\Presupuesto;
 
 class ClientController extends Controller
 {
@@ -119,6 +120,14 @@ class ClientController extends Controller
             'mantenimientos.extensiones:id,nombre'
         ]);
 
+        // Fetch budgets from Holded associated with this client
+        $presupuestos = [];
+        if ($client->contact) {
+            $presupuestos = Presupuesto::where('contact', $client->contact)
+                ->orderBy('date', 'desc')
+                ->get();
+        }
+
         // Pagination between clients
         $allClientIds = Client::query()
             ->orderBy('name')
@@ -155,6 +164,7 @@ class ClientController extends Controller
 
         return Inertia::render('Admin/Clients/Show', [
             'client' => $client,
+            'presupuestos' => $presupuestos,
             'pagination' => $paginationData
         ]);
     }

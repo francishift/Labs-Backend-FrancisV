@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch, reactive } from 'vue'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import { Head, router } from '@inertiajs/vue3'
+import { Head, Link, router } from '@inertiajs/vue3'
 import Card from '@/Components/Card.vue'
 import DataTable from '@/Components/DataTable.vue'
 import PageHeader from '@/Components/PageHeader.vue'
@@ -66,8 +66,14 @@ watch(filters, () => {
   updateResults()
 })
 
+const currentUrl = typeof window !== 'undefined' ? window.location.href : ''
+
 const viewPdf = (item) => {
-    window.open(route('admin.holded.presupuestos.pdf', item.holded_id), '_blank');
+    router.get(route('admin.visor-pdf'), {
+        url: route('admin.holded.presupuestos.pdf', item.holded_id),
+        title: `Presupuesto: ${item.raw_data?.docNumber || item.holded_id}`,
+        backUrl: currentUrl
+    });
 }
 </script>
 
@@ -150,11 +156,15 @@ const viewPdf = (item) => {
 
           <template #cell-actions="{ item }">
             <div class="flex justify-end">
-              <a :href="route('admin.holded.presupuestos.pdf', item.holded_id)" target="_blank" @click.stop>
+              <Link :href="route('admin.visor-pdf', { 
+                  url: route('admin.holded.presupuestos.pdf', item.holded_id),
+                  title: `Presupuesto: ${item.raw_data?.docNumber || item.holded_id}`,
+                  backUrl: currentUrl
+              })" @click.stop>
                 <SecondaryButton title="Ver PDF">
                   <EyeIcon class="h-4 w-4" />
                 </SecondaryButton>
-              </a>
+              </Link>
             </div>
           </template>
         </DataTable>

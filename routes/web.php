@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\MantenimientoController;
 use App\Http\Controllers\Admin\MantenimientoServicioController;
 use App\Http\Controllers\Admin\SoftwareController;
+use App\Http\Controllers\Admin\PdfViewerController;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
@@ -62,6 +63,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/admin/mantenimiento-servicios', [MantenimientoServicioController::class, 'store'])->name('admin.mantenimiento-servicios.store');
         Route::patch('/admin/mantenimiento-servicios/{mantenimientoServicio}', [MantenimientoServicioController::class, 'update'])->name('admin.mantenimiento-servicios.update');
         Route::delete('/admin/mantenimiento-servicios/{mantenimientoServicio}', [MantenimientoServicioController::class, 'destroy'])->name('admin.mantenimiento-servicios.destroy');
+
+        Route::get('/admin/visor-pdf', [PdfViewerController::class, 'show'])->name('admin.visor-pdf');
 
         // Holded
         Route::prefix('admin/holded')->name('admin.holded.')->group(function () {
