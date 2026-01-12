@@ -20,7 +20,7 @@ class PresupuestoController extends Controller
 
     public function index(Request $request)
     {
-        $start = $request->input('start', date('Y-m-d', strtotime('-365 days')));
+        $start = $request->input('start', '2025-01-01');
         $end = $request->input('end', date('Y-m-d'));
 
         // Convert dates to timestamps for Holded API

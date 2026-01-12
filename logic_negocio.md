@@ -91,7 +91,7 @@ Para evitar redundancia de consultas (problema N+1):
 El sistema utiliza un mecanismo de sincronización local para reducir la dependencia de la API de Holded y asegurar el rendimiento.
 - **Persistencia Local**: Los presupuestos se almacenan en la tabla `presupuestos`, guardando campos como `holded_id`, `contact_id`, `total`, `status` y el JSON completo (`raw_data`).
 - **Sincronización**: Al acceder a la lista de presupuestos, se dispara un proceso que descarga los documentos de Holded y utiliza `updateOrCreate` para actualizar la base de datos local.
-- **Rango por Defecto**: Se sincronizan automáticamente los presupuestos de los últimos 365 días.
+- **Rango por Defecto**: Se sincronizan automáticamente los presupuestos desde el 01/01/2025 en adelante.
 
 ### 7.2 Sincronización de Contactos (Clientes)
 Los contactos de Holded se sincronizan proactivamente con nuestra tabla de `clients`.
