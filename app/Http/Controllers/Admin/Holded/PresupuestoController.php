@@ -33,10 +33,18 @@ class PresupuestoController extends Controller
             'endtmp' => $endTimestamp,
         ]);
 
-        // Fetch from local database
+        // Fetch from local database with search and pagination
         $presupuestos = Presupuesto::whereBetween('date', [$startTimestamp, $endTimestamp])
+            ->when($request->input('search'), function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('contact_name', 'like', "%{$search}%")
+                      ->orWhere('holded_id', 'like', "%{$search}%")
+                      ->orWhere('raw_data->docNumber', 'like', "%{$search}%");
+                });
+            })
             ->orderBy('date', 'desc')
-            ->get();
+            ->paginate(10)
+            ->withQueryString();
 
         return Inertia::render('Admin/Holded/Presupuestos/Index', [
             'presupuestos' => $presupuestos,
@@ -44,6 +52,7 @@ class PresupuestoController extends Controller
             'filters' => [
                 'start' => $start,
                 'end' => $end,
+                'search' => $request->input('search'),
             ],
         ]);
     }

@@ -34,6 +34,7 @@ const filters = reactive({
 
 // Columnas para la tabla de presupuestos de Holded
 const columns = [
+  { key: 'num', label: 'Nº Presupuesto' },
   { key: 'contact_name', label: 'Contacto' },
   { key: 'date', label: 'Fecha' },
   { key: 'total', label: 'Total', align: 'right' },
@@ -106,7 +107,7 @@ const viewPdf = (item) => {
 
         <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
           <div>
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Presupuestos recuperados de Holded</h3>
+            
             <p class="text-sm text-gray-500 dark:text-zinc-400">Listado filtrado por fecha</p>
           </div>
           
@@ -134,7 +135,7 @@ const viewPdf = (item) => {
               <SearchInput 
                 id="search-budgets"
                 name="search"
-                placeholder="Contacto o ID..."
+                placeholder="Buscar por contacto o nº de presupuesto..."
                 class="mt-1 block w-full"
                 v-model="search"
               />
@@ -148,6 +149,12 @@ const viewPdf = (item) => {
           @row-click="viewPdf"
           class="cursor-pointer"
         >
+          <template #cell-num="{ item }">
+            <span class="font-medium text-zinc-900 dark:text-white">
+                {{ item.raw_data?.docNumber || item.holded_id }}
+            </span>
+          </template>
+
           <template #cell-contact_name="{ item }">
             {{ item.contact_name }}
           </template>
