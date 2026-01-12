@@ -99,14 +99,14 @@ const destroySoftware = () => {
                 :is-currency="true"
             />
             <StatCard 
-                title="Costo Mensual S/H"
+                title="Costo Mensual"
                 :value="stats.costo_mensual"
                 :icon="CurrencyEuroIcon"
                 variant="rose"
                 :is-currency="true"
             />
             <StatCard 
-                title="Costo Anual S/H"
+                title="Costo Anual"
                 :value="stats.costo_anual"
                 :icon="CalendarIcon"
                 variant="rose"

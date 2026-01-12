@@ -71,18 +71,21 @@ class Mantenimiento extends Model
      */
     public function calculatePeriodIncome($period = 'all')
     {
-        if ($period === 'all') {
-            return $this->tipo_pago === 'anual' ? $this->importe : ($this->tipo_pago === 'trimestral' ? $this->importe * 4 : $this->importe * 12);
+        $importe = (float) $this->importe;
+        $isAll = $period === 'all';
+
+        if ($this->tipo_pago === 'mensual') {
+            return $isAll ? $importe * 12 : $importe;
         }
 
-        $month = (int)$period;
-        if ($this->tipo_pago === 'mensual') return $this->importe;
         if ($this->tipo_pago === 'trimestral') {
-            // Simplificación: si el mes coincide con el trimestre de inicio o sus múltiplos
-            return (($month - $this->fecha_inicio->month) % 3 === 0) ? $this->importe : 0;
+            $mensual = $importe / 3;
+            return $isAll ? $mensual * 12 : $mensual;
         }
+
         if ($this->tipo_pago === 'anual') {
-            return $month === $this->fecha_inicio->month ? $this->importe : 0;
+            $mensual = $importe / 12;
+            return $isAll ? $mensual * 12 : $mensual;
         }
 
         return 0;

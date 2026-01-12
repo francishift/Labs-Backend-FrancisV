@@ -24,7 +24,7 @@ const filters = reactive({
 
 // Columnas para la tabla de presupuestos de Holded
 const columns = [
-  { key: 'contactName', label: 'Contacto' },
+  { key: 'contact_name', label: 'Contacto' },
   { key: 'date', label: 'Fecha' },
   { key: 'total', label: 'Total', align: 'right' },
   { key: 'status', label: 'Estado' },
@@ -67,7 +67,7 @@ watch(filters, () => {
 })
 
 const viewPdf = (item) => {
-    window.open(route('admin.holded.presupuestos.pdf', item.id), '_blank');
+    window.open(route('admin.holded.presupuestos.pdf', item.holded_id), '_blank');
 }
 </script>
 
@@ -121,8 +121,8 @@ const viewPdf = (item) => {
           @row-click="viewPdf"
           class="cursor-pointer"
         >
-          <template #cell-contactName="{ item }">
-            {{ item.contactName }}
+          <template #cell-contact_name="{ item }">
+            {{ item.contact_name }}
           </template>
           
           <template #cell-date="{ item }">
@@ -150,7 +150,7 @@ const viewPdf = (item) => {
 
           <template #cell-actions="{ item }">
             <div class="flex justify-end">
-              <a :href="route('admin.holded.presupuestos.pdf', item.id)" target="_blank" @click.stop>
+              <a :href="route('admin.holded.presupuestos.pdf', item.holded_id)" target="_blank" @click.stop>
                 <SecondaryButton title="Ver PDF">
                   <EyeIcon class="h-4 w-4" />
                 </SecondaryButton>

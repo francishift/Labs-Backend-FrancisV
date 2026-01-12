@@ -22,6 +22,7 @@ const createForm = useForm({
     zip_code: '',
     province: '',
     country: '',
+    contact: '',
     excel_created_at: getTodayDate(),
 });
 
@@ -88,6 +89,11 @@ const submitCreate = () => {
                 <InputLabel for="create_country" value="País" />
                 <TextInput id="create_country" v-model="createForm.country" type="text" class="mt-1 block w-full" />
                 <InputError class="mt-2" :message="createForm.errors.country" />
+            </div>
+            <div>
+                <InputLabel for="create_contact" value="Contact (Holded ID)" />
+                <TextInput id="create_contact" v-model="createForm.contact" type="text" class="mt-1 block w-full" />
+                <InputError class="mt-2" :message="createForm.errors.contact" />
             </div>
             <div>
                 <InputLabel for="create_excel_created_at" value="Fecha Creación (Excel)" />

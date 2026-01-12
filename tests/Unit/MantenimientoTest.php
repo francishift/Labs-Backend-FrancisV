@@ -31,12 +31,10 @@ class MantenimientoTest extends TestCase
             'importe' => 300
         ]);
 
-        // Enero (Mes 1) -> Toca pago
-        $this->assertEquals(300, $mantenimiento->calculatePeriodIncome(1));
-        // Febrero (Mes 2) -> No toca pago
-        $this->assertEquals(0, $mantenimiento->calculatePeriodIncome(2));
-        // Abril (Mes 4) -> Toca pago
-        $this->assertEquals(300, $mantenimiento->calculatePeriodIncome(4));
+        // Enero (Mes 1) -> Toca parte proporcional (300 / 3 = 100)
+        $this->assertEquals(100, $mantenimiento->calculatePeriodIncome(1));
+        // Febrero (Mes 2) -> También toca parte proporcional
+        $this->assertEquals(100, $mantenimiento->calculatePeriodIncome(2));
         
         $this->assertEquals(1200, $mantenimiento->calculatePeriodIncome('all'));
     }
@@ -49,8 +47,11 @@ class MantenimientoTest extends TestCase
             'importe' => 1200
         ]);
 
-        $this->assertEquals(1200, $mantenimiento->calculatePeriodIncome(6));
-        $this->assertEquals(0, $mantenimiento->calculatePeriodIncome(1));
+        // Junio (Mes 6) -> Toca parte proporcional (1200 / 12 = 100)
+        $this->assertEquals(100, $mantenimiento->calculatePeriodIncome(6));
+        // Enero (Mes 1) -> También toca parte proporcional
+        $this->assertEquals(100, $mantenimiento->calculatePeriodIncome(1));
+        
         $this->assertEquals(1200, $mantenimiento->calculatePeriodIncome('all'));
     }
 }

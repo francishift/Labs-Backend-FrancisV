@@ -7,6 +7,8 @@ use App\Services\HoldedService;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 
+use App\Models\Presupuesto;
+
 class PresupuestoController extends Controller
 {
     protected HoldedService $holdedService;
@@ -25,14 +27,20 @@ class PresupuestoController extends Controller
         $startTimestamp = strtotime($start . ' 00:00:00');
         $endTimestamp = strtotime($end . ' 23:59:59');
 
-        $result = $this->holdedService->getDocuments('estimate', [
+        // Sync with Holded (updates local database)
+        $syncResult = $this->holdedService->syncDocuments('estimate', [
             'starttmp' => $startTimestamp,
             'endtmp' => $endTimestamp,
         ]);
 
+        // Fetch from local database
+        $presupuestos = Presupuesto::whereBetween('date', [$startTimestamp, $endTimestamp])
+            ->orderBy('date', 'desc')
+            ->get();
+
         return Inertia::render('Admin/Holded/Presupuestos/Index', [
-            'presupuestos' => $result['data'],
-            'errorMessage' => $result['error'],
+            'presupuestos' => $presupuestos,
+            'errorMessage' => $syncResult['error'],
             'filters' => [
                 'start' => $start,
                 'end' => $end,

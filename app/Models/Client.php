@@ -20,6 +20,7 @@ class Client extends Model
         'zip_code',
         'province',
         'country',
+        'contact',
         'excel_created_at',
     ];
 

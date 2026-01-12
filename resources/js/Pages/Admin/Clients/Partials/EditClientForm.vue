@@ -22,6 +22,7 @@ const editForm = useForm({
     zip_code: '',
     province: '',
     country: '',
+    contact: '',
     excel_created_at: '',
 });
 
@@ -38,6 +39,7 @@ watch(() => props.client, (client) => {
         editForm.zip_code = client.zip_code;
         editForm.province = client.province;
         editForm.country = client.country;
+        editForm.contact = client.contact || '';
         editForm.excel_created_at = formatDateForInput(client.excel_created_at);
         editForm.clearErrors();
     }
@@ -105,6 +107,11 @@ const submitEdit = () => {
                 <InputLabel for="edit_country" value="País" />
                 <TextInput id="edit_country" v-model="editForm.country" type="text" class="mt-1 block w-full" />
                 <InputError class="mt-2" :message="editForm.errors.country" />
+            </div>
+            <div>
+                <InputLabel for="edit_contact" value="Contact (Holded ID)" />
+                <TextInput id="edit_contact" v-model="editForm.contact" type="text" class="mt-1 block w-full" />
+                <InputError class="mt-2" :message="editForm.errors.contact" />
             </div>
             <div>
                 <InputLabel for="edit_excel_created_at" value="Fecha Creación (Excel)" />

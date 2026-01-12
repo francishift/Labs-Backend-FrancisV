@@ -85,20 +85,26 @@ Para evitar redundancia de consultas (problema N+1):
 - **Descargar (Attachment)**: Fuerza la descarga del archivo con un nombre predefinido (`Mantenimiento-ID.pdf` o `Proyecto-ID.pdf`).
 - **Compatibilidad**: La opción de descarga directa es la preferida para usuarios de Safari, ya que el visor integrado del navegador nativo en ocasiones oculta los controles de guardado.
 
-## 7. Integración con Holded (API)
+## 7. Integración con Holded (API & Local Sync)
 
-### 7.1 Gestión de Presupuestos
-El sistema permite recuperar y previsualizar presupuestos directamente desde la API de Holded.
-- **Rango por Defecto**: Se muestran los presupuestos de los últimos 365 días desde la fecha actual.
-- **Filtrado Dinámico**: Los usuarios pueden ajustar el rango de fechas (`starttmp` / `endtmp`) enviando timestamps a la API de Holded.
+### 7.1 Gestión de Presupuestos (Sincronización Local)
+El sistema utiliza un mecanismo de sincronización local para reducir la dependencia de la API de Holded y asegurar el rendimiento.
+- **Persistencia Local**: Los presupuestos se almacenan en la tabla `presupuestos`, guardando campos como `holded_id`, `contact_id`, `total`, `status` y el JSON completo (`raw_data`).
+- **Sincronización**: Al acceder a la lista de presupuestos, se dispara un proceso que descarga los documentos de Holded y utiliza `updateOrCreate` para actualizar la base de datos local.
+- **Rango por Defecto**: Se sincronizan automáticamente los presupuestos de los últimos 365 días.
 
-### 7.2 Exportación y Visualización de PDF
-- **Proxy de PDF**: El sistema actúa como proxy para recuperar el binario del PDF desde Holded.
-- **Visualización Directa**: Al hacer clic en cualquier fila o en el botón "Ver PDF", se abre una pestaña nueva que sirve el PDF con los headers correctos.
+### 7.2 Sincronización de Contactos (Clientes)
+Los contactos de Holded se sincronizan proactivamente con nuestra tabla de `clients`.
+- **Filtro de Tipo**: Solo se procesan los contactos de tipo `client` en Holded.
+- **Emparejamiento Inteligente**: Se utiliza el campo `code` de Holded para buscar coincidencias con el `cif_nif` local. Una vez emparejados, se guarda el `holded_id` en la columna `contact` para futuras actualizaciones.
+- **Limpieza Segura**: Los contactos que dejan de ser de tipo `client` en Holded se eliminan localmente **solo si no tienen proyectos ni mantenimientos asociados**. En caso de tener historial vinculado, simplemente se desvinculan de Holded manteniendo el registro local.
 
-### 7.3 Gestión de Errores
-- **Separación de Estados**: Se diferencia claramente entre un error de conexión/configuración y un listado vacío de resultados.
-- **Feedback al Usuario**: Se muestran alertas específicas en caso de fallo técnico.
+### 7.3 Exportación y Visualización de PDF
+- **Proxy de PDF**: El sistema utiliza el `holded_id` almacenado localmente para recuperar el binario del PDF desde la API de Holded.
+- **Visualización Directa**: Al hacer clic en cualquier fila, se abre una pestaña nueva que sirve el PDF con los headers correctos.
+
+### 7.4 Gestión de Errores
+- **Feedback Visual**: El frontend muestra avisos específicos si la sincronización con Holded falla por temas de conexión o API Key, permitiendo seguir trabajando con los datos cacheados localmente.
 
 ---
-*Ultima actualización: 11/01/2026*
+*Ultima actualización: 12/01/2026*

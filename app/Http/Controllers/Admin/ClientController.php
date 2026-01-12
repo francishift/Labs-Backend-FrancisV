@@ -8,11 +8,22 @@ use App\Imports\ClientImport;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Inertia\Inertia;
+use App\Services\HoldedService;
 
 class ClientController extends Controller
 {
+    protected HoldedService $holdedService;
+
+    public function __construct(HoldedService $holdedService)
+    {
+        $this->holdedService = $holdedService;
+    }
+
     public function index(Request $request)
     {
+        // Sync contacts from Holded
+        $syncResult = $this->holdedService->syncContacts();
+
         $clients = Client::query()
             ->select(['id', 'name', 'cif_nif', 'email', 'city'])
             ->when($request->input('search'), function ($query, $search) {
@@ -29,6 +40,7 @@ class ClientController extends Controller
         return Inertia::render('Admin/Clients/Index', [
             'clients' => $clients,
             'filters' => $request->only(['search']),
+            'syncError' => $syncResult['error'] ?? null,
         ]);
     }
 
@@ -45,6 +57,7 @@ class ClientController extends Controller
             'zip_code' => 'nullable|string|max:10',
             'province' => 'nullable|string|max:100',
             'country' => 'nullable|string|max:100',
+            'contact' => 'nullable|string|max:255',
             'excel_created_at' => 'nullable|date',
         ]);
 
@@ -67,6 +80,7 @@ class ClientController extends Controller
             'zip_code' => 'nullable|string|max:10',
             'province' => 'nullable|string|max:100',
             'country' => 'nullable|string|max:100',
+            'contact' => 'nullable|string|max:255',
             'excel_created_at' => 'nullable|date',
         ]);
 
