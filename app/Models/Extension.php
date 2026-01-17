@@ -11,6 +11,12 @@ class Extension extends Model
 {
     use HasFactory, CalculatesPeriodCosts, SoftDeletes;
 
+    protected static function booted()
+    {
+        static::saved(fn () => \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats'));
+        static::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats'));
+    }
+
     protected $table = 'extensiones';
 
     protected $fillable = [

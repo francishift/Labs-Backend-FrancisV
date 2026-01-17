@@ -24,7 +24,7 @@ const props = defineProps({
     charts: Object,
 })
 
-const { formatCurrency } = useFormatters()
+const { formatCurrency, truncate } = useFormatters()
 const userRoles = computed(() => props.auth?.roles || [])
 const isDark = ref(false)
 const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
@@ -57,9 +57,16 @@ const proyectosChartOption = computed(() => ({
     },
     tooltip: {
         trigger: 'item',
+        confine: true,
         backgroundColor: isDark.value ? '#18181b' : '#ffffff',
         borderColor: isDark.value ? '#3f3f46' : '#e5e7eb',
         textStyle: { color: isDark.value ? '#e4e4e7' : '#111827' },
+        position: (point, params, dom, rect, size) => {
+            if (isMobile.value) {
+                return [point[0], '50%'];
+            }
+            return null;
+        },
         formatter: (params) => {
             return `${params.name}<br/><b>${formatCurrency(params.value)}</b> (${params.percent}%)`;
         }
@@ -70,7 +77,8 @@ const proyectosChartOption = computed(() => ({
         top: isMobile.value ? 'bottom' : 'middle',
         bottom: isMobile.value ? 0 : 'auto',
         textStyle: { color: isDark.value ? '#a1a1aa' : '#6b7280', fontSize: isMobile.value ? 8 : 10 },
-        type: 'scroll'
+        type: 'scroll',
+        formatter: (name) => isMobile.value ? truncate(name, 10) : name
     },
     series: [
         {
@@ -106,9 +114,16 @@ const extensionesChartOption = computed(() => ({
     tooltip: {
         trigger: 'axis',
         axisPointer: { type: 'shadow' },
+        confine: true,
         backgroundColor: isDark.value ? '#18181b' : '#ffffff',
         borderColor: isDark.value ? '#3f3f46' : '#e5e7eb',
         textStyle: { color: isDark.value ? '#e4e4e7' : '#111827' },
+        position: (point, params, dom, rect, size) => {
+            if (isMobile.value) {
+                return [point[0], '50%'];
+            }
+            return null;
+        },
         formatter: (params) => {
             const data = props.charts.repercutido_fijos[params[0].dataIndex];
             return `${data.name}<br/><b>Repercutido: ${formatCurrency(data.value)}</b>`;
@@ -131,7 +146,10 @@ const extensionesChartOption = computed(() => ({
     yAxis: {
         type: 'category',
         data: props.charts.repercutido_fijos.map(i => i.name),
-        axisLabel: { color: isDark.value ? '#a1a1aa' : '#6b7280' },
+        axisLabel: { 
+            color: isDark.value ? '#a1a1aa' : '#6b7280',
+            formatter: (value) => isMobile.value ? truncate(value, 10) : value
+        },
         inverse: true
     },
     series: [
@@ -161,9 +179,16 @@ const mantenimientosChartOption = computed(() => ({
     },
     tooltip: {
         trigger: 'axis',
+        confine: true,
         backgroundColor: isDark.value ? '#18181b' : '#ffffff',
         borderColor: isDark.value ? '#3f3f46' : '#e5e7eb',
         textStyle: { color: isDark.value ? '#e4e4e7' : '#111827' },
+        position: (point, params, dom, rect, size) => {
+            if (isMobile.value) {
+                return [point[0], '50%'];
+            }
+            return null;
+        },
         formatter: (params) => {
             return `${params[0].name}<br/><b>Valor Anual: ${formatCurrency(params[0].value)}</b>`;
         }
@@ -182,7 +207,8 @@ const mantenimientosChartOption = computed(() => ({
             color: isDark.value ? '#a1a1aa' : '#6b7280',
             interval: isMobile.value ? 'auto' : 0,
             rotate: isMobile.value ? 45 : (props.charts.valor_mantenimientos.length > 5 ? 30 : 0),
-            fontSize: isMobile.value ? 9 : 12
+            fontSize: isMobile.value ? 9 : 12,
+            formatter: (value) => isMobile.value ? truncate(value, 10) : value
         },
         axisTick: { show: false },
         axisLine: { lineStyle: { color: isDark.value ? '#3f3f46' : '#e5e7eb' } }
@@ -224,9 +250,16 @@ const clientesChartOption = computed(() => ({
     tooltip: {
         trigger: 'axis',
         axisPointer: { type: 'shadow' },
+        confine: true,
         backgroundColor: isDark.value ? '#18181b' : '#ffffff',
         borderColor: isDark.value ? '#3f3f46' : '#e5e7eb',
         textStyle: { color: isDark.value ? '#e4e4e7' : '#111827' },
+        position: (point, params, dom, rect, size) => {
+            if (isMobile.value) {
+                return [point[0], '50%'];
+            }
+            return null;
+        },
         formatter: (params) => {
             return `${params[0].name}<br/><b>Valor Anual: ${formatCurrency(params[0].value)}</b>`;
         }
@@ -250,7 +283,8 @@ const clientesChartOption = computed(() => ({
         data: props.charts.valor_por_cliente.map(i => i.name),
         axisLabel: { 
             color: isDark.value ? '#a1a1aa' : '#6b7280',
-            fontSize: 10
+            fontSize: 10,
+            formatter: (value) => isMobile.value ? truncate(value, 10) : value
         },
         inverse: true
     },

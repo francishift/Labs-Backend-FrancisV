@@ -61,7 +61,7 @@ const submit = () => {
             </div>
             <div>
                 <InputLabel for="descripcion" value="Descripción de la tarea" />
-                <TextArea id="descripcion" v-model="form.descripcion" class="mt-1 block w-full" rows="1" required placeholder="Describe el trabajo..." />
+                <TextArea id="descripcion" v-model="form.descripcion" class="mt-1 block w-full" rows="3" required placeholder="Describe el trabajo..." />
                 <InputError class="mt-2" :message="form.errors.descripcion" />
             </div>
         </div>

@@ -23,7 +23,6 @@ import { useCRUDModals } from '@/Composables/useCRUDModals'
 const props = defineProps({
   clients: Object,
   filters: Object,
-  syncError: String,
 })
 
 const { search } = useDebouncedSearch(props.filters.search, 'admin.clientes.index')
@@ -84,14 +83,6 @@ const navigateToClient = (item) => {
     </template>
 
     <div class="py-6 space-y-6">
-        <!-- Error de sincronización con Holded -->
-        <div v-if="syncError" class="mb-6 p-4 bg-amber-50 dark:bg-amber-900/30 border-l-4 border-amber-500 text-amber-700 dark:text-amber-200">
-          <div class="flex items-center gap-2">
-            <p class="font-bold text-sm">Aviso de sincronización:</p>
-            <p class="text-sm italic">Holded {{ syncError }}</p>
-          </div>
-          <p class="text-xs mt-1">Los datos mostrados podrían no estar actualizados con Holded.</p>
-        </div>
 
         <Card class="p-6">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">

@@ -35,9 +35,15 @@ export function useFormatters() {
         return result.trim()
     }
 
+    const truncate = (text, length = 10, suffix = '...') => {
+        if (!text || text.length <= length) return text
+        return text.substring(0, length) + suffix
+    }
+
     return {
         formatCurrency,
         formatDate,
-        formatDuration
+        formatDuration,
+        truncate
     }
 }

@@ -19,27 +19,31 @@ class DashboardController extends Controller
         $currentMonth = $now->month;
         $currentYear = $now->year;
 
-        // Estadísticas rápidas
-        $proyectoStats = Proyecto::getActiveStats();
-        $finishedStats = Proyecto::getFinishedStats($currentYear);
-        $mantenimientoStats = Mantenimiento::getDashboardStats($currentMonth);
+        // Caché de estadísticas para optimizar el dashboard
+        $dashboardData = \Illuminate\Support\Facades\Cache::remember('admin_dashboard_stats', 3600, function () use ($now, $currentMonth, $currentYear) {
+            $proyectoStats = Proyecto::getActiveStats();
+            $finishedStats = Proyecto::getFinishedStats($currentYear);
+            $mantenimientoStats = Mantenimiento::getDashboardStats($currentMonth);
 
-        return Inertia::render('Dashboard', [
-            'stats' => [
-                'proyectos_en_proceso' => $proyectoStats['count'],
-                'proyectos_finalizados_anio' => $finishedStats['count'],
-                'presupuesto_finalizado_anio' => $finishedStats['presupuesto'],
-                'total_mantenimiento_mes' => $mantenimientoStats['total_mes'],
-                'presupuesto_total_activo' => $proyectoStats['presupuesto'],
-                'mes_actual' => ucfirst($now->translatedFormat('F')),
-                'anio_actual' => $currentYear,
-            ],
-            'charts' => [
-                'proyectos_activos' => Proyecto::getActiveDataForChart(),
-                'valor_mantenimientos' => Mantenimiento::getActiveDataForChart(),
-                'valor_por_cliente' => Client::getAnnualValueDataForChart(),
-                'repercutido_fijos' => Extension::getFinancialStatsForChart(),
-            ]
-        ]);
+            return [
+                'stats' => [
+                    'proyectos_en_proceso' => $proyectoStats['count'],
+                    'proyectos_finalizados_anio' => $finishedStats['count'],
+                    'presupuesto_finalizado_anio' => $finishedStats['presupuesto'],
+                    'total_mantenimiento_mes' => $mantenimientoStats['total_mes'],
+                    'presupuesto_total_activo' => $proyectoStats['presupuesto'],
+                    'mes_actual' => ucfirst($now->translatedFormat('F')),
+                    'anio_actual' => $currentYear,
+                ],
+                'charts' => [
+                    'proyectos_activos' => Proyecto::getActiveDataForChart(),
+                    'valor_mantenimientos' => Mantenimiento::getActiveDataForChart(),
+                    'valor_por_cliente' => Client::getAnnualValueDataForChart(),
+                    'repercutido_fijos' => Extension::getFinancialStatsForChart(),
+                ]
+            ];
+        });
+
+        return Inertia::render('Dashboard', $dashboardData);
     }
 }

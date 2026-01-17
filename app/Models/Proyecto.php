@@ -12,6 +12,12 @@ class Proyecto extends Model
 {
     use HasFactory, HandlesExtensionSnapshots;
 
+    protected static function booted()
+    {
+        static::saved(fn () => \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats'));
+        static::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats'));
+    }
+
     protected $fillable = [
         'proyecto',
         'descripcion',

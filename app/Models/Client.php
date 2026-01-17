@@ -39,6 +39,25 @@ class Client extends Model
     }
 
     /**
+     * Presupuesto total de proyectos en proceso.
+     */
+    public function getActiveProjectsBudgetAttribute(): float
+    {
+        return (float) $this->proyectos->where('estado', 'En proceso')->sum('presupuesto');
+    }
+
+    /**
+     * Ingreso mensual total de mantenimientos en curso (anuales prorrateados).
+     */
+    public function getMonthlyMaintenanceIncomeAttribute(): float
+    {
+        return (float) $this->mantenimientos->where('estado', 'en curso')->reduce(function ($acc, $m) {
+            $amount = (float) $m->importe;
+            return $acc + ($m->tipo_pago === 'anual' ? $amount / 12 : $amount);
+        }, 0);
+    }
+
+    /**
      * Obtiene los datos del Top 10 clientes por valor anualizado (Proyectos + Mantenimientos).
      */
     public static function getAnnualValueDataForChart()
@@ -47,7 +66,7 @@ class Client extends Model
 
         // Proyectos activos
         Proyecto::where('estado', 'En proceso')
-            ->with('client:id,name')
+            ->with(['client:id,name', 'extensiones:id,nombre']) // Cargar relaciones necesarias
             ->get()
             ->each(function ($p) use (&$clientesData) {
                 $name = $p->client->name ?? 'Sin Cliente';
@@ -56,7 +75,7 @@ class Client extends Model
 
         // Mantenimientos activos
         Mantenimiento::where('estado', 'en curso')
-            ->with('cliente:id,name')
+            ->with(['cliente:id,name', 'extensiones:id,nombre']) // Cargar relaciones necesarias
             ->get()
             ->each(function ($m) use (&$clientesData) {
                 $name = $m->cliente->name ?? 'Sin Cliente';

@@ -61,17 +61,22 @@ El beneficio real de un Proyecto o Mantenimiento se calcula como:
 - **Finalizado**: Requieren `fecha_fin`. Se mantienen en el histórico para el balance anual.
 - **Borrado Lógico**: La mayoría de entidades usan `SoftDeletes` para preservar la integridad referencial de los informes financieros.
 
+### 4.3 Centralización de Cálculos (Single Source of Truth)
+Para garantizar que el panel web y los PDFs exportados muestren datos idénticos, la lógica financiera se ha centralizado en el modelo `Client` mediante atributos computados:
+- `active_projects_budget`: Suma de presupuestos de proyectos "En proceso".
+- `monthly_maintenance_income`: Suma prorrateada de ingresos por mantenimientos activos.
+
 ---
 
 ## 5. Integración con Holded (API Sync)
 
 ### 5.1 Sincronización de Presupuestos
-- **Estrategia**: Sincronización local proactiva. Al consultar, el sistema baja datos desde el **01/01/2025** para asegurar que el historial relevante esté disponible instantáneamente sin latencia de API.
+- **Estrategia**: Sincronización local proactiva a través del módulo de Presupuestos. El sistema opera prioritariamente sobre la base de datos local para evitar latencias de API en las vistas de clientes.
 - **Mapeo de Datos**: Se almacenan el ID, contacto, estados y el objeto JSON original (`raw_data`).
 
 ### 5.2 Sincronización de Clientes
-- Los contactos de Holded de tipo `client` se vinculan mediante el `CIF/NIF`.
-- **Limpieza Segura**: Si un cliente se elimina en Holded, el sistema local solo lo borra si no tiene proyectos o mantenimientos asociados. Si tiene datos, permanece como cliente local e independiente.
+- Los contactos de Holded se vinculan mediante el `CIF/NIF`.
+- **Rendimiento**: Se ha eliminado la sincronización automática en cada carga del listado para garantizar una navegación instantánea.
 
 ---
 
@@ -87,4 +92,16 @@ El beneficio real de un Proyecto o Mantenimiento se calcula como:
 - **Accesibilidad**: Todos los inputs están vinculados mediante IDs y Nombres únicos para cumplir con los estándares de lectores de pantalla y autocompletado.
 
 ---
-*Documentación finalizada el 12/01/2026*
+
+## 7. Rendimiento y Escalabilidad (Senior Optimizations)
+
+### 7.1 Indexación de Base de Datos
+- Se han implementado índices en las columnas `estado` de las tablas `proyectos` y `mantenimientos`. Esto asegura que los filtrados y cálculos agregados de los dashboards mantengan un rendimiento constante incluso con grandes volúmenes de datos.
+
+### 7.2 Caché del Dashboard e Integración de Datos
+El sistema utiliza una estrategia de caché de alto rendimiento en el Dashboard principal:
+- **Caché de Estadísticas**: Los datos de KPIs y gráficos se almacenan durante 1 hora.
+- **Cache Busting (Event Driven)**: Se garantiza el 100% de precisión mediante "limpiadores" vinculados a los eventos de Eloquent (`saved`, `deleted`). Cualquier cambio en Proyectos, Mantenimientos o Extensiones invalida la caché del dashboard de forma inmediata.
+
+---
+*Documentación actualizada el 17/01/2026*

@@ -22,9 +22,6 @@ class ClientController extends Controller
 
     public function index(Request $request)
     {
-        // Sync contacts from Holded
-        $syncResult = $this->holdedService->syncContacts();
-
         $clients = Client::query()
             ->select(['id', 'name', 'cif_nif', 'email', 'city'])
             ->when($request->input('search'), function ($query, $search) {
@@ -41,7 +38,6 @@ class ClientController extends Controller
         return Inertia::render('Admin/Clients/Index', [
             'clients' => $clients,
             'filters' => $request->only(['search']),
-            'syncError' => $syncResult['error'] ?? null,
         ]);
     }
 
@@ -115,9 +111,9 @@ class ClientController extends Controller
     {
         $client->load([
             'proyectos:id,proyecto,presupuesto,estado,fecha_inicio,fecha_fin,client_id,updated_at',
-            'proyectos.extensiones:id,nombre',
+            'proyectos.extensiones:id,nombre,precio,tipo_licencia',
             'mantenimientos:id,aplicacion,importe,estado,fecha_inicio,tipo_pago,client_id',
-            'mantenimientos.extensiones:id,nombre'
+            'mantenimientos.extensiones:id,nombre,precio,tipo_licencia'
         ]);
 
         // Fetch budgets from Holded associated with this client
@@ -165,7 +161,49 @@ class ClientController extends Controller
         return Inertia::render('Admin/Clients/Show', [
             'client' => $client,
             'presupuestos' => $presupuestos,
-            'pagination' => $paginationData
+            'pagination' => $paginationData,
+            'stats' => [
+                'active_projects_budget' => $client->active_projects_budget,
+                'monthly_maintenance_income' => $client->monthly_maintenance_income,
+            ]
         ]);
+    }
+
+    public function exportPdf(Request $request, Client $client)
+    {
+        $client->load([
+            'proyectos' => fn($q) => $q->orderBy('fecha_inicio', 'desc'),
+            'proyectos.extensiones',
+            'mantenimientos' => fn($q) => $q->orderBy('fecha_inicio', 'desc'),
+            'mantenimientos.extensiones'
+        ]);
+
+        // Presupuestos de Holded
+        $presupuestos = [];
+        if ($client->contact) {
+            $presupuestos = Presupuesto::where('contact', $client->contact)
+                ->orderBy('date', 'desc')
+                ->get();
+        }
+
+        $logoPath = public_path('img/logo.png');
+        $logoBase64 = '';
+        if (file_exists($logoPath)) {
+            $type = pathinfo($logoPath, PATHINFO_EXTENSION);
+            $data = file_get_contents($logoPath);
+            $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.client', compact(
+            'client', 
+            'presupuestos', 
+            'logoBase64'
+        ));
+        
+        if ($request->has('download')) {
+            return $pdf->download("Cliente-{$client->name}.pdf");
+        }
+
+        return $pdf->stream("Cliente-{$client->name}.pdf");
     }
 }
