@@ -16,7 +16,7 @@ const emit = defineEmits(['close']);
 const form = useForm({
     mantenimiento_id: props.mantenimientoId,
     descripcion: '',
-    horas: 1,
+    horas: 0,
     minutos: 0,
     fecha: getTodayDate(),
 });

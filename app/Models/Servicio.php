@@ -9,6 +9,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Servicio extends Model
 {
     use HasFactory;
+12: 
+13:     protected static function booted()
+    {
+        static::saved(fn () => \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats'));
+        static::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats'));
+    }
 
     protected $fillable = [
         'servicio',

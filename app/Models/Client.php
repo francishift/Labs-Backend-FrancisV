@@ -8,6 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class Client extends Model
 {
     use HasFactory;
+11: 
+12:     protected static function booted()
+    {
+        static::saved(fn () => \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats'));
+        static::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats'));
+    }
 
     protected $fillable = [
         'name',

@@ -36,6 +36,7 @@ const adminNavigation = [
     { name: 'Tareas de Mantenimiento', href: route('admin.mantenimiento-servicios.index'), icon: ClipboardDocumentCheckIcon, active: route().current('admin.mantenimiento-servicios.*'), role: 'admin' },
     { name: 'Servicios', href: route('admin.servicios.index'), icon: WrenchScrewdriverIcon, active: route().current('admin.servicios.*'), role: 'coordinador' },
     { name: 'Usuarios', href: route('admin.usuarios.index'), icon: UsersIcon, active: route().current('admin.usuarios.*'), role: 'admin' },
+    { name: 'Resumen horas', href: route('admin.resumen-horas.index'), icon: ClockIcon, active: route().current('admin.resumen-horas.*'), role: 'admin' },
 ]
 
 const holdedNavigation = [

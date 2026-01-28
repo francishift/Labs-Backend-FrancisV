@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\MantenimientoController;
 use App\Http\Controllers\Admin\MantenimientoServicioController;
 use App\Http\Controllers\Admin\SoftwareController;
 use App\Http\Controllers\Admin\PdfViewerController;
+use App\Http\Controllers\Admin\ResumenHoraController;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
@@ -66,6 +67,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/admin/mantenimiento-servicios/{mantenimientoServicio}', [MantenimientoServicioController::class, 'destroy'])->name('admin.mantenimiento-servicios.destroy');
 
         Route::get('/admin/visor-pdf', [PdfViewerController::class, 'show'])->name('admin.visor-pdf');
+        Route::get('/admin/resumen-horas', [ResumenHoraController::class, 'index'])->name('admin.resumen-horas.index');
 
         // Holded
         Route::prefix('admin/holded')->name('admin.holded.')->group(function () {

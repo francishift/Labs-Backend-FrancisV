@@ -46,7 +46,7 @@ class MantenimientoServicioController extends Controller
         $data = $request->validate([
             'mantenimiento_id' => 'required|exists:mantenimientos,id',
             'descripcion' => 'required|string',
-            'duracion_minutos' => 'required|integer|min:1',
+            'duracion_minutos' => 'required|integer|min:0',
             'fecha' => 'required|date',
         ]);
 
@@ -65,7 +65,7 @@ class MantenimientoServicioController extends Controller
     {
         $data = $request->validate([
             'descripcion' => 'required|string',
-            'duracion_minutos' => 'required|integer|min:1',
+            'duracion_minutos' => 'required|integer|min:0',
             'fecha' => 'required|date',
         ]);
 
