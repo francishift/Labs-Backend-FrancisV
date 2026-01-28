@@ -10,8 +10,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Software extends Model
 {
     use HasFactory, CalculatesPeriodCosts, SoftDeletes;
-13: 
-14:     protected static function booted()
+
+    protected static function booted()
     {
         static::saved(fn () => \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats'));
         static::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats'));

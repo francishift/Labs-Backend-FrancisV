@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Configuracion extends Model
 {
     use HasFactory;
-11: 
-12:     protected static function booted()
+
+    protected static function booted()
     {
         static::saved(fn () => \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats'));
         static::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats'));
