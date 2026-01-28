@@ -29,6 +29,7 @@ class ProyectoController extends Controller
                       });
                 });
             })
+            ->orderByRaw("CASE WHEN estado = 'En proceso' THEN 1 ELSE 2 END")
             ->orderBy('fecha_inicio', 'desc')
             ->paginate(10)
             ->withQueryString();
