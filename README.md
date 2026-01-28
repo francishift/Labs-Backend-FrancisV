@@ -102,6 +102,36 @@ graph TD
 
 ---
 
+## 🛠️ Uso como Plantilla (Nuevos Proyectos)
+
+Si deseas usar este proyecto como base para una nueva aplicación manteniendo el diseño y componentes:
+
+### 1. Limpieza de Lógica Antigua
+Para eliminar los datos del proyecto anterior y empezar de cero:
+
+```bash
+# Eliminar migraciones específicas (Mantener users y sessions)
+rm database/migrations/202*_*_create_proyectos_table.php
+rm database/migrations/202*_*_create_mantenimientos_table.php
+# ... etc
+
+# Limpiar Controladores y Modelos
+rm app/Http/Controllers/Admin/*
+rm app/Models/Proyecto.php
+rm app/Models/Mantenimiento.php
+# ... etc
+```
+
+### 2. Reinicio de Base de Datos
+```bash
+php artisan migrate:fresh --seed
+```
+
+### 3. Personalización Core
+Modifica el `APP_NAME` en el `.env` y el logo en `resources/js/Components/ApplicationLogo.vue`.
+
+---
+
 ## 👨‍💻 Autor
 
 **Francis Valenzuela**

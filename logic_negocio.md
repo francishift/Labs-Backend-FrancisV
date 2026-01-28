@@ -2,6 +2,9 @@
 
 Este documento detalla todas las reglas de negocio, cálculos financieros, estándares de código y arquitecturas implementadas en el sistema de gestión de Labs.
 
+> [!TIP]
+> **Para nuevas aplicaciones:** Las secciones 1, 6 y 7 constituyen el "Core" reutilizable del sistema. El resto es lógica específica de este proyecto.
+
 ---
 
 ## 1. Control de Acceso y Usuarios
@@ -90,6 +93,14 @@ Para garantizar que el panel web y los PDFs exportados muestren datos idénticos
 - **Debounced Search**: Búsqueda global con 300ms de espera para optimizar recursos del servidor.
 - **DataTable**: Componente agnóstico que gestiona estados vacíos, alineaciones y clics en fila.
 - **Accesibilidad**: Todos los inputs están vinculados mediante IDs y Nombres únicos para cumplir con los estándares de lectores de pantalla y autocompletado.
+- **Formularios Dinámicos**: Uso de `DialogModal` y `ConfirmModal` para flujos de CRUD sin recarga de página.
+
+### 6.3 Biblioteca de Componentes Base
+Ubicados en `resources/js/Components/`:
+*   `Badge.vue`: Etiquetas de estado personalizables.
+*   `StatCard.vue`: Tarjetas de indicadores con soporte de iconos.
+*   `SearchableSelect.vue`: Componente avanzado de selección con búsqueda integrada.
+*   `Pagination.vue`: Control de paginación compatible con Eloquent/Inertia.
 
 ---
 
