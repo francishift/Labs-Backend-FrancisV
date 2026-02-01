@@ -135,9 +135,7 @@ class ProyectoController extends Controller
             'pagination' => $paginationData,
             'clients' => \App\Models\Client::orderBy('name')->get(['id', 'name']),
             'availableExtensions' => \App\Models\Extension::orderBy('nombre')->get(['id', 'nombre']),
-            'stats' => [
-                'coste_software' => (($proyecto->coste_software_anual ?? \App\Models\Software::getTotalAnual()) * (float)($proyecto->porcentaje_software ?? \App\Models\Configuracion::get('porcentaje_software', 2))) / 100
-            ]
+            'stats' => $proyecto->getFinancialStats()
         ]);
     }
 

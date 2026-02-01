@@ -206,13 +206,35 @@
                 <div class="card bg-emerald">
                     <div class="label emerald-label">Resumen Financiero</div>
                     <div class="value-label" style="color: #065f46;">Presupuesto del Proyecto</div>
-                    <div class="value-large" style="font-weight: bold !important;">{{ number_format($proyecto->presupuesto, 2, ',', '.') }}€</div>
+                    <div class="value-large">{{ number_format($proyecto->presupuesto, 2, ',', '.') }}€</div>
                     
                     <div style="margin-top: 15px; border-top: 1px solid #d1fae5; padding-top: 10px;">
-                        <table style="width: 100%;">
+                        <table style="width: 100%; border-collapse: collapse;">
                             <tr>
-                                <td class="value-label" style="color: #065f46;">Coste Acumulado</td>
-                                <td class="value text-right" style="color: #064e3b; font-weight: bold !important;">{{ number_format($grandTotal, 2, ',', '.') }}€</td>
+                                <td class="value-label" style="color: #065f46; padding-bottom: 2px;">Total Horas</td>
+                                <td class="value text-right" style="color: #065f46; padding-bottom: 2px;">{{ $formattedTime }}</td>
+                            </tr>
+                            <tr>
+                                <td class="value-label" style="color: #065f46; padding-bottom: 5px; font-style: italic; font-weight: bold;">Total €/hora</td>
+                                <td class="value text-right" style="color: #065f46; padding-bottom: 5px; font-weight: bold;">{{ number_format($hoursCostTotal, 2, ',', '.') }}€</td>
+                            </tr>
+                            @if($hasFixedCost)
+                            <tr>
+                                <td class="value-label" style="color: #065f46; padding-bottom: 2px;">Servicios (Fijo)</td>
+                                <td class="value text-right" style="color: #065f46; padding-bottom: 2px;">{{ number_format($fixedCostTotal, 2, ',', '.') }}€</td>
+                            </tr>
+                            @endif
+                            <tr>
+                                <td class="value-label" style="color: #065f46; padding-bottom: 2px;">Extensiones</td>
+                                <td class="value text-right" style="color: #065f46; padding-bottom: 2px;">{{ number_format($extensionsTotal, 2, ',', '.') }}€</td>
+                            </tr>
+                            <tr>
+                                <td class="value-label" style="color: #065f46; padding-bottom: 5px;">Mantenimiento / Hosting</td>
+                                <td class="value text-right" style="color: #065f46; padding-bottom: 5px;">{{ number_format($costeSoftware, 2, ',', '.') }}€</td>
+                            </tr>
+                            <tr style="border-top: 1px solid #059669;">
+                                <td class="value-label" style="color: #064e3b; font-weight: bold; font-size: 10pt; padding-top: 5px;">Coste Total Acumulado</td>
+                                <td class="value text-right" style="color: #064e3b; font-weight: bold; font-size: 11pt; padding-top: 5px;">{{ number_format($grandTotal, 2, ',', '.') }}€</td>
                             </tr>
                         </table>
                     </div>

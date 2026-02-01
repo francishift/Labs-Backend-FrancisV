@@ -35,8 +35,12 @@ const adminNavigation = [
     { name: 'Software / Hosting', href: route('admin.softwares.index'), icon: ComputerDesktopIcon, active: route().current('admin.softwares.*'), role: 'admin' },
     { name: 'Tareas de Mantenimiento', href: route('admin.mantenimiento-servicios.index'), icon: ClipboardDocumentCheckIcon, active: route().current('admin.mantenimiento-servicios.*'), role: 'admin' },
     { name: 'Servicios', href: route('admin.servicios.index'), icon: WrenchScrewdriverIcon, active: route().current('admin.servicios.*'), role: 'coordinador' },
-    { name: 'Usuarios', href: route('admin.usuarios.index'), icon: UsersIcon, active: route().current('admin.usuarios.*'), role: 'admin' },
     { name: 'Resumen horas', href: route('admin.resumen-horas.index'), icon: ClockIcon, active: route().current('admin.resumen-horas.*'), role: 'admin' },
+]
+
+const securityNavigation = [
+    { name: 'Usuarios', href: route('admin.usuarios.index'), icon: UsersIcon, active: route().current('admin.usuarios.*'), role: 'admin' },
+    { name: 'Logs VPN', href: route('admin.logs.index'), icon: ShieldCheckIcon, active: route().current('admin.logs.*'), role: 'admin' },
 ]
 
 const holdedNavigation = [
@@ -95,6 +99,30 @@ const hasRole = (auth, role) => {
                         <template v-for="item in adminNavigation" :key="item.name">
                             <Link
                                 v-if="hasRole(auth, item.role)"
+                                :href="item.href"
+                                :class="[
+                                    item.active
+                                        ? 'bg-zinc-800 text-white border border-zinc-700/50'
+                                        : 'text-zinc-400 hover:text-white hover:bg-zinc-800',
+                                    'group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200'
+                                ]"
+                                prefetch
+                            >
+                                <component :is="item.icon" class="me-3 flex-shrink-0 h-5 w-5" aria-hidden="true" />
+                                {{ item.name }}
+                            </Link>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Security Section -->
+                 <div v-if="auth?.roles?.includes('admin')">
+                    <h3 class="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
+                        Accesos y Seguridad
+                    </h3>
+                    <div class="space-y-1">
+                        <template v-for="item in securityNavigation" :key="item.name">
+                            <Link
                                 :href="item.href"
                                 :class="[
                                     item.active
@@ -242,6 +270,29 @@ const hasRole = (auth, role) => {
                                             ]"
                                         >
                                             <component :is="item.icon" class="mr-4 flex-shrink-0 h-6 w-6 text-zinc-400" aria-hidden="true" />
+                                            {{ item.name }}
+                                        </Link>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <div v-if="auth?.roles?.includes('admin')">
+                                <h3 class="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
+                                    Accesos y Seguridad
+                                </h3>
+                                <div class="space-y-1">
+                                    <template v-for="item in securityNavigation" :key="item.name">
+                                        <Link
+                                            :href="item.href"
+                                            @click="$emit('close')"
+                                            :class="[
+                                                item.active
+                                                    ? 'bg-zinc-800 text-white border border-zinc-700/50'
+                                                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800',
+                                                'group flex items-center px-3 py-3 text-base font-medium rounded-xl'
+                                            ]"
+                                        >
+                                            <component :is="item.icon" class="mr-4 flex-shrink-0 h-6 w-6 text-zinc-300" aria-hidden="true" />
                                             {{ item.name }}
                                         </Link>
                                     </template>

@@ -130,7 +130,12 @@ const destroyUser = () => {
     <DialogModal :show="showEditModal" @close="closeEditModal">
       <template #title>Editar usuario</template>
       <template #content>
-        <EditUserForm :user="editingItem" :roles="roles" :me="me" :closeEditModal="closeEditModal" />
+        <EditUserForm 
+          :user="users.data.find(u => u.id === editingItem?.id) || editingItem" 
+          :roles="roles" 
+          :me="me" 
+          :closeEditModal="closeEditModal" 
+        />
       </template>
       <template #footer>
         <SecondaryButton type="button" @click="closeEditModal">Cancelar</SecondaryButton>

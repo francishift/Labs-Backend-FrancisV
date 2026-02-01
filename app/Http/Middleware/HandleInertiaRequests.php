@@ -38,6 +38,7 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
+                'vpn_config' => $request->session()->get('vpn_config'),
             ],
             'config' => [
                 'precio_hora' => \App\Models\Configuracion::get('precio_hora', 0),

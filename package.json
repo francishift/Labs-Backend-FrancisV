@@ -24,6 +24,7 @@
         "@heroicons/vue": "^2.2.0",
         "echarts": "^6.0.0",
         "lodash": "^4.17.21",
+        "qrcode.vue": "^3.7.1",
         "vue-echarts": "^8.0.1"
     }
 }

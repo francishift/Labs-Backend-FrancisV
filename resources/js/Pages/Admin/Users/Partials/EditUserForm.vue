@@ -5,6 +5,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import InputError from '@/Components/InputError.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
+import VpnManager from './VpnManager.vue';
 
 const props = defineProps({
     user: Object,
@@ -90,5 +91,8 @@ const submitEdit = () => {
             />
             <InputError class="mt-2" :message="editForm.errors.password" />
         </div>
+
+        <!-- Sección de VPN -->
+        <VpnManager v-if="user" :user="user" />
     </form>
 </template>

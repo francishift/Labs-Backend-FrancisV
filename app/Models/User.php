@@ -21,6 +21,11 @@ class User extends Authenticatable implements MustVerifyEmail
                 $user->must_change_password = false;
             }
         });
+
+        static::deleting(function (User $user) {
+            // Borramos sus dispositivos VPN para activar sus hooks de revocación
+            $user->vpnDevices()->each(fn($device) => $device->delete());
+        });
     }
 
     protected $fillable = [
@@ -73,5 +78,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new \App\Notifications\ResetPasswordSpanish($token));
+    }
+
+    public function vpnDevices()
+    {
+        return $this->hasMany(VpnDevice::class);
     }
 }

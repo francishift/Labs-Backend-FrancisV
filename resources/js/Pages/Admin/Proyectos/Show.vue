@@ -57,23 +57,10 @@ const getStatusVariant = (status) => {
     }
 }
 
-// Calculations
-const calculateServiceTotal = (service) => {
-    // Usamos el precio_hora guardado en el servicio como snapshot
-    const precioHora = service.precio_hora || page.props.config?.precio_hora || 0
-    const costeHoras = (service.duracion_minutos / 60) * precioHora
-    const importeFijo = parseFloat(service.precio || 0)
-    return costeHoras + importeFijo
-}
-
-const calculateServiceHoursCost = (service) => {
-    const precioHora = service.precio_hora || page.props.config?.precio_hora || 0
-    return (service.duracion_minutos / 60) * precioHora
-}
-
-const servicesTotal = computed(() => props.proyecto.servicios?.reduce((acc, s) => acc + calculateServiceTotal(s), 0) || 0)
-const extensionsTotal = computed(() => props.proyecto.extensiones?.reduce((acc, e) => acc + parseFloat(e.pivot?.precio_aplicado || e.precio || 0), 0) || 0)
-const grandTotal = computed(() => servicesTotal.value + extensionsTotal.value + (props.stats?.coste_software || 0))
+// Los cálculos ahora se realizan centralizadamente en el modelo Proyecto (backend)
+const servicesTotal = computed(() => props.stats?.servicesTotal || 0)
+const extensionsTotal = computed(() => props.stats?.extensionsTotal || 0)
+const grandTotal = computed(() => props.stats?.grandTotal || 0)
 
 const formatMinutesToHours = (minutes) => {
     const h = Math.floor(minutes / 60)
@@ -166,20 +153,28 @@ const destroyService = () => {
                         <h3 class="text-lg font-bold text-emerald-900 dark:text-emerald-400 mb-4">Resumen de Costes</h3>
                         <div class="space-y-3">
                             <div class="flex justify-between items-center text-sm">
-                                <span class="text-emerald-700 dark:text-emerald-300">Total Servicios</span>
-                                <span class="font-medium text-emerald-900 dark:text-emerald-200 text-right">{{ formatCurrency(servicesTotal) }}</span>
+                                <span class="text-emerald-700 dark:text-emerald-300">Total Horas</span>
+                                <span class="font-medium text-emerald-900 dark:text-emerald-200 text-right">{{ stats.formattedTime }}</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm border-b border-emerald-100 dark:border-emerald-800/50 pb-2">
+                                <span class="text-emerald-700 dark:text-emerald-300 font-bold italic">Total €/hora</span>
+                                <span class="font-bold text-emerald-900 dark:text-emerald-200 text-right">{{ formatCurrency(stats.hoursCostTotal) }}</span>
+                            </div>
+                            <div v-if="stats.hasFixedCost" class="flex justify-between items-center text-sm">
+                                <span class="text-emerald-700 dark:text-emerald-300">Servicios (Fijo)</span>
+                                <span class="font-medium text-emerald-900 dark:text-emerald-200 text-right">{{ formatCurrency(stats.fixedCostTotal) }}</span>
                             </div>
                             <div class="flex justify-between items-center text-sm">
                                 <span class="text-emerald-700 dark:text-emerald-300">Total Extensiones</span>
-                                <span class="font-medium text-emerald-900 dark:text-emerald-200 text-right">{{ formatCurrency(extensionsTotal) }}</span>
+                                <span class="font-medium text-emerald-900 dark:text-emerald-200 text-right">{{ formatCurrency(stats.extensionsTotal) }}</span>
                             </div>
                             <div class="flex justify-between items-center text-sm">
                                 <span class="text-emerald-700 dark:text-emerald-300">Software / Hosting (Gasto Global)</span>
-                                <span class="font-medium text-emerald-900 dark:text-emerald-200 text-right">{{ formatCurrency(props.stats?.coste_software || 0) }}</span>
+                                <span class="font-medium text-emerald-900 dark:text-emerald-200 text-right">{{ formatCurrency(stats.costeSoftware) }}</span>
                             </div>
                             <div class="border-t border-emerald-200 dark:border-emerald-800 pt-3 flex justify-between items-center">
                                 <span class="text-base font-bold text-emerald-900 dark:text-emerald-400">Coste Total</span>
-                                <span class="text-xl font-black text-emerald-900 dark:text-emerald-200 text-right">{{ formatCurrency(grandTotal) }}</span>
+                                <span class="text-xl font-black text-emerald-900 dark:text-emerald-200 text-right">{{ formatCurrency(stats.grandTotal) }}</span>
                             </div>
                             <div v-if="proyecto.presupuesto > 0" class="mt-4">
                                 <p class="text-xs font-semibold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider mb-2">Utilización del Presupuesto</p>
@@ -234,13 +229,13 @@ const destroyService = () => {
                                         </div>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-red-600/70 dark:text-red-400/70">
-                                        {{ formatCurrency(calculateServiceHoursCost(service)) }}
+                                        {{ formatCurrency((service.duracion_minutos / 60) * (service.precio_hora || page.props.config?.precio_hora || 0)) }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-right text-red-600/70 dark:text-red-400/70">
                                         {{ formatCurrency(service.precio || 0) }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-900 dark:text-zinc-200">
-                                        {{ formatCurrency(calculateServiceTotal(service)) }}
+                                        {{ formatCurrency(((service.duracion_minutos / 60) * (service.precio_hora || page.props.config?.precio_hora || 0)) + parseFloat(service.precio || 0)) }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex justify-end gap-2">

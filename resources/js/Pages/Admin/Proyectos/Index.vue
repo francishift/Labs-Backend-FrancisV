@@ -107,19 +107,19 @@ const navigateToShow = (item) => {
             :is-currency="true"
           />
           <StatCard
-            title="Horas + Extensiones + Software"
-            :value="stats.total_gastos"
-            :icon="ChartBarIcon"
-            variant="amber"
-            :is-currency="true"
-          />
-          <StatCard
             title="Suma servicios por horas"
             :value="stats.total_servicios"
             :secondary-value="formatDuration(stats.total_minutos)"
             :secondary-is-currency="false"
             :icon="ClockIcon"
             variant="indigo"
+            :is-currency="true"
+          />
+          <StatCard
+            title="Horas + Extensiones + Software"
+            :value="stats.total_gastos"
+            :icon="ChartBarIcon"
+            variant="amber"
             :is-currency="true"
           />
         </div>

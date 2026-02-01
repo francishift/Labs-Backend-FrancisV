@@ -39,4 +39,8 @@ return [
         'key' => env('HOLDED_API_KEY'),
     ],
 
+    'vpn' => [
+        'endpoint' => env('VPN_ENDPOINT', '213.165.65.4:51892'),
+    ],
+
 ];

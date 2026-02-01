@@ -37,6 +37,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/admin/usuarios/{user}', [UserController::class, 'update'])->name('admin.usuarios.update');
         Route::delete('/admin/usuarios/{user}', [UserController::class, 'destroy'])->name('admin.usuarios.destroy'); 
 
+        // Rutas VPN
+        Route::post('/admin/usuarios/{user}/network-access', [\App\Http\Controllers\Admin\VpnController::class, 'store'])->name('admin.vpn.store');
+        Route::get('/admin/sys/logs', [\App\Http\Controllers\Admin\VpnLogsController::class, 'index'])->name('admin.logs.index');
+        Route::post('/admin/sys/d/{id}', [\App\Http\Controllers\Admin\VpnController::class, 'destroy'])->name('admin.vpn.destroy');
+
         Route::get('/admin/clientes', [ClientController::class, 'index'])->name('admin.clientes.index');
         Route::get('/admin/clientes/{client}', [ClientController::class, 'show'])->name('admin.clientes.show');
         Route::get('/admin/clientes/{client}/export-pdf', [ClientController::class, 'exportPdf'])->name('admin.clientes.pdf');

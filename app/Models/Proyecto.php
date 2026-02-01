@@ -161,22 +161,39 @@ class Proyecto extends Model
      */
     public function getFinancialStats()
     {
-        $servicesTotal = $this->servicios->reduce(function ($acc, $s) {
-            $precioHora = $s->precio_hora ?? Configuracion::get('precio_hora', 0);
-            return $acc + (($s->duracion_minutos / 60) * $precioHora) + ($s->precio ?? 0);
-        }, 0);
+        $totalMinutes = 0;
+        $hoursCostTotal = 0;
+        $fixedCostTotal = 0;
+
+        foreach ($this->servicios as $s) {
+            $totalMinutes += $s->duracion_minutos;
+            $precioHora = $s->precio_hora ?? \App\Models\Configuracion::get('precio_hora', 0);
+            $hoursCostTotal += ($s->duracion_minutos / 60) * $precioHora;
+            $fixedCostTotal += (float) ($s->precio ?? 0);
+        }
+
+        $servicesTotal = $hoursCostTotal + $fixedCostTotal;
 
         $extensionsTotal = $this->extensiones->reduce(function ($acc, $e) {
             return $acc + (float)($e->pivot->precio_aplicado ?? $e->precio ?? 0);
         }, 0);
 
         $totalSoftwareAnual = $this->coste_software_anual ?? Software::getTotalAnual();
-        $porcentajeSoftware = (float)($this->porcentaje_software ?? Configuracion::get('porcentaje_software', 2));
+        $porcentajeSoftware = (float)($this->porcentaje_software ?? \App\Models\Configuracion::get('porcentaje_software', 2));
         $costeSoftware = ($totalSoftwareAnual * $porcentajeSoftware) / 100;
 
         $grandTotal = $servicesTotal + $extensionsTotal + $costeSoftware;
 
+        $h = floor($totalMinutes / 60);
+        $m = $totalMinutes % 60;
+        $formattedTime = $m > 0 ? "{$h}h {$m}min" : "{$h}h";
+
         return [
+            'totalMinutes' => $totalMinutes,
+            'formattedTime' => $formattedTime,
+            'hoursCostTotal' => $hoursCostTotal,
+            'fixedCostTotal' => $fixedCostTotal,
+            'hasFixedCost' => $fixedCostTotal > 0,
             'servicesTotal' => $servicesTotal,
             'extensionsTotal' => $extensionsTotal,
             'costeSoftware' => $costeSoftware,

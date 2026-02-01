@@ -21,7 +21,7 @@ class UserController extends Controller
 
         $users = User::query()
             ->select(['id', 'name', 'email', 'created_at'])
-            ->with('roles:id,name')
+            ->with(['roles:id,name', 'vpnDevices'])
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
@@ -36,6 +36,7 @@ class UserController extends Controller
                     'name' => $u->name,
                     'email' => $u->email,
                     'roles' => $u->roles->pluck('name')->values(),
+                    'vpn_devices' => $u->vpnDevices,
                     'created_at' => optional($u->created_at)->toDateTimeString(),
                 ];
             })
