@@ -56,7 +56,7 @@ graph TD
     D --> E[Modelos Eloquent]
     E --> F[(PostgreSQL/MySQL)]
     C --> G[Permisos Spatie]
-    C --> H[Servicio VPN (WireGuard)]
+    C --> H["Servicio VPN (WireGuard)"]
 ```
 
 ---
@@ -168,7 +168,7 @@ graph TD
     D --> E[Eloquent Models]
     E --> F[(PostgreSQL/MySQL)]
     C --> G[Spatie Permissions]
-    C --> H[VPN Service (WireGuard)]
+    C --> H["VPN Service (WireGuard)"]
 ```
 
 ---
