@@ -16,15 +16,7 @@ use App\Http\Controllers\Admin\SoftwareController;
 use App\Http\Controllers\Admin\PdfViewerController;
 use App\Http\Controllers\Admin\ResumenHoraController;
 
-Route::get('/debug-logo', function() {
-    $path = public_path('img/logo.png');
-    return [
-        'public_path' => $path,
-        'exists' => file_exists($path),
-        'size' => file_exists($path) ? filesize($path) : 0,
-        'app_url' => config('app.url'),
-    ];
-});
+
 
 Route::get('/', function () {
     return redirect()->route('dashboard');

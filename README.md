@@ -26,6 +26,7 @@ Una solución **ERP y CRM completa y premium**, diseñada para agencias digitale
 - **🛡️ Inmutabilidad de Datos**: Sistema de snapshots de precios que garantiza la integridad de los informes históricos ante cambios en las tarifas globales.
 - **📄 Visor de PDF Profesional**: Generación de informes financieros detallados para **Clientes, Proyectos y Mantenimientos**, con visor embebido optimizado para móviles y Safari.
 - **📦 Integración con Holded (CRM/ERP)**: Sincronización bidireccional de presupuestos y contactos mediante API oficial, con persistencia en base de datos local para máximo rendimiento.
+- **🛡️ Gestión de Red y VPN**: Módulo integrado para crear accesos VPN (WireGuard) para empleados, permitiendo acceso seguro a recursos internos con gestión de IPs automatizada.
 - **🎨 Refinamiento UI**: Interfaz coherente sistema de gestión de extensiones alineado con mantenimientos y mejoras en la legibilidad de tablas.
 
 ---
@@ -38,7 +39,7 @@ Una solución **ERP y CRM completa y premium**, diseñada para agencias digitale
 | **Frontend** | Vue 3 (Composition API), Inertia.js |
 | **Estilo** | Tailwind CSS, Headless UI |
 | **Analítica** | Apache ECharts, Vue-ECharts |
-| **Auth/Seguridad** | Laravel Breeze, Spatie Permissions |
+| **Auth/Seguridad** | Laravel Breeze, Spatie Permissions, **WireGuard VPN** |
 | **Automatización** | Composables Personalizados, Búsqueda Debounced, Filtrado Avanzado |
 
 ---
@@ -55,6 +56,7 @@ graph TD
     D --> E[Modelos Eloquent]
     E --> F[(PostgreSQL/MySQL)]
     C --> G[Permisos Spatie]
+    C --> H[Servicio VPN (WireGuard)]
 ```
 
 ---
@@ -102,36 +104,6 @@ graph TD
 
 ---
 
-## 🛠️ Uso como Plantilla (Nuevos Proyectos)
-
-Si deseas usar este proyecto como base para una nueva aplicación manteniendo el diseño y componentes:
-
-### 1. Limpieza de Lógica Antigua
-Para eliminar los datos del proyecto anterior y empezar de cero:
-
-```bash
-# Eliminar migraciones específicas (Mantener users y sessions)
-rm database/migrations/202*_*_create_proyectos_table.php
-rm database/migrations/202*_*_create_mantenimientos_table.php
-# ... etc
-
-# Limpiar Controladores y Modelos
-rm app/Http/Controllers/Admin/*
-rm app/Models/Proyecto.php
-rm app/Models/Mantenimiento.php
-# ... etc
-```
-
-### 2. Reinicio de Base de Datos
-```bash
-php artisan migrate:fresh --seed
-```
-
-### 3. Personalización Core
-Modifica el `APP_NAME` en el `.env` y el logo en `resources/js/Components/ApplicationLogo.vue`.
-
----
-
 ## 👨‍💻 Autor
 
 **Francis Valenzuela**
@@ -166,6 +138,7 @@ A premium, full-featured **Enterprise Resource Planning (ERP) and CRM solution**
 - **🛡️ Data Immutability**: Price snapshot system ensuring the integrity of historical reports against changes in global rates.
 - **📄 Proactive Export (PDF)**: Detailed financial report generation for **Clients, Projects, and Maintenance**, with an embedded viewer optimized for mobile and Safari compatibility.
 - **📦 Holded Integration (CRM/ERP)**: Real-time synchronization of estimates and contacts via official API, with local database persistence for maximum performance and integrated document viewing.
+- **🛡️ VPN & Network Management**: Integrated module for provisioning WireGuard VPN access to employees, automating IP allocation and securing internal resources.
 - **🎨 UI Refinement**: Consistent interface for extension management aligned with maintenance modules and improved table readability.
 
 ---
@@ -178,7 +151,7 @@ A premium, full-featured **Enterprise Resource Planning (ERP) and CRM solution**
 | **Frontend** | Vue 3 (Composition API), Inertia.js |
 | **Styling** | Tailwind CSS, Headless UI |
 | **Analytics** | Apache ECharts, Vue-ECharts |
-| **Auth/Security** | Laravel Breeze, Spatie Permissions |
+| **Auth/Security** | Laravel Breeze, Spatie Permissions, **WireGuard VPN** |
 | **Automation** | Custom Composables, Debounced Search, Advanced Filtering |
 
 ---
@@ -195,6 +168,7 @@ graph TD
     D --> E[Eloquent Models]
     E --> F[(PostgreSQL/MySQL)]
     C --> G[Spatie Permissions]
+    C --> H[VPN Service (WireGuard)]
 ```
 
 ---
