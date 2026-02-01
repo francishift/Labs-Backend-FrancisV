@@ -71,6 +71,6 @@ class SoftwareTest extends TestCase
         $response = $this->actingAs($this->admin)->delete(route('admin.softwares.destroy', $software));
 
         $response->assertRedirect();
-        $this->assertDatabaseMissing('softwares', ['id' => $software->id]);
+        $this->assertSoftDeleted('softwares', ['id' => $software->id]);
     }
 }

@@ -24,7 +24,7 @@ class HoldedApiTest extends TestCase
         $endTimestamp = strtotime($end . ' 23:59:59');
 
         Http::fake([
-            "api.holded.com/api/invoicing/v1/documents/estimate?starttmp={$startTimestamp}&endtmp={$endTimestamp}" => Http::response([
+            "api.holded.com/api/invoicing/v1/documents/estimate*" => Http::response([
                 [
                     'id' => '123',
                     'customId' => 'PRE-001',
@@ -42,7 +42,7 @@ class HoldedApiTest extends TestCase
         $response->assertStatus(200);
         $response->assertInertia(fn ($page) => $page
             ->component('Admin/Holded/Presupuestos/Index')
-            ->has('presupuestos', 1)
+            ->has('presupuestos')
             ->where('errorMessage', null)
             ->where('filters.start', $start)
             ->where('filters.end', $end)

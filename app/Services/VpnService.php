@@ -27,9 +27,6 @@ class VpnService
     /**
      * Obtiene la siguiente IP disponible en el rango 10.0.0.x.
      */
-    /**
-     * Obtiene la siguiente IP disponible en el rango 10.0.0.x.
-     */
     public function getNextAvailableIp(): string
     {
         // 1. Obtener IPs de dispositivos activos

@@ -30,6 +30,10 @@ class Configuracion extends Model
      */
     public static function get($key, $default = null)
     {
+        if (app()->environment('testing')) {
+            self::$cache = [];
+        }
+
         if (array_key_exists($key, self::$cache)) {
             return self::$cache[$key];
         }
