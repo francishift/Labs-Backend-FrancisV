@@ -105,18 +105,44 @@ class VpnService
     {
         $serverPublicKey = trim(shell_exec("sudo /usr/bin/wg show {$this->interface} public-key"));
         $endpoint = config('services.vpn.endpoint');
+        
+        // Extraer la IP del endpoint para añadirla a AllowedIPs (Split Tunneling con acceso al servidor)
+        $serverIp = explode(':', $endpoint)[0];
 
         return <<<CONFIG
 [Interface]
 PrivateKey = {$privateKey}
 Address = {$device->internal_ip}/24
-DNS = 10.0.0.1
+DNS = 1.1.1.1, 8.8.8.8
 
 [Peer]
 PublicKey = {$serverPublicKey}
 Endpoint = {$endpoint}
-AllowedIPs = 10.0.0.0/24
+AllowedIPs = 10.0.0.0/24, {$serverIp}/32
 PersistentKeepalive = 25
 CONFIG;
+    }
+
+    /**
+     * Sincroniza todos los dispositivos activos con el servidor Wireguard.
+     * Útil después de un reinicio del servidor.
+     */
+    public function syncAllPeers(): array
+    {
+        $devices = VpnDevice::all(); // Opcional: ->where('is_active', true) si tuviéramos ese flag
+        $results = [
+            'success' => 0,
+            'failed' => 0,
+        ];
+
+        foreach ($devices as $device) {
+            if ($this->addPeer($device)) {
+                $results['success']++;
+            } else {
+                $results['failed']++;
+            }
+        }
+
+        return $results;
     }
 }

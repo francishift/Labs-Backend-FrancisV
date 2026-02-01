@@ -7,6 +7,7 @@ The **Labs Backend VPN Module** allows administrators to manage secure network a
 - **Auto-provisioning**: Generates private/public keys and allocates IPs (10.0.0.x pool).
 - **Instant Revocation**: Removing a device immediately kills the active tunnel.
 - **QR Code Configuration**: Users can scan a QR code to connect instantly.
+- **Boot Persistence**: Automatically restores access after server reboots.
 
 ---
 
@@ -39,10 +40,10 @@ PrivateKey = <SERVER_PRIVATE_KEY>
 
 # IP Forwarding & Masquerading (NAT)
 PostUp = sysctl -w net.ipv4.ip_forward=1
-PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE
+PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o ens6 -j MASQUERADE
+PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o ens6 -j MASQUERADE
 ```
-*Note: Ensure your main network interface is `eth0`. If distinct, adjust accordingly (e.g., `ens3`, `venet0`).*
+*Note: Ensure your main network interface is correct (e.g., `ens6`, `eth0`). Check with `ip addr`.*
 
 ### 4. Enable and Start WireGuard Service
 ```bash
@@ -54,60 +55,48 @@ sudo systemctl start wg-quick@wg0
 
 ## 🔐 Permissions & Sudoers
 
-The Laravel application runs as the web user (usually `www-data` or `psacln` on Plesk). It needs simplified privileges to manage WireGuard active peers without acting as full root.
+The Laravel application needs simplified privileges to manage WireGuard active peers.
 
 ### Configure Sudoers
 Create a new sudoers file:
 ```bash
-sudo visudo -f /etc/sudoers.d/www-data
+sudo visudo -f /etc/sudoers.d/vpn-management
 ```
 
-Add the following lines to allow the web user to run `wg` commands without a password:
-
+Add the following (replace `username` with the web/system user):
 ```bash
 # Allow web user to manage WireGuard
-www-data ALL=(root) NOPASSWD: /usr/bin/wg set wg0 peer *
-www-data ALL=(root) NOPASSWD: /usr/bin/wg show wg0 public-key
+username ALL=(root) NOPASSWD: /usr/bin/wg
 ```
-*Replace `www-data` with your web server user if different (e.g., `labs` or `nginx`).*
 
 ---
 
 ## ⚙️ Application Configuration
 
 ### Environment Variables (`.env`)
-Add the following key to your Laravel `.env` file. This is the **public IP and port** that clients will connect to.
 ```env
 VPN_ENDPOINT=213.165.65.4:51892
 ```
 
-### Middleware Protection
-To restrict specific routes (like `/admin` or internal tools) to VPN users only, use the keys detected by the `VpnIpRestriction` middleware.
+### 🔄 Automatic Restoration & Persistence
+To ensure that peers are restored after a reboot and handshakes are tracked, add the following to your crontab (`crontab -e -u username` or via Plesk Scheduled Tasks):
 
-**Logic:**
-- Allowed IPs: `10.0.0.0/24` (VPN Range), `127.0.0.1` (Localhost).
-- Blocked: Everything else.
+```bash
+# Laravel Scheduler (Every minute) - Tracks handshakes
+* * * * * cd /path/to/app && php artisan schedule:run >> /dev/null 2>&1
 
-**Usage in Routes:**
-```php
-Route::middleware(['auth', 'vpn.restriction'])->group(function () {
-    // Protected routes
-});
+# Reboot Restoration - Restores all peers on boot
+@reboot cd /path/to/app && php artisan vpn:sync-peers >> /dev/null 2>&1
 ```
 
 ---
 
 ## 🔍 Troubleshooting
 
-### "Command requires root privileges"
-If the logs show permission errors:
-1. Verify the user running PHP (`ps aux | grep php`).
-2. Check the sudoers syntax (`visudo -c`).
-3. Ensure usage of full paths in code (`/usr/bin/wg`).
-
 ### Clients can connect but no internet
-1. Check if IP forwarding is enabled: `sysctl net.ipv4.ip_forward`.
-2. check iptables rules: `iptables -t nat -L -v`.
+1. **DNS**: Ensure the client profile uses public DNS (e.g., `DNS = 1.1.1.1, 8.8.8.8`).
+2. **NAT**: Verify the `PostUp` rule in `wg0.conf` has the correct interface name (use `ip addr`).
 
-### Logo/Assets returning 403 Forbidden
-If internal assets are blocked by the VPN middleware, ensure your **Public** folder is white-listed or use absolute URLs pointing to files not served through the Laravel pipeline (e.g., direct Nginx static file serving).
+### "403 Forbidden" on the Dashboard
+1. Ensure the server's public IP is included in the client's `AllowedIPs` (e.g., `AllowedIPs = 10.0.0.0/24, SERVER_IP/32`).
+2. Check if the domain's Nginx configuration allows the `10.0.0.0/24` range.

@@ -11,3 +11,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('vpn:sync-handshakes')->everyMinute();
+Schedule::command('vpn:sync-peers')->everyFiveMinutes();
