@@ -18,7 +18,7 @@ class ProyectoController extends Controller
     public function index(Request $request)
     {
         $proyectos = Proyecto::query()
-            ->select(['id', 'proyecto', 'descripcion', 'fecha_inicio', 'presupuesto', 'estado', 'client_id'])
+            ->select(['id', 'proyecto', 'descripcion', 'fecha_inicio', 'fecha_fin', 'presupuesto', 'estado', 'client_id'])
             ->with(['client:id,name', 'extensiones:id,nombre'])
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
@@ -60,7 +60,7 @@ class ProyectoController extends Controller
             'proyecto' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
             'fecha_inicio' => 'required|date',
-            'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
+            'fecha_fin' => 'required_if:estado,Finalizado|nullable|date|after_or_equal:fecha_inicio',
             'presupuesto' => 'nullable|numeric|min:0',
             'estado' => 'required|string|in:En proceso,Finalizado,Cancelado',
             'client_id' => 'required|exists:clients,id',
@@ -186,7 +186,7 @@ class ProyectoController extends Controller
             'proyecto' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
             'fecha_inicio' => 'required|date',
-            'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
+            'fecha_fin' => 'required_if:estado,Finalizado|nullable|date|after_or_equal:fecha_inicio',
             'presupuesto' => 'nullable|numeric|min:0',
             'estado' => 'required|string|in:En proceso,Finalizado,Cancelado',
             'client_id' => 'required|exists:clients,id',

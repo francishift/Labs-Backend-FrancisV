@@ -21,13 +21,11 @@ Una solución **ERP y CRM completa y premium**, diseñada para agencias digitale
 - **🔐 RBAC Seguro**: Control de acceso detallado mediante el sistema de permisos de Spatie (roles de Admin, Coordinador y Visor).
 - **📥 Importación Inteligente de Datos**: Sistema de importación masiva para datos de clientes heredados con normalización automática.
 - **🌓 Interfaz Adaptativa**: Interfaz totalmente responsiva con modo oscuro integrado y navegación de alto rendimiento impulsada por Inertia.js.
-- **⚡ Optimización de Alto Rendimiento**: Indexación estratégica de base de datos (`estado`), almacenamiento en caché del Dashboard con invalidación automática basada en eventos (Cache Busting), carga selectiva de columnas y optimización de bundles de Vite.
-- **🔔 Notificaciones Globales**: Sistema de feedback centralizado mediante "Toast Messages" para una experiencia de usuario fluida y consistente.
-- **🛡️ Inmutabilidad de Datos**: Sistema de snapshots de precios que garantiza la integridad de los informes históricos ante cambios en las tarifas globales.
-- **📄 Visor de PDF Profesional**: Generación de informes financieros detallados para **Clientes, Proyectos y Mantenimientos**, con visor embebido optimizado para móviles y Safari.
-- **📦 Integración con Holded (CRM/ERP)**: Sincronización bidireccional de presupuestos y contactos mediante API oficial, con persistencia en base de datos local para máximo rendimiento.
-- **🛡️ Gestión de Red y VPN**: Módulo integrado para crear accesos VPN (WireGuard) para empleados, permitiendo acceso seguro a recursos internos con gestión de IPs automatizada.
-- **🎨 Refinamiento UI**: Interfaz coherente sistema de gestión de extensiones alineado con mantenimientos y mejoras en la legibilidad de tablas.
+- **🎨 Refinamiento UI Premium**: Sistema de espaciado optimizado (`p-4`) en móviles para mejor balance visual y legibilidad en todas las vistas de lista y detalle.
+- **⚡ Optimización de Alto Rendimiento**: Eliminación masiva de consultas N+1 mediante carga ansiosa (`eager loading`) estratégica, resultando en una navegación y guardado instantáneos.
+- **🖱️ Interactividad en Tablas**: Filas clicables en proyectos y mantenimientos para edición directa, mejorando significativamente la eficiencia operativa.
+- **📊 Gráficos Ultra-Nítidos y Optimizados**: Etiquetas inteligentes que se ajustan automáticamente (truncado, rotación) y renderizado SVG para una visualización perfecta en cualquier dispositivo.
+- **🛡️ Persistencia de Precios de Mantenimiento**: Nueva arquitectura de base de datos que registra el historial de precios aplicados, permitiendo actualizaciones de tarifas sin afectar de forma destructiva a la analítica histórica.
 
 ---
 

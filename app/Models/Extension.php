@@ -55,7 +55,7 @@ class Extension extends Model
             
         $mantenimientos = Mantenimiento::active()
             ->orWhere(fn($q) => $q->finishedThisYear($year))
-            ->with('extensiones')
+            ->with(['extensiones', 'precios'])
             ->get();
             
         $results = [];

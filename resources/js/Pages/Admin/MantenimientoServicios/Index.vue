@@ -66,10 +66,10 @@ const destroyService = () => {
 }
 
 const columns = [
-    { key: 'aplicacion', label: 'Mantenimiento / Cliente' },
+    { key: 'fecha', label: 'Fecha' },
     { key: 'descripcion', label: 'Descripción' },
+    { key: 'aplicacion', label: 'Cliente' },
     { key: 'duracion_minutos', label: 'Duración', align: 'center' },
-    { key: 'fecha', label: 'Fecha', align: 'right' },
     { key: 'actions', label: '', align: 'right' },
 ]
 </script>
@@ -90,7 +90,7 @@ const columns = [
         </template>
 
         <div class="py-6 space-y-6">
-                <Card class="p-6">
+                <Card class="p-4 sm:p-6">
                     <div class="mb-6">
                         <SearchInput 
                           id="search-mantenimiento-servicios"
@@ -103,7 +103,7 @@ const columns = [
                     <DataTable :columns="columns" :items="servicios.data" @row-click="openEditModal">
                         <template #cell-aplicacion="{ item }">
                             <div class="flex flex-col">
-                                <span class="font-bold text-gray-900 dark:text-zinc-100">{{ item.mantenimiento?.aplicacion || 'N/A' }}</span>
+                                <span class="text-gray-900 dark:text-zinc-100">{{ item.mantenimiento?.aplicacion || 'N/A' }}</span>
                                 <span class="text-xs text-gray-500 dark:text-zinc-400">{{ item.mantenimiento?.cliente?.name || 'S/N' }}</span>
                             </div>
                         </template>

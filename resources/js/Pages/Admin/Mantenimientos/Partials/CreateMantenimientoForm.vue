@@ -1,6 +1,7 @@
 <script setup>
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
+import CurrencyInput from '@/Components/CurrencyInput.vue';
 import InputError from '@/Components/InputError.vue';
 import TextArea from '@/Components/TextArea.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
@@ -119,7 +120,7 @@ const submitCreate = () => {
 
             <div>
                 <InputLabel for="create_importe" value="Importe (€)" />
-                <TextInput id="create_importe" v-model="createForm.importe" type="number" step="0.01" required class="mt-1 block w-full" />
+                <CurrencyInput id="create_importe" v-model="createForm.importe" required class="mt-1 block w-full" />
                 <InputError class="mt-2" :message="createForm.errors.importe" />
             </div>
 

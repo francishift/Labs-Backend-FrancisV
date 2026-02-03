@@ -3,6 +3,7 @@ import { useForm } from '@inertiajs/vue3'
 import InputError from '@/Components/InputError.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import TextInput from '@/Components/TextInput.vue'
+import CurrencyInput from '@/Components/CurrencyInput.vue'
 import TextArea from '@/Components/TextArea.vue'
 import SelectInput from '@/Components/SelectInput.vue'
 import { watch } from 'vue'
@@ -102,12 +103,9 @@ const submit = () => {
 
     <div>
       <InputLabel for="precio_edit" value="Precio (€)" />
-      <TextInput
+      <CurrencyInput
         id="precio_edit"
         v-model="form.precio"
-        type="number"
-        step="0.01"
-        min="0"
         class="mt-1 block w-full"
         required
       />

@@ -118,7 +118,7 @@ const destroyService = () => {
                 
                 <!-- Project Overview -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <Card class="lg:col-span-2 p-6">
+                    <Card class="lg:col-span-2 p-4 sm:p-6">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-lg font-bold text-gray-900 dark:text-white">Información General</h3>
                             <Badge :variant="getStatusVariant(proyecto.estado)">
@@ -149,7 +149,7 @@ const destroyService = () => {
                         </div>
                     </Card>
 
-                    <Card class="p-6 bg-emerald-50 dark:bg-zinc-800/20 border-emerald-100 dark:border-emerald-800/50">
+                    <Card class="p-4 sm:p-6 bg-emerald-50 dark:bg-zinc-800/20 border-emerald-100 dark:border-emerald-800/50">
                         <h3 class="text-lg font-bold text-emerald-900 dark:text-emerald-400 mb-4">Resumen de Costes</h3>
                         <div class="space-y-3">
                             <div class="flex justify-between items-center text-sm">
@@ -192,7 +192,7 @@ const destroyService = () => {
                 </div>
 
                 <!-- Services Table -->
-                <Card class="p-6 overflow-hidden">
+                <Card class="p-4 sm:p-6 overflow-hidden">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
                         <h3 class="text-lg font-bold text-gray-900 dark:text-white">Servicios Realizados</h3>
                         <PrimaryButton @click="openCreateModal" class="flex items-center gap-2">
@@ -214,7 +214,12 @@ const destroyService = () => {
                                 </tr>
                             </thead>
                             <tbody class="bg-white dark:bg-zinc-900/50 divide-y divide-gray-200 dark:divide-zinc-800">
-                                <tr v-for="service in proyecto.servicios" :key="service.id" class="hover:bg-gray-50 dark:hover:bg-zinc-700/50 transition-colors">
+                                <tr 
+                                    v-for="service in proyecto.servicios" 
+                                    :key="service.id" 
+                                    @click="openEditModal(service)"
+                                    class="hover:bg-gray-50 dark:hover:bg-zinc-700/50 transition-colors cursor-pointer"
+                                >
                                     <td class="px-6 py-4">
                                         <div class="text-sm font-medium text-gray-900 dark:text-zinc-200">{{ service.servicio }}</div>
                                         <div v-if="service.descripcion" class="text-xs text-gray-500 dark:text-zinc-400 truncate max-w-xs">{{ service.descripcion }}</div>
@@ -239,10 +244,10 @@ const destroyService = () => {
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex justify-end gap-2">
-                                            <SecondaryButton @click="openEditModal(service)" title="Editar servicio">
+                                            <SecondaryButton @click.stop="openEditModal(service)" title="Editar servicio">
                                                 <PencilIcon class="h-4 w-4" />
                                             </SecondaryButton>
-                                            <DangerButton @click="confirmDelete(service)" title="Eliminar servicio">
+                                            <DangerButton @click.stop="confirmDelete(service)" title="Eliminar servicio">
                                                 <TrashIcon class="h-4 w-4" />
                                             </DangerButton>
                                         </div>
@@ -269,7 +274,7 @@ const destroyService = () => {
                 </Card>
 
                 <!-- Extensions Grid -->
-                <Card v-if="proyecto.extensiones?.length" class="p-6 overflow-hidden">
+                <Card v-if="proyecto.extensiones?.length" class="p-4 sm:p-6 overflow-hidden">
                     <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Extensiones de Terceros</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div v-for="extension in proyecto.extensiones" :key="extension.id" class="p-4 border border-gray-200 dark:border-zinc-700 rounded-lg bg-gray-50 dark:bg-zinc-800/50">

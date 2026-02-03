@@ -1,12 +1,14 @@
 <script setup>
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
+import CurrencyInput from '@/Components/CurrencyInput.vue';
 import InputError from '@/Components/InputError.vue';
 import TextArea from '@/Components/TextArea.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import MultiSelect from '@/Components/MultiSelect.vue';
 import { useForm } from '@inertiajs/vue3';
 import { getTodayDate } from '@/Utils/date';
+import { watch } from 'vue';
 
 const props = defineProps({
     clients: Array,
@@ -23,6 +25,12 @@ const createForm = useForm({
     estado: 'En proceso',
     client_id: '',
     extensiones: [],
+});
+
+watch(() => createForm.estado, (newEstado) => {
+    if (newEstado === 'Finalizado' && !createForm.fecha_fin) {
+        createForm.fecha_fin = getTodayDate();
+    }
 });
 
 const submitCreate = () => {
@@ -95,7 +103,7 @@ const submitCreate = () => {
 
             <div>
                 <InputLabel for="create_presupuesto" value="Presupuesto (€)" />
-                <TextInput id="create_presupuesto" v-model="createForm.presupuesto" type="number" step="0.01" class="mt-1 block w-full" />
+                <CurrencyInput id="create_presupuesto" v-model="createForm.presupuesto" class="mt-1 block w-full" />
                 <InputError class="mt-2" :message="createForm.errors.presupuesto" />
             </div>
 

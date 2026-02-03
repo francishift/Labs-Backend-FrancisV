@@ -41,10 +41,11 @@ const {
 
 const columns = [
   { key: 'proyecto', label: 'Proyecto' },
+  { key: 'estado', label: 'Estado' },
   { key: 'client', label: 'Cliente' },
   { key: 'fecha_inicio', label: 'Inicio' },
+  { key: 'fecha_fin', label: 'Fin' },
   { key: 'presupuesto', label: 'Presupuesto' },
-  { key: 'estado', label: 'Estado' },
   { key: 'actions', label: 'Acciones', align: 'right' },
 ]
 
@@ -124,7 +125,7 @@ const navigateToShow = (item) => {
           />
         </div>
 
-        <Card class="p-6">
+        <Card class="p-4 sm:p-6">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white">Gestión de proyectos</h3>
             <div class="w-full md:w-80">
@@ -154,6 +155,9 @@ const navigateToShow = (item) => {
               </template>
               <template #cell-fecha_inicio="{ item }">
                 {{ formatDate(item.fecha_inicio) }}
+              </template>
+              <template #cell-fecha_fin="{ item }">
+                {{ item.fecha_fin ? formatDate(item.fecha_fin) : '-' }}
               </template>
               <template #cell-presupuesto="{ item }">
                 {{ formatCurrency(item.presupuesto) }}

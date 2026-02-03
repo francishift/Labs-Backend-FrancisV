@@ -98,7 +98,7 @@ const viewPdf = (item) => {
     </template>
 
     <div class="py-6 space-y-6">
-      <Card class="p-6">
+      <Card class="p-4 sm:p-6">
         <!-- Error message -->
         <div v-if="errorMessage" class="mb-6 p-4 bg-red-50 dark:bg-red-900/30 border-l-4 border-red-500 text-red-700 dark:text-red-200">
           <p class="font-bold">Error de sincronización</p>

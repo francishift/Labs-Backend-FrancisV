@@ -81,7 +81,7 @@ class Client extends Model
 
         // Mantenimientos activos
         Mantenimiento::where('estado', 'en curso')
-            ->with(['cliente:id,name', 'extensiones:id,nombre']) // Cargar relaciones necesarias
+            ->with(['cliente:id,name', 'extensiones:id,nombre', 'precios']) // Added precios
             ->get()
             ->each(function ($m) use (&$clientesData) {
                 $name = $m->cliente->name ?? 'Sin Cliente';

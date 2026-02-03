@@ -3,11 +3,12 @@ import { useForm } from '@inertiajs/vue3';
 import { watch } from 'vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
+import CurrencyInput from '@/Components/CurrencyInput.vue';
 import InputError from '@/Components/InputError.vue';
 import TextArea from '@/Components/TextArea.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
 import MultiSelect from '@/Components/MultiSelect.vue';
-import { formatDateForInput } from '@/Utils/date';
+import { formatDateForInput, getTodayDate } from '@/Utils/date';
 
 const props = defineProps({
     proyecto: Object,
@@ -40,6 +41,12 @@ watch(() => props.proyecto, (proyecto) => {
         editForm.clearErrors();
     }
 }, { immediate: true });
+
+watch(() => editForm.estado, (newEstado) => {
+    if (newEstado === 'Finalizado' && !editForm.fecha_fin) {
+        editForm.fecha_fin = getTodayDate();
+    }
+});
 
 const submitEdit = () => {
     if (!props.proyecto) return;
@@ -110,7 +117,7 @@ const submitEdit = () => {
 
             <div>
                 <InputLabel for="edit_presupuesto" value="Presupuesto (€)" />
-                <TextInput id="edit_presupuesto" v-model="editForm.presupuesto" type="number" step="0.01" class="mt-1 block w-full" />
+                <CurrencyInput id="edit_presupuesto" v-model="editForm.presupuesto" class="mt-1 block w-full" />
                 <InputError class="mt-2" :message="editForm.errors.presupuesto" />
             </div>
 

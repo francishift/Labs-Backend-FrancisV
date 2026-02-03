@@ -91,7 +91,7 @@ const destroyExtension = () => {
           />
         </div>
 
-        <Card class="p-6">
+        <Card class="p-4 sm:p-6">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white">Gestión de extensiones</h3>
             <div class="w-full md:w-80">

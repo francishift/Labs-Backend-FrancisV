@@ -199,7 +199,7 @@ const destroyService = () => {
                 
                 <!-- Maintenance Overview -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <Card class="lg:col-span-2 p-6">
+                    <Card class="lg:col-span-2 p-4 sm:p-6">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-lg font-bold text-gray-900 dark:text-white">Información del Mantenimiento</h3>
                             <Badge :variant="getStatusVariant(mantenimiento.estado)">
@@ -212,8 +212,8 @@ const destroyService = () => {
                                 <p class="text-base text-gray-900 dark:text-zinc-200">{{ mantenimiento.cliente?.name || 'S/N' }}</p>
                             </div>
                             <div>
-                                <p class="text-sm font-medium text-gray-500 dark:text-zinc-400">Importe Bruto</p>
-                                <p class="text-xl font-black text-emerald-900 dark:text-emerald-200">{{ formatCurrency(mantenimiento.importe) }} <span class="text-xs font-normal opacity-70">({{ mantenimiento.tipo_pago }})</span></p>
+                                <p class="text-sm font-medium text-gray-500 dark:text-zinc-400">Importe del Período</p>
+                                <p class="text-xl font-black text-emerald-900 dark:text-emerald-200">{{ formatCurrency(totalIncome) }} <span class="text-xs font-normal opacity-70">({{ stats.tipo_pago }})</span></p>
                             </div>
                             <div>
                                 <p class="text-sm font-medium text-gray-500 dark:text-zinc-400">Fecha de Inicio</p>
@@ -230,7 +230,7 @@ const destroyService = () => {
                         </div>
                     </Card>
 
-                    <Card class="p-6 bg-zinc-50 dark:bg-zinc-800/20 border-zinc-100 dark:border-zinc-800/50">
+                    <Card class="p-4 sm:p-6 bg-zinc-50 dark:bg-zinc-800/20 border-zinc-100 dark:border-zinc-800/50">
                         <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Balance del Período</h3>
                         <div class="space-y-3">
                             <div class="flex justify-between items-center text-sm">
@@ -273,9 +273,11 @@ const destroyService = () => {
                 </div>
 
                 <!-- Services Table -->
-                <Card class="p-6 overflow-hidden">
+                <Card class="p-4 sm:p-6 overflow-hidden">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-4">
-                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Servicios de Mantenimiento Realizados</h3>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">
+                            Servicios Mantenimiento {{ months.find(m => m.value === month)?.label }} {{ year }}
+                        </h3>
                         <PrimaryButton @click="openCreateModal" class="flex items-center gap-2">
                             <PlusIcon class="h-4 w-4" />
                             Registrar Servicio
@@ -294,7 +296,7 @@ const destroyService = () => {
                                 </tr>
                             </thead>
                             <tbody class="bg-white dark:bg-zinc-900/50 divide-y divide-gray-200 dark:divide-zinc-800">
-                                <tr v-for="service in servicios.data" :key="service.id" class="hover:bg-gray-50 dark:hover:bg-zinc-700/50 transition-colors">
+                                <tr v-for="service in servicios.data" :key="service.id" @click="openEditModal(service)" class="hover:bg-gray-50 dark:hover:bg-zinc-700/50 cursor-pointer transition-colors group">
                                     <td class="px-6 py-4">
                                         <div class="text-sm text-gray-900 dark:text-zinc-200 whitespace-pre-wrap">{{ service.descripcion }}</div>
                                     </td>
@@ -312,10 +314,10 @@ const destroyService = () => {
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div class="flex justify-end gap-2">
-                                            <SecondaryButton @click="openEditModal(service)" title="Editar">
+                                            <SecondaryButton @click.stop="openEditModal(service)" title="Editar">
                                                 <PencilIcon class="h-4 w-4" />
                                             </SecondaryButton>
-                                            <DangerButton @click="confirmDelete(service)" title="Eliminar">
+                                            <DangerButton @click.stop="confirmDelete(service)" title="Eliminar">
                                                 <TrashIcon class="h-4 w-4" />
                                             </DangerButton>
                                         </div>
@@ -345,7 +347,7 @@ const destroyService = () => {
                 </Card>
 
                 <!-- Associated Extensions -->
-                <Card v-if="mantenimiento.extensiones?.length" class="p-6 overflow-hidden">
+                <Card v-if="mantenimiento.extensiones?.length" class="p-4 sm:p-6 overflow-hidden">
                     <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Extensiones de Terceros en Uso</h3>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div v-for="extension in mantenimiento.extensiones" :key="extension.id" class="p-4 border border-gray-200 dark:border-zinc-700 rounded-lg bg-gray-50 dark:bg-zinc-800/50">

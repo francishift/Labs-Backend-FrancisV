@@ -66,7 +66,7 @@ const getActionVariant = (action) => {
         </template>
 
         <div class="py-6 space-y-6">
-            <Card class="p-6">
+            <Card class="p-4 sm:p-6">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <h3 class="text-lg font-medium text-gray-900 dark:text-white">Últimos eventos</h3>
                 </div>

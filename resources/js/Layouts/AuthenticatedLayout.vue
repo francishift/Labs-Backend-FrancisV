@@ -92,14 +92,14 @@ onUnmounted(() => {
             </nav>
 
             <!-- Page Heading -->
-            <header class="bg-gray-50 dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 px-5" v-if="$slots.header">
+            <header class="bg-gray-50 dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 px-3 sm:px-5" v-if="$slots.header">
                 <div class="mx-auto max-w-7xl py-3">
                     <slot name="header" />
                 </div>
             </header>
 
             <!-- Page Content -->
-            <main class="flex-1 pb-8 px-5">
+            <main class="flex-1 pb-8 px-3 sm:px-5">
                 <div class="mx-auto max-w-7xl">
                     <FlashMessages />
                     <slot />

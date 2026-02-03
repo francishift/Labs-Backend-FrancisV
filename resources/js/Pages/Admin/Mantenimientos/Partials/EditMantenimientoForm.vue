@@ -1,6 +1,7 @@
 <script setup>
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
+import CurrencyInput from '@/Components/CurrencyInput.vue';
 import InputError from '@/Components/InputError.vue';
 import TextArea from '@/Components/TextArea.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
@@ -138,7 +139,7 @@ const submitUpdate = () => {
 
             <div>
                 <InputLabel for="edit_importe" value="Importe (€)" />
-                <TextInput id="edit_importe" v-model="editForm.importe" type="number" step="0.01" required class="mt-1 block w-full" />
+                <CurrencyInput id="edit_importe" v-model="editForm.importe" required class="mt-1 block w-full" />
                 <InputError class="mt-2" :message="editForm.errors.importe" />
             </div>
 

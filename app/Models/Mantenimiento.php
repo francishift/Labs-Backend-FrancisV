@@ -8,6 +8,7 @@ use App\Traits\HandlesExtensionSnapshots;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Carbon\Carbon;
 
 class Mantenimiento extends Model
 {
@@ -17,6 +18,19 @@ class Mantenimiento extends Model
     {
         static::saved(fn () => \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats'));
         static::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats'));
+
+        // Registrar cambios de precio/pago automáticamente
+        static::saved(function ($mantenimiento) {
+            if ($mantenimiento->wasRecentlyCreated || $mantenimiento->wasChanged(['importe', 'tipo_pago'])) {
+                $mantenimiento->precios()->create([
+                    'importe' => $mantenimiento->importe,
+                    'tipo_pago' => $mantenimiento->tipo_pago,
+                    'fecha_aplicacion' => $mantenimiento->wasRecentlyCreated 
+                        ? ($mantenimiento->fecha_inicio ?: now()->startOfMonth()) 
+                        : now()->startOfMonth(),
+                ]);
+            }
+        });
     }
 
     protected $fillable = [
@@ -69,29 +83,76 @@ class Mantenimiento extends Model
         return $this->hasMany(MantenimientoServicio::class);
     }
 
-    /**
-     * Calcula el ingreso proporcional para un periodo dado.
-     * 
-     * @param string|int $month 'all' para anual o 1-12 para un mes específico.
-     * @return float
-     */
-    public function calculatePeriodIncome($period = 'all')
+    public function precios(): HasMany
     {
-        $importe = (float) $this->importe;
-        $isAll = $period === 'all';
+        return $this->hasMany(MantenimientoPrecio::class)->orderBy('fecha_aplicacion', 'desc');
+    }
 
-        if ($this->tipo_pago === 'mensual') {
-            return $isAll ? $importe * 12 : $importe;
+    public function calculatePeriodIncome($period = 'all', $year = null)
+    {
+        $year = $year ?: date('Y');
+
+        if ($period === 'all') {
+            // Si las relaciones están cargadas, calculamos en memoria para evitar N+1
+            $totalYear = 0;
+            for ($m = 1; $m <= 12; $m++) {
+                $totalYear += $this->calculateMonthIncome($m, $year);
+            }
+            return $totalYear;
         }
 
-        if ($this->tipo_pago === 'trimestral') {
-            $mensual = $importe / 3;
-            return $isAll ? $mensual * 12 : $mensual;
+        return $this->calculateMonthIncome((int)$period, $year);
+    }
+
+    /**
+     * Calcula el ingreso para un mes específico basado en el histórico de precios.
+     */
+    protected function calculateMonthIncome(int $month, int $year)
+    {
+        $date = Carbon::createFromDate($year, $month, 1)->endOfMonth();
+        $dateStr = $date->format('Y-m-d');
+        
+        // Si el mes consultado es anterior a la fecha de inicio, el ingreso es 0
+        if ($this->fecha_inicio && $date->isBefore($this->fecha_inicio->copy()->startOfMonth())) {
+            return 0;
         }
 
-        if ($this->tipo_pago === 'anual') {
-            $mensual = $importe / 12;
-            return $isAll ? $mensual * 12 : $mensual;
+        // Si el mes consultado es posterior a la fecha de fin, el ingreso es 0
+        if ($this->fecha_fin && $date->isAfter($this->fecha_fin->copy()->endOfMonth())) {
+            return 0;
+        }
+
+        // Buscar el precio vigente para este mes
+        // OPTIMIZACIÓN: Si la relación 'precios' ya está cargada (eager loading), usamos la colección en memoria
+        if ($this->relationLoaded('precios')) {
+            $p = $this->precios
+                ->where('fecha_aplicacion', '<=', $dateStr)
+                ->sortByDesc('fecha_aplicacion')
+                ->first();
+        } else {
+            $p = $this->precios()
+                ->where('fecha_aplicacion', '<=', $dateStr)
+                ->first();
+        }
+
+        if (!$p) {
+            $importe = (float) $this->importe;
+            $tipo_pago = $this->tipo_pago;
+        } else {
+            $importe = (float) $p->importe;
+            $tipo_pago = $p->tipo_pago;
+        }
+
+        if ($tipo_pago === 'mensual') {
+            return $importe;
+        }
+
+        if ($tipo_pago === 'trimestral') {
+            return $importe / 3;
+        }
+
+        if ($tipo_pago === 'anual') {
+            return $importe / 12;
         }
 
         return 0;
@@ -107,10 +168,24 @@ class Mantenimiento extends Model
         
         // Coste de servicios
         $precioHora = $this->precio_hora ?: self::getDiscountedHourlyRate();
-        $minutos = $this->servicios()
-            ->whereYear('fecha', $year)
-            ->when($month !== 'all', fn($q) => $q->whereMonth('fecha', $month))
-            ->sum('duracion_minutos');
+        
+        // OPTIMIZACIÓN: Si 'servicios' está cargado, filtramos en memoria
+        if ($this->relationLoaded('servicios')) {
+            $minutos = $this->servicios
+                ->filter(function($s) use ($year, $month) {
+                    $fecha = Carbon::parse($s->fecha);
+                    $matchYear = $fecha->year === (int)$year;
+                    if (!$matchYear) return false;
+                    if ($month !== 'all' && $fecha->month !== (int)$month) return false;
+                    return true;
+                })
+                ->sum('duracion_minutos');
+        } else {
+            $minutos = $this->servicios()
+                ->whereYear('fecha', $year)
+                ->when($month !== 'all', fn($q) => $q->whereMonth('fecha', $month))
+                ->sum('duracion_minutos');
+        }
             
         $costeServicios = ($minutos / 60) * $precioHora;
 
@@ -127,10 +202,19 @@ class Mantenimiento extends Model
 
         $costeSoftware = $month === 'all' ? $costeSoftwareTotal : ($costeSoftwareTotal / 12);
 
-        $ingreso = $this->calculatePeriodIncome($month);
+        $ingreso = $this->calculatePeriodIncome($month, $year);
+
+        // Obtener el registro de precio aplicable al final del periodo para info visual
+        $effectiveMonth = $month === 'all' ? 12 : (int)$month;
+        $date = Carbon::createFromDate($year, $effectiveMonth, 1)->endOfMonth();
+        $p = $this->precios()
+            ->where('fecha_aplicacion', '<=', $date->format('Y-m-d'))
+            ->first();
 
         return [
             'ingreso' => $ingreso,
+            'tipo_pago' => $p ? $p->tipo_pago : $this->tipo_pago,
+            'importe' => $p ? (float)$p->importe : (float)$this->importe,
             'coste_servicios' => $costeServicios,
             'coste_extensiones' => $costeExtensiones,
             'coste_software' => $costeSoftware,
@@ -144,10 +228,11 @@ class Mantenimiento extends Model
      */
     public static function getActiveDataForChart()
     {
-        return self::active()
+        return self::where('estado', 'en curso')
+            ->with(['precios', 'cliente'])
             ->get()
             ->map(fn($m) => [
-                'name' => $m->aplicacion,
+                'name' => $m->aplicacion . ' (' . ($m->cliente->name ?? 'S/N') . ')',
                 'value' => (float) $m->calculatePeriodIncome('all')
             ])
             ->sortByDesc('value')
@@ -159,7 +244,10 @@ class Mantenimiento extends Model
      */
     public static function getDashboardStats($month)
     {
-        $mantenimientos = self::active()->get();
+        $mantenimientos = self::where('estado', 'en curso')
+            ->with('precios') // Eager loading
+            ->get();
+            
         return [
             'total_mes' => $mantenimientos->sum(fn($m) => $m->calculatePeriodIncome($month)),
             'count' => $mantenimientos->count()
@@ -185,8 +273,10 @@ class Mantenimiento extends Model
     public static function getAggregatedStatsForYear($year = null)
     {
         $year = $year ?: date('Y');
+        // EAGER LOADING: Cargamos todas las relaciones necesarias para evitar N+1 en el bucle
         $mantenimientos = self::active()
             ->orWhere(fn($q) => $q->finishedThisYear($year))
+            ->with(['precios', 'servicios', 'extensiones'])
             ->get();
        
         $totalIngresos = 0;

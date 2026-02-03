@@ -5,6 +5,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue'
 import Card from '@/Components/Card.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import TextInput from '@/Components/TextInput.vue'
+import CurrencyInput from '@/Components/CurrencyInput.vue'
 import InputError from '@/Components/InputError.vue'
 import PageHeader from '@/Components/PageHeader.vue'
 
@@ -34,18 +35,16 @@ const submit = () => {
         </template>
 
         <div class="py-6 space-y-6">
-                <Card class="p-6 max-w-2xl">
+                <Card class="p-4 sm:p-6 max-w-2xl">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Ajustes Generales</h3>
                     
                     <form @submit.prevent="submit" class="space-y-6">
                         <div>
                             <InputLabel for="precio_hora" value="Precio Hora Global (€)" />
                             <p class="text-xs text-gray-500 dark:text-zinc-400 mb-2">Este valor se usará por defecto al crear nuevos servicios.</p>
-                            <TextInput
+                            <CurrencyInput
                                 id="precio_hora"
                                 v-model="form.precio_hora"
-                                type="number"
-                                step="0.01"
                                 class="mt-1 block w-full"
                                 required
                             />

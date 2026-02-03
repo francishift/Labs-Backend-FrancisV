@@ -43,6 +43,7 @@ Los ingresos de mantenimiento se calculan según el `tipo_pago`:
 - **Mensual**: El `importe` se registra íntegro cada mes.
 - **Trimestral**: Se divide el `importe` entre 3 para obtener la repercusión mensual estadística.
 - **Anual**: Se divide el `importe` entre 12 para los cálculos de balance mensual.
+- **Persistencia Histórica**: El sistema utiliza la tabla `mantenimiento_precios` para registrar cada cambio de tarifa. Esto garantiza que el balance de meses pasados use el precio que el cliente pagaba en ese momento, no el actual.
 
 ### 3.2 Tasa Horaria Reducida
 - Se aplica un coeficiente (`descuento_mantenimiento`) definido en configuración sobre el precio/hora base.
@@ -109,10 +110,8 @@ Ubicados en `resources/js/Components/`:
 ### 7.1 Indexación de Base de Datos
 - Se han implementado índices en las columnas `estado` de las tablas `proyectos` y `mantenimientos`. Esto asegura que los filtrados y cálculos agregados de los dashboards mantengan un rendimiento constante incluso con grandes volúmenes de datos.
 
-### 7.2 Caché del Dashboard e Integración de Datos
-El sistema utiliza una estrategia de caché de alto rendimiento en el Dashboard principal:
-- **Caché de Estadísticas**: Los datos de KPIs y gráficos se almacenan durante 1 hora.
-- **Cache Busting (Event Driven)**: Se garantiza el 100% de precisión mediante "limpiadores" vinculados a los eventos de Eloquent (`saved`, `deleted`). Cualquier cambio en Proyectos, Mantenimientos o Extensiones invalida la caché del dashboard de forma inmediata.
+### 7.3 Optimización de Consultas (Eager Loading)
+- Se ha implementado una política estricta de carga ansiosa (`with(['precios', 'cliente', etc.])`) en todos los métodos de los modelos que alimentan gráficos y estadísticas. Esto ha reducido el número de consultas a la base de datos de cientos a menos de 10 por carga de página, garantizando una fluidez extrema incluso en dispositivos móviles.
 
 ---
-*Documentación actualizada el 17/01/2026*
+*Documentación actualizada el 03/02/2026*

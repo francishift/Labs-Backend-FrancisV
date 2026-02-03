@@ -76,9 +76,9 @@ const proyectosChartOption = computed(() => ({
         left: isMobile.value ? 'center' : 'right',
         top: isMobile.value ? 'bottom' : 'middle',
         bottom: isMobile.value ? 0 : 'auto',
-        textStyle: { color: isDark.value ? '#a1a1aa' : '#6b7280', fontSize: isMobile.value ? 8 : 10 },
+        textStyle: { color: isDark.value ? '#a1a1aa' : '#6b7280', fontSize: isMobile.value ? 9 : 11 },
         type: 'scroll',
-        formatter: (name) => isMobile.value ? truncate(name, 10) : name
+        formatter: (name) => truncate(name, isMobile.value ? 5 : 12)
     },
     series: [
         {
@@ -148,7 +148,8 @@ const extensionesChartOption = computed(() => ({
         data: props.charts.repercutido_fijos.map(i => i.name),
         axisLabel: { 
             color: isDark.value ? '#a1a1aa' : '#6b7280',
-            formatter: (value) => isMobile.value ? truncate(value, 10) : value
+            fontSize: isMobile.value ? 9 : 11,
+            formatter: (value) => truncate(value, isMobile.value ? 5 : 12)
         },
         inverse: true
     },
@@ -205,10 +206,10 @@ const mantenimientosChartOption = computed(() => ({
         data: props.charts.valor_mantenimientos.map(i => i.name),
         axisLabel: { 
             color: isDark.value ? '#a1a1aa' : '#6b7280',
-            interval: isMobile.value ? 'auto' : 0,
-            rotate: isMobile.value ? 45 : (props.charts.valor_mantenimientos.length > 5 ? 30 : 0),
-            fontSize: isMobile.value ? 9 : 12,
-            formatter: (value) => isMobile.value ? truncate(value, 10) : value
+            fontSize: isMobile.value ? 9 : 11,
+            rotate: 45,
+            interval: 0,
+            formatter: (value) => truncate(value, isMobile.value ? 5 : 12)
         },
         axisTick: { show: false },
         axisLine: { lineStyle: { color: isDark.value ? '#3f3f46' : '#e5e7eb' } }
@@ -283,8 +284,8 @@ const clientesChartOption = computed(() => ({
         data: props.charts.valor_por_cliente.map(i => i.name),
         axisLabel: { 
             color: isDark.value ? '#a1a1aa' : '#6b7280',
-            fontSize: 10,
-            formatter: (value) => isMobile.value ? truncate(value, 10) : value
+            fontSize: isMobile.value ? 9 : 11,
+            formatter: (value) => truncate(value, isMobile.value ? 5 : 12)
         },
         inverse: true
     },
@@ -406,7 +407,7 @@ const isAdmin = computed(() => userRoles.value.includes('admin'))
 
         <!-- Charts Section (Solo Admin) -->
         <div v-if="isAdmin" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card class="p-6 h-[450px] flex flex-col">
+            <Card class="p-4 sm:p-6 h-[450px] flex flex-col">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
                         <CurrencyEuroIcon class="h-5 w-5" />
@@ -414,11 +415,11 @@ const isAdmin = computed(() => userRoles.value.includes('admin'))
                     <h3 class="font-bold text-gray-900 dark:text-zinc-100">Valor de Proyectos Activos</h3>
                 </div>
                 <div class="flex-1">
-                    <v-chart class="h-full w-full" :option="proyectosChartOption" autoresize />
+                    <v-chart class="h-full w-full" :option="proyectosChartOption" :init="{ renderer: 'svg' }" autoresize />
                 </div>
             </Card>
 
-            <Card class="p-6 h-[450px] flex flex-col">
+            <Card class="p-4 sm:p-6 h-[450px] flex flex-col">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
                         <ClockIcon class="h-5 w-5" />
@@ -426,11 +427,11 @@ const isAdmin = computed(() => userRoles.value.includes('admin'))
                     <h3 class="font-bold text-gray-900 dark:text-zinc-100">Valor Anual de Mantenimientos Activos</h3>
                 </div>
                 <div class="flex-1">
-                    <v-chart class="h-full w-full" :option="mantenimientosChartOption" autoresize />
+                    <v-chart class="h-full w-full" :option="mantenimientosChartOption" :init="{ renderer: 'svg' }" autoresize />
                 </div>
             </Card>
             
-            <Card class="p-6 h-[450px] flex flex-col">
+            <Card class="p-4 sm:p-6 h-[450px] flex flex-col">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
                         <UserGroupIcon class="h-5 w-5" />
@@ -438,11 +439,11 @@ const isAdmin = computed(() => userRoles.value.includes('admin'))
                     <h3 class="font-bold text-gray-900 dark:text-zinc-100">Valor Anual por Cliente</h3>
                 </div>
                 <div class="flex-1">
-                    <v-chart class="h-full w-full" :option="clientesChartOption" autoresize />
+                    <v-chart class="h-full w-full" :option="clientesChartOption" :init="{ renderer: 'svg' }" autoresize />
                 </div>
             </Card>
             
-            <Card class="p-6 h-[450px] flex flex-col">
+            <Card class="p-4 sm:p-6 h-[450px] flex flex-col">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
                         <PuzzlePieceIcon class="h-5 w-5" />
@@ -450,7 +451,7 @@ const isAdmin = computed(() => userRoles.value.includes('admin'))
                     <h3 class="font-bold text-gray-900 dark:text-zinc-100">Repercutido por Extensiones/Software</h3>
                 </div>
                 <div class="flex-1">
-                    <v-chart class="h-full w-full" :option="extensionesChartOption" autoresize />
+                    <v-chart class="h-full w-full" :option="extensionesChartOption" :init="{ renderer: 'svg' }" autoresize />
                 </div>
             </Card>
         </div>

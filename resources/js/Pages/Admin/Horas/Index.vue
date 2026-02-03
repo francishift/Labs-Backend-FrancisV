@@ -16,7 +16,7 @@ import { Head } from '@inertiajs/vue3';
 
         <div class="py-12">
             <div class="bg-white dark:bg-zinc-900 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-zinc-100">
+                <div class="p-4 sm:p-6 text-gray-900 dark:text-zinc-100">
                     Página de Resumen de Horas (En desarrollo)
                 </div>
             </div>
