@@ -48,13 +48,16 @@ La aplicación sigue un enfoque de arquitectura limpia, separando la lógica de 
 
 ```mermaid
 graph TD
-    A[Web Pública] --> B[Inertia.js SPA]
+    User([Usuario]) --> VPN["VPN (WireGuard)"]
+    subgraph "Infraestructura Segura"
+    VPN --> B[Inertia.js SPA]
     B --> C[Controladores Laravel]
     C --> D[Lógica de Negocio & Helpers]
     D --> E[Modelos Eloquent]
-    E --> F[(PostgreSQL/MySQL)]
+    E --> F[(Base de Datos)]
     C --> G[Permisos Spatie]
-    C --> H["Servicio VPN (WireGuard)"]
+    C --> H["Gestión VPN (WireGuard)"]
+    end
 ```
 
 ---
@@ -160,13 +163,16 @@ The application follows a clean-architecture approach, separating business logic
 
 ```mermaid
 graph TD
-    A[Public Web] --> B[Inertia.js SPA]
+    User([User]) --> VPN["VPN (WireGuard)"]
+    subgraph "Secure Infrastructure"
+    VPN --> B[Inertia.js SPA]
     B --> C[Laravel Controllers]
     C --> D[Business Logic & Helpers]
     D --> E[Eloquent Models]
-    E --> F[(PostgreSQL/MySQL)]
+    E --> F[(Database)]
     C --> G[Spatie Permissions]
-    C --> H["VPN Service (WireGuard)"]
+    C --> H["VPN Management (WireGuard)"]
+    end
 ```
 
 ---
