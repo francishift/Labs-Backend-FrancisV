@@ -8,10 +8,8 @@ import { getTodayDate } from '@/Utils/date';
 
 const props = defineProps({
     mantenimientoId: Number,
+    onClose: Function,
 });
-
-const emit = defineEmits(['close']);
-
 
 const form = useForm({
     mantenimiento_id: props.mantenimientoId,
@@ -23,7 +21,7 @@ const form = useForm({
 
 const submit = () => {
     // Calculamos los minutos totales para la base de datos
-    const duracion_minutos = (form.horas * 60) + parseInt(form.minutos);
+    const duracion_minutos = (parseInt(form.horas) * 60) + parseInt(form.minutos);
     
     form.transform((data) => ({
         ...data,
@@ -32,7 +30,7 @@ const submit = () => {
         preserveScroll: true,
         onSuccess: () => {
             form.reset();
-            emit('close');
+            props.onClose();
         },
     });
 };
