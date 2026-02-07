@@ -44,7 +44,7 @@ class FacturaController extends Controller
                 });
             })
             ->orderBy('date', 'desc')
-            ->paginate(50)
+            ->paginate(10)
             ->withQueryString();
 
         return Inertia::render('Admin/Holded/Facturas/Index', [
