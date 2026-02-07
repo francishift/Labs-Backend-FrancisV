@@ -80,6 +80,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('admin/holded')->name('admin.holded.')->group(function () {
             Route::get('/presupuestos', [\App\Http\Controllers\Admin\Holded\PresupuestoController::class, 'index'])->name('presupuestos.index');
             Route::get('/presupuestos/{id}/pdf', [\App\Http\Controllers\Admin\Holded\PresupuestoController::class, 'downloadPdf'])->name('presupuestos.pdf');
+            
+            Route::get('/facturas', [\App\Http\Controllers\Admin\Holded\FacturaController::class, 'index'])->name('facturas.index');
+            Route::get('/facturas/{id}/pdf', [\App\Http\Controllers\Admin\Holded\FacturaController::class, 'downloadPdf'])->name('facturas.pdf');
         });
     });
 

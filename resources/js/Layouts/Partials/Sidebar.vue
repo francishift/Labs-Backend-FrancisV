@@ -46,6 +46,7 @@ const securityNavigation = [
 const holdedNavigation = [
     { name: 'Clientes', href: route('admin.clientes.index'), icon: UserGroupIcon, active: route().current('admin.clientes.*'), role: 'admin' },
     { name: 'Presupuestos', href: route('admin.holded.presupuestos.index'), icon: DocumentTextIcon, active: route().current('admin.holded.presupuestos.*'), role: 'admin' },
+    { name: 'Facturas', href: route('admin.holded.facturas.index'), icon: DocumentTextIcon, active: route().current('admin.holded.facturas.*'), role: 'admin' },
 ]
 
 const settingsLink = { name: 'Ajustes', href: route('admin.settings.index'), icon: Cog6ToothIcon, active: route().current('admin.settings.*'), role: 'admin' }

@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Models\Presupuesto;
 use App\Models\Client;
+use App\Models\Factura;
 
 class HoldedService
 {
@@ -72,20 +73,29 @@ class HoldedService
     {
         $result = $this->getDocuments($type, $params);
 
-        if ($result['success'] && $type === 'estimate') {
+        if ($result['success']) {
             foreach ($result['data'] as $doc) {
-                Presupuesto::updateOrCreate(
-                    ['holded_id' => $doc['id']],
-                    [
-                        'contact_id' => $doc['contactId'] ?? null,
-                        'contact_name' => $doc['contactName'] ?? null,
-                        'contact' => $doc['contact'] ?? null,
-                        'date' => $doc['date'] ?? null,
-                        'total' => $doc['total'] ?? 0,
-                        'status' => $doc['status'] ?? 0,
-                        'raw_data' => $doc,
-                    ]
-                );
+                $data = [
+                    'contact_id' => $doc['contactId'] ?? null,
+                    'contact_name' => $doc['contactName'] ?? null,
+                    'contact' => $doc['contact'] ?? null,
+                    'date' => $doc['date'] ?? null,
+                    'total' => $doc['total'] ?? 0,
+                    'status' => $doc['status'] ?? 0,
+                    'raw_data' => $doc,
+                ];
+
+                if ($type === 'estimate') {
+                    Presupuesto::updateOrCreate(
+                        ['holded_id' => $doc['id']],
+                        $data
+                    );
+                } elseif ($type === 'invoice') {
+                    Factura::updateOrCreate(
+                        ['holded_id' => $doc['id']],
+                        $data
+                    );
+                }
             }
         }
 
