@@ -141,6 +141,86 @@ Ubicados en `resources/js/Components/`:
 *   `SearchableSelect.vue`: Componente avanzado de selección con búsqueda integrada.
 *   `Pagination.vue`: Control de paginación compatible con Eloquent/Inertia.
 
+### 4.4 Visualización Avanzada de Proyectos (Show.vue)
+- **Tarjeta de Información General**:
+    - Layout de 3 columnas para optimizar el espacio: [Cliente | Presupuesto | Total Facturado].
+    - **Cálculo de Cobertura**: Se compara el `totalFacturadoNeto` (Base Imponible) contra el Presupuesto para obtener un porcentaje de cobertura real ("peras con peras").
+    - **Total Facturado**: Se muestra el importe bruto (con impuestos) para referencia rápida del usuario, etiquetado claramente.
+    - **Enlaces Directos**: Las facturas asociadas y el presupuesto vinculado son accesibles directamente mediante un clic en sus respectivas tarjetas/iconos, abriendo el visor PDF integrado.
+
+---
+
+## 5. Integración con Holded (API Sync)
+
+### 5.1 Sincronización de Presupuestos
+- **Estrategia**: Sincronización local proactiva a través del módulo de Presupuestos. El sistema opera prioritariamente sobre la base de datos local para evitar latencias de API en las vistas de clientes.
+- **Almacenamiento en Google Drive**:
+    - Los PDFs se descargan de Holded y se almacenan automáticamente en una carpeta dedicada de Google Drive (`/Presupuestos/{Año}/{DocNum}.pdf`).
+    - **Estructura Dinámica**: `{Año}/VENTAS/{Trimestre}tri/{docNumber}.pdf` (dentro de la carpeta raíz configurada `GOOGLE_DRIVE_FOLDER_ID_FACTURAS`).
+    - **Cálculo de Trimestre**: Automático basado en la fecha de emisión (`ceil(mes / 3)`).
+    - **Resiliencia**: El sistema busca o crea las carpetas recursivamente (Año -> VENTAS -> Trimestre) en la carpeta de facturas designada.
+    - **Configuración**: Se usa el disco `google_facturas` para aislar este almacenamiento.
+    - **Independencia**: Se guarda el ID de archivo de Google Drive localmente. Las lecturas subsiguientes se sirven directamente desde Drive usando la API nativa, eliminando la dependencia de Holded para la visualización de documentos históricos.
+    - **Backups**: El almacenamiento usa un disco aislado (`google_presupuestos`) para no interferir con las copias de seguridad del sistema.
+- **Mapeo de Datos**: Se almacenan el ID, contacto, estados y el objeto JSON original (`raw_data`).
+
+### 5.2 Sincronización de Clientes
+- Los contactos de Holded se vinculan mediante el `CIF/NIF` o email.
+- **Rendimiento**: Se ha eliminado la sincronización automática en cada carga del listado para garantizar una navegación instantánea.
+- **Integridad de Datos**: Existe un comando de mantenimiento `php artisan holded:fix-contacts` para recuperar IDs de contacto perdidos escaneando los presupuestos existentes.
+
+### 5.3 Vinculación Proyectos - Presupuestos
+- **Asociación**: Se permite vincular un presupuesto de Holded a un Proyecto. La selección se filtra dinámicamente según el cliente del proyecto.
+- **Visualización**: El PDF del presupuesto asociado es accesible directamente desde la ficha del proyecto (sección Información General), utilizando el visor PDF unificado.
+- **Seguridad**:
+    - **Logs**: Se registran errores de conexión con la API en `laravel.log`.
+    - **Fallos de Datos**: Si un cliente no tiene ID de Holded, el selector de presupuestos muestra "No hay opciones disponibles" en lugar de fallar, y se debe usar el comando de reparación.
+
+### 5.4 Gestión de IDs Secundarios (Duplicados)
+- **Problema**: Holded permite tener múltiples fichas para un mismo cliente (ej: errores tipográficos o duplicados históricos). Esto fragmenta los presupuestos.
+- **Solución**: Se ha implementado un campo `secondary_contacts` (JSON Array) en la tabla `clients`.
+    - El sistema fusiona automáticamente los presupuestos del ID principal (`contact`) y los IDs secundarios al listarlos.
+    - **Autogestión**: Los administradores pueden añadir manualmente estos IDs extra desde el formulario de edición de cliente, garantizando que todos los documentos aparezcan unificados sin intervención técnica.
+
+### 5.5 Gestión de Facturas
+- **Sincronización Inteligente**:
+    - **Visual** ("Lazy"): Al visitar el listado, se sincronizan los metadatos de Holded.
+    - **Documental**: Al solicitar el PDF, el sistema verifica si existe en Drive. Si no, lo descarga de Holded, lo sube a Drive y guarda la referencia.
+    - **Masiva**: Comando `holded:drive-sync-facturas {año}` para procesar lotes completos en segundo plano. Muestra feedback detallado en la interfaz (recuperadas, procesadas, subidas, errores).
+- **Almacenamiento y Naming**:
+    - Estructura: `{Año}/VENTAS/{Trimestre}tri/`.
+    - Ficheros: `{Nº Factura} - {Cliente}.pdf` (sanitizado).
+- **Lógica de Estados**:
+    - **Pagada**: `paymentsPending` = 0.
+    - **Pendiente**: `paymentsTotal` = 0.
+    - **Parcial**: Resto de casos.
+- **UX**:
+    - Filtrado nativo por estado.
+    - Botón de sincronización manual en cabecera con feedback de progreso detallado y formateado.
+
+---
+
+## 6. Frontend y UX Estándar
+
+### 6.1 Visor de PDF Profesional
+- **In-App**: Los documentos no se abren en una pestaña cruda. Se embeben en un componente Vue con cabecera fija y botón de retroceso SPA.
+- **Compatibilidad**: Soluciona el problema de "atrapamiento" en móviles y la falta de controles de descarga en Safari.
+- **Descarga Forzada**: Soporte para parámetro `download=1` que fuerza la descarga del archivo.
+
+### 6.2 Componentes Reutilizables
+- **Debounced Search**: Búsqueda global con 300ms de espera para optimizar recursos del servidor.
+- **DataTable**: Componente agnóstico que gestiona estados vacíos, alineaciones y clics en fila.
+- **Accesibilidad**: Todos los inputs están vinculados mediante IDs y Nombres únicos para cumplir con los estándares de lectores de pantalla y autocompletado.
+- **Formularios Dinámicos**: Uso de `DialogModal` y `ConfirmModal` para flujos de CRUD sin recarga de página.
+- **Flash Messages**: Componente de notificaciones con soporte para HTML (saltos de línea) en los mensajes de éxito/error.
+
+### 6.3 Biblioteca de Componentes Base
+Ubicados en `resources/js/Components/`:
+*   `Badge.vue`: Etiquetas de estado personalizables.
+*   `StatCard.vue`: Tarjetas de indicadores con soporte de iconos.
+*   `SearchableSelect.vue`: Componente avanzado de selección con búsqueda integrada.
+*   `Pagination.vue`: Control de paginación compatible con Eloquent/Inertia.
+
 ---
 
 ## 7. Rendimiento y Escalabilidad (Senior Optimizations)
