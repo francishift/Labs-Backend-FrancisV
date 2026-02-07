@@ -52,30 +52,23 @@ const formatDate = (timestamp) => {
 }
 
 // Holded Invoice Statuses
-const getStatusLabel = (status) => {
-  const labels = {
-    0: 'Pagada',
-    1: 'Pagada', // Sometimes 1 is also paid
-    2: 'Parcial',
-    3: 'Vencida',
-    4: 'Anulada',
-    // Fallbacks based on common API values, verify if possible
-  }
-  // If status is string or different, handle it?
-  // For now assuming these integers. 
-  // Holded API Docs (Invoicing v1): Status 0=Pending, 1=Paid, 2=Partial?
-  // Let's stick to raw status or a generic map.
-  return labels[status] || `Estado ${status}`
+const getStatusLabel = (item) => {
+  const pending = parseFloat(item.raw_data?.paymentsPending || 0)
+  const paid = parseFloat(item.raw_data?.paymentsTotal || 0)
+
+  if (pending === 0) return 'Pagada'
+  if (paid === 0) return 'Pendiente'
+  return 'Parcial'
 }
 
-const getStatusClass = (status) => {
-    switch (parseInt(status)) {
-        case 1: return 'bg-green-100 text-green-800'; // Paid
-        case 0: return 'bg-gray-100 text-gray-800'; // Pending
-        case 2: return 'bg-yellow-100 text-yellow-800'; // Partial
-        case 3: return 'bg-red-100 text-red-800'; // Overdue
-        default: return 'bg-gray-100 text-gray-800';
-    }
+const getStatusClass = (item) => {
+  const label = getStatusLabel(item)
+  switch (label) {
+      case 'Pagada': return 'bg-green-100 text-green-800'
+      case 'Pendiente': return 'bg-gray-100 text-gray-800'
+      case 'Parcial': return 'bg-yellow-100 text-yellow-800'
+      default: return 'bg-gray-100 text-gray-800'
+  }
 }
 
 const updateResults = debounce(() => {
@@ -211,9 +204,9 @@ const syncDrive = () => {
           <template #cell-status="{ item }">
             <span 
               class="px-2 py-1 text-xs font-semibold rounded-full"
-              :class="getStatusClass(item.status)"
+              :class="getStatusClass(item)"
             >
-              {{ getStatusLabel(item.status) }}
+              {{ getStatusLabel(item) }}
             </span>
           </template>
 
