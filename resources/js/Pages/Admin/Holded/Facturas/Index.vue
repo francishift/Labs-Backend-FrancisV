@@ -11,7 +11,7 @@ import InputLabel from '@/Components/InputLabel.vue'
 import debounce from 'lodash/debounce'
 import Pagination from '@/Components/Pagination.vue'
 import SearchInput from '@/Components/SearchInput.vue'
-import { EyeIcon } from '@heroicons/vue/24/outline'
+import { EyeIcon, CloudArrowUpIcon } from '@heroicons/vue/24/outline'
 import { useDebouncedSearch } from '@/Composables/useDebouncedSearch'
 import { useFormatters } from '@/Composables/useFormatters'
 
@@ -125,7 +125,7 @@ const syncDrive = () => {
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          <svg v-else class="w-5 h-5 mr-1" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.9 2.5 3.3 3.3l3.95-6.8H8.75c-.95 0-1.75-.35-2.15-1.05v-.05-.05-.05c-.3-.65-.45-1.4-.45-2.2V63l.45 3.85ZM23.25 40.15l-3.65-6.35-3.6-6.3-3.7-6.5-5.65 9.8c-.8 1.4-1.2 3-1.2 4.7v5.55l3.55 6.15 3.65 6.3 3.65 6.35.5 .9 1.15 2 .2.35.2.35 15.15-26.25-10.25 3zM22.5.5l-5.6 9.75 3.65 6.35 3.65 6.3 3.65 6.35 10.25-17.75.2-.35H55.8c.6-1.55.3-3.3-.85-4.65l-1.95-3.4L49.15.65h-.05c-.65-.4-1.45-.6-2.25-.6H22.55zm22.4 39.65-3.65 6.35-3.65 6.3-3.65 6.35-.45.85-8.4 14.55h32.1c1.6 0 3.15-.85 3.95-2.25l3.95-6.85 1.95-3.4 1.95-3.35H55.15l-10.25-17.75v-.05-.05-.05h-.05l.05-.05z" fill="currentColor"/></svg>
+          <CloudArrowUpIcon v-else class="w-5 h-5 mr-1" />
           <span v-if="isSyncing">Sincronizando...</span>
           <span v-else>Sincronizar Drive</span>
         </SecondaryButton>
