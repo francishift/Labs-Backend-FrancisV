@@ -62,32 +62,47 @@ class FacturaController extends Controller
     {
         $factura = Factura::where('holded_id', $id)->first();
         
+        // Ensure file is in Drive and get content
+        $fileContent = $this->ensureInDrive($factura, $id);
+
+        if (!$fileContent) {
+             return back()->with('error', 'No se pudo recuperar el PDF.');
+        }
+
+        $docNumber = $factura->raw_data['docNumber'] ?? $id;
+        $clientName = $factura->contact_name ?? 'Cliente';
+        // Sanitize filename
+        $safeDocNumber = str_replace(['/', '\\'], '-', $docNumber);
+        $safeClientName = preg_replace('/[^a-zA-Z0-9\s\-_]/', '', $clientName);
+        $fileName = "{$safeDocNumber} - {$safeClientName}.pdf";
+
+        $disposition = request()->has('download') ? 'attachment' : 'inline';
+
+        return response($fileContent)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', $disposition . '; filename="' . $fileName . '"');
+    }
+
+    public function ensureInDrive(?Factura $factura, string $holdedId)
+    {
         // 1. Try to serve from Google Drive if we have the ID locally
         if ($factura && $factura->google_drive_file_id) {
             try {
-                // We use the 'google' disk which points to the root/company folder
-                $adapter = Storage::disk('google')->getAdapter();
+                $adapter = Storage::disk('google_facturas')->getAdapter();
                 $service = $adapter->getService();
                 $response = $service->files->get($factura->google_drive_file_id, ['alt' => 'media']);
-                $fileContent = $response->getBody()->getContents();
-
-                $docNumber = $factura->raw_data['docNumber'] ?? $id;
-                $safeDocNumber = str_replace(['/', '\\'], '-', $docNumber);
-                $disposition = request()->has('download') ? 'attachment' : 'inline';
-
-                return response($fileContent)
-                    ->header('Content-Type', 'application/pdf')
-                    ->header('Content-Disposition', $disposition . '; filename="' . $safeDocNumber . '.pdf"');
+                return $response->getBody()->getContents();
             } catch (\Exception $e) {
-                // If failed, fall back to Holded
+                // Return null to trigger fallback, or maybe log
+                // If 404, we should try to re-upload
             }
         }
 
         // 2. Fetch from Holded
-        $pdfBase64 = $this->holdedService->getDocumentPdf('invoice', $id);
+        $pdfBase64 = $this->holdedService->getDocumentPdf('invoice', $holdedId);
 
         if (!$pdfBase64) {
-            return back()->with('error', 'No se pudo recuperar el PDF de Holded.');
+            return null;
         }
 
         $pdfBinary = base64_decode($pdfBase64);
@@ -100,7 +115,6 @@ class FacturaController extends Controller
                 $rootDriveId = env('GOOGLE_DRIVE_FOLDER_ID_FACTURAS');
 
                 // Structure: {Year}/VENTAS/{Quarter}tri/{docNumber}.pdf
-                // Note: The disk is already rooted at 'FACTURAS', so we start with Year.
                 
                 // Step 1: Find or Create Year Folder
                 $year = date('Y', $factura->date);
@@ -117,9 +131,12 @@ class FacturaController extends Controller
 
                 // Step 4: Save File
                 if ($quarterFolderId) {
-                    $docNumber = $factura->raw_data['docNumber'] ?? $id;
+                    $docNumber = $factura->raw_data['docNumber'] ?? $holdedId;
+                    $clientName = $factura->contact_name ?? 'Cliente';
+                    
                     $safeDocNumber = str_replace(['/', '\\'], '-', $docNumber);
-                    $fileName = "{$safeDocNumber}.pdf";
+                    $safeClientName = preg_replace('/[^a-zA-Z0-9\s\-_]/', '', $clientName);
+                    $fileName = "{$safeDocNumber} - {$safeClientName}.pdf";
 
                     // Check if file already exists
                     $fileOptParams = [
@@ -151,18 +168,11 @@ class FacturaController extends Controller
                 }
 
             } catch (\Exception $e) {
-                // Log error but verify functionality
                  \Log::error('Google Drive Upload Failed: ' . $e->getMessage());
             }
         }
 
-        $docNumber = $factura->raw_data['docNumber'] ?? $id;
-        $safeDocNumber = str_replace(['/', '\\'], '-', $docNumber);
-        $disposition = request()->has('download') ? 'attachment' : 'inline';
-
-        return response($pdfBinary)
-            ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', $disposition . '; filename="' . $safeDocNumber . '.pdf"');
+        return $pdfBinary;
     }
 
     private function findOrCreateFolder($service, $folderName, $parentId)
