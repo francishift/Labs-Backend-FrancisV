@@ -75,7 +75,7 @@ username ALL=(root) NOPASSWD: /usr/bin/wg
 
 ### Environment Variables (`.env`)
 ```env
-VPN_ENDPOINT=213.165.65.4:51892
+VPN_ENDPOINT=(IP del servidor):51892
 ```
 
 ### 🔄 Automatic Restoration & Persistence
