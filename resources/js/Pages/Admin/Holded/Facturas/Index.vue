@@ -174,12 +174,8 @@ const syncDrive = () => {
                 id="status"
                 class="mt-1 block w-full"
                 v-model="filters.status"
-              >
-                <option value="">Todos</option>
-                <option value="pagada">Pagada</option>
-                <option value="pendiente">Pendiente</option>
-                <option value="parcial">Parcial</option>
-              </SelectInput>
+                :options="statusOptions"
+              />
             </div>
             <div class="w-full sm:w-64">
               <InputLabel for="search-facturas" value="Buscar" />
