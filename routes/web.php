@@ -82,6 +82,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/presupuestos/{id}/pdf', [\App\Http\Controllers\Admin\Holded\PresupuestoController::class, 'downloadPdf'])->name('presupuestos.pdf');
             
             Route::get('/facturas', [\App\Http\Controllers\Admin\Holded\FacturaController::class, 'index'])->name('facturas.index');
+            Route::post('/facturas/sync-drive', [\App\Http\Controllers\Admin\Holded\FacturaController::class, 'syncDrive'])->name('facturas.sync-drive');
             Route::get('/facturas/{id}/pdf', [\App\Http\Controllers\Admin\Holded\FacturaController::class, 'downloadPdf'])->name('facturas.pdf');
         });
     });

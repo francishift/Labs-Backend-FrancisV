@@ -175,6 +175,40 @@ class FacturaController extends Controller
         return $pdfBinary;
     }
 
+    public function syncDrive(Request $request)
+    {
+        try {
+            // Increase time limit for this request
+            set_time_limit(300);
+
+            $year = date('Y');
+            
+            // We can call the command, but since we want fine-grained feedback 
+            // and the command is designed for CLI, we'll replicate the core loop here 
+            // or better, Refactor the command to use a service.
+            // For now, to avoid "spaghetti" and N+1 in controller, let's call the command 
+            // and capture output if possible, OR just run the logic cleanly.
+            // Since I previously said "no spaghetti", let's be clean.
+            
+            // Re-using the logic from the command is best done by extracting it to a service.
+            // However, for this task, I will implement the loop here using the same methods,
+            // effectively "Controller as Service" for this action, or keep it in the command.
+            
+            // Let's use Artisan::call for simplicity and robustness (it runs the same tested logic).
+            $exitCode = \Artisan::call('holded:drive-sync-facturas', ['year' => $year]);
+            $output = \Artisan::output();
+
+            if ($exitCode === 0) {
+                return back()->with('success', 'Sincronización con Drive completada con éxito. Revisa el log para detalles.');
+            } else {
+                return back()->with('error', 'Hubo un error al sincronizar con Drive.');
+            }
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error crítico: ' . $e->getMessage());
+        }
+    }
+
     private function findOrCreateFolder($service, $folderName, $parentId)
     {
         if (!$parentId) {
@@ -184,7 +218,7 @@ class FacturaController extends Controller
 
         $optParams = [
             'q' => "'$parentId' in parents and mimeType = 'application/vnd.google-apps.folder' and name = '$folderName' and trashed = false",
-            'fields' => 'files(id, name)'
+            'fields' => 'files(id)'
         ];
         $results = $service->files->listFiles($optParams);
         $files = $results->getFiles();
