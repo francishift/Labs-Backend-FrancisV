@@ -78,7 +78,10 @@ Para garantizar que el panel web y los PDFs exportados muestren datos idénticos
 - **Estrategia**: Sincronización local proactiva a través del módulo de Presupuestos. El sistema opera prioritariamente sobre la base de datos local para evitar latencias de API en las vistas de clientes.
 - **Almacenamiento en Google Drive**:
     - Los PDFs se descargan de Holded y se almacenan automáticamente en una carpeta dedicada de Google Drive (`/Presupuestos/{Año}/{DocNum}.pdf`).
-    - **Deduplicación**: Se comprueba la existencia del archivo antes de subirlo para garantizar la unicidad.
+    - **Estructura Dinámica**: `{Año}/VENTAS/{Trimestre}tri/{docNumber}.pdf` (dentro de la carpeta raíz configurada `GOOGLE_DRIVE_FOLDER_ID_FACTURAS`).
+    - **Cálculo de Trimestre**: Automático basado en la fecha de emisión (`ceil(mes / 3)`).
+    - **Resiliencia**: El sistema busca o crea las carpetas recursivamente (Año -> VENTAS -> Trimestre) en la carpeta de facturas designada.
+    - **Configuración**: Se usa el disco `google_facturas` para aislar este almacenamiento.
     - **Independencia**: Se guarda el ID de archivo de Google Drive localmente. Las lecturas subsiguientes se sirven directamente desde Drive usando la API nativa, eliminando la dependencia de Holded para la visualización de documentos históricos.
     - **Backups**: El almacenamiento usa un disco aislado (`google_presupuestos`) para no interferir con las copias de seguridad del sistema.
 - **Mapeo de Datos**: Se almacenan el ID, contacto, estados y el objeto JSON original (`raw_data`).

@@ -95,29 +95,27 @@ class FacturaController extends Controller
         // 3. Save to Google Drive if we have the record
         if ($factura) {
             try {
-                $adapter = Storage::disk('google')->getAdapter();
+                $adapter = Storage::disk('google_facturas')->getAdapter();
                 $service = $adapter->getService();
-                $rootDriveId = env('GOOGLE_DRIVE_FOLDER_ID'); // Verify if this is the correct root
+                $rootDriveId = env('GOOGLE_DRIVE_FOLDER_ID_FACTURAS');
 
-                // Structure: FACTURAS/{Year}/VENTAS/{Quarter}tri/{docNumber}.pdf
+                // Structure: {Year}/VENTAS/{Quarter}tri/{docNumber}.pdf
+                // Note: The disk is already rooted at 'FACTURAS', so we start with Year.
                 
-                // Step 1: Find or Create 'FACTURAS' in Root
-                $facturasFolderId = $this->findOrCreateFolder($service, 'FACTURAS', $rootDriveId);
-
-                // Step 2: Find or Create Year Folder
+                // Step 1: Find or Create Year Folder
                 $year = date('Y', $factura->date);
-                $yearFolderId = $this->findOrCreateFolder($service, $year, $facturasFolderId);
+                $yearFolderId = $this->findOrCreateFolder($service, $year, $rootDriveId);
 
-                // Step 3: Find or Create 'VENTAS' Folder
+                // Step 2: Find or Create 'VENTAS' Folder
                 $ventasFolderId = $this->findOrCreateFolder($service, 'VENTAS', $yearFolderId);
 
-                // Step 4: Find or Create Quarter Folder (1tri, 2tri...)
+                // Step 3: Find or Create Quarter Folder (1tri, 2tri...)
                 $month = date('n', $factura->date);
                 $quarter = ceil($month / 3);
                 $quarterFolderName = "{$quarter}tri";
                 $quarterFolderId = $this->findOrCreateFolder($service, $quarterFolderName, $ventasFolderId);
 
-                // Step 5: Save File
+                // Step 4: Save File
                 if ($quarterFolderId) {
                     $docNumber = $factura->raw_data['docNumber'] ?? $id;
                     $safeDocNumber = str_replace(['/', '\\'], '-', $docNumber);
@@ -154,7 +152,7 @@ class FacturaController extends Controller
 
             } catch (\Exception $e) {
                 // Log error but verify functionality
-                // \Log::error('Google Drive Upload Failed: ' . $e->getMessage());
+                 \Log::error('Google Drive Upload Failed: ' . $e->getMessage());
             }
         }
 
