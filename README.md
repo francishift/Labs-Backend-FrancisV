@@ -129,7 +129,7 @@ Este proyecto está bajo la licencia **GNU General Public License v3.0** - mira 
 
 ---
 
-# 🚀 Labs Backend - Enterprise Management System (SaaS)
+# 🚀 Labs Backend - Enterprise Management System
 
 [![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel)](https://laravel.com)
 [![Vue.js](https://img.shields.io/badge/Vue.js-3.x-4FC08D?style=for-the-badge&logo=vue.js)](https://vuejs.org)
