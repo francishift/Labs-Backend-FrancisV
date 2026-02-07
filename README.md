@@ -1,4 +1,4 @@
-# 🚀 Labs Backend - Sistema de Gestión Empresarial (SaaS)
+# 🚀 Labs Backend - Sistema de Gestión Empresarial
 
 [English Version Below](#-labs-backend---enterprise-management-system-saas)
 
