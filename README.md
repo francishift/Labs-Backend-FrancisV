@@ -116,6 +116,19 @@ graph TD
 
 ---
 
+## 📄 Documentación Adicional
+
+- [Configuración de Backups en Google Drive](setup-google-backups.md)
+- [Gestión de VPN WireGuard](VPN_DOCUMENTATION.md)
+
+---
+
+## ⚖️ Licencia
+
+Este proyecto está bajo la licencia **GNU General Public License v3.0** - mira el archivo [LICENSE](LICENSE) para más detalles.
+
+---
+
 # 🚀 Labs Backend - Enterprise Management System (SaaS)
 
 [![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel)](https://laravel.com)
@@ -183,6 +196,13 @@ graph TD
 
 ---
 
+## 📄 Additional Documentation
+
+- [Google Drive Backup Setup](setup-google-backups.md)
+- [WireGuard VPN Management](VPN_DOCUMENTATION.md)
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -228,7 +248,7 @@ graph TD
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **GNU General Public License v3.0** - see the [LICENSE](LICENSE) file for details.
 
 ---
 
