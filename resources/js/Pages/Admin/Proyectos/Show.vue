@@ -16,7 +16,8 @@ import EditServicioForm from '@/Pages/Admin/Servicios/Partials/EditServicioForm.
 import CreateServicioForm from '@/Pages/Admin/Servicios/Partials/CreateServicioForm.vue'
 import EditProyectoForm from './Partials/EditProyectoForm.vue'
 import { useCRUDModals } from '@/Composables/useCRUDModals'
-import { ChevronLeftIcon, PencilIcon, PlusIcon, TrashIcon, PrinterIcon, ArrowDownTrayIcon } from '@heroicons/vue/24/outline'
+
+import { ChevronLeftIcon, PencilIcon, PlusIcon, TrashIcon, PrinterIcon, ArrowDownTrayIcon, DocumentTextIcon } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
     proyecto: Object,
@@ -104,8 +105,9 @@ const destroyService = () => {
                                 <PrinterIcon class="h-4 w-4" />
                             </SecondaryButton>
                         </Link>
+
                         <a :href="route('admin.proyectos.pdf', { proyecto: proyecto.id, download: 1 })">
-                            <SecondaryButton title="Descargar PDF" class="flex items-center gap-2">
+                            <SecondaryButton title="Descargar Informe PDF" class="flex items-center gap-2">
                                 <ArrowDownTrayIcon class="h-4 w-4" />
                             </SecondaryButton>
                         </a>
@@ -133,6 +135,19 @@ const destroyService = () => {
                             <div>
                                 <p class="text-sm font-medium text-gray-500 dark:text-zinc-400">Presupuesto</p>
                                 <p class="text-xl font-black text-emerald-900 dark:text-emerald-200">{{ formatCurrency(proyecto.presupuesto) }}</p>
+                                <div v-if="proyecto.presupuesto_asociado" class="mt-1">
+                                     <a :href="route('admin.visor-pdf', { 
+                                            url: route('admin.holded.presupuestos.pdf', { id: proyecto.presupuesto_asociado.holded_id }),
+                                            title: `Presupuesto: ${proyecto.presupuesto_asociado.raw_data?.docNumber || proyecto.presupuesto_asociado.holded_id}`,
+                                            backUrl: route('admin.proyectos.show', proyecto.id)
+                                        })" 
+                                        class="inline-flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium transition-colors"
+                                        title="Ver Presupuesto PDF"
+                                     >
+                                        <DocumentTextIcon class="h-3 w-3" />
+                                        Ref: {{ proyecto.presupuesto_asociado.raw_data?.docNumber || 'Ver PDF' }}
+                                     </a>
+                                </div>
                             </div>
                             <div>
                                 <p class="text-sm font-medium text-gray-500 dark:text-zinc-400">Fecha de Inicio</p>

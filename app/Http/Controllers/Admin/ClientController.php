@@ -55,8 +55,15 @@ class ClientController extends Controller
             'province' => 'nullable|string|max:100',
             'country' => 'nullable|string|max:100',
             'contact' => 'nullable|string|max:255',
+            'secondary_contacts' => 'nullable|string',
             'excel_created_at' => 'nullable|date',
         ]);
+
+        if (!empty($data['secondary_contacts'])) {
+            $data['secondary_contacts'] = array_map('trim', explode(',', $data['secondary_contacts']));
+        } else {
+            $data['secondary_contacts'] = null;
+        }
 
         Client::create($data);
 
@@ -78,8 +85,15 @@ class ClientController extends Controller
             'province' => 'nullable|string|max:100',
             'country' => 'nullable|string|max:100',
             'contact' => 'nullable|string|max:255',
+            'secondary_contacts' => 'nullable|string',
             'excel_created_at' => 'nullable|date',
         ]);
+
+        if (!empty($data['secondary_contacts'])) {
+            $data['secondary_contacts'] = array_filter(array_map('trim', explode(',', $data['secondary_contacts'])));
+        } else {
+            $data['secondary_contacts'] = null;
+        }
 
         $client->update($data);
 
@@ -110,7 +124,7 @@ class ClientController extends Controller
     public function show(Client $client)
     {
         $client->load([
-            'proyectos:id,proyecto,presupuesto,estado,fecha_inicio,fecha_fin,client_id,updated_at',
+            'proyectos:id,proyecto,presupuesto,estado,fecha_inicio,fecha_fin,client_id,presupuesto_id,updated_at',
             'proyectos.extensiones:id,nombre,precio,tipo_licencia',
             'mantenimientos:id,aplicacion,importe,estado,fecha_inicio,tipo_pago,client_id',
             'mantenimientos.extensiones:id,nombre,precio,tipo_licencia'
@@ -205,5 +219,38 @@ class ClientController extends Controller
         }
 
         return $pdf->stream("Cliente-{$client->name}.pdf");
+    }
+
+    public function getPresupuestos(Client $client)
+    {
+        if (!$client->contact && empty($client->secondary_contacts)) {
+            return response()->json([]);
+        }
+
+        try {
+            $contactIds = array_filter([
+                $client->contact,
+                ...($client->secondary_contacts ?? [])
+            ]);
+
+            // Search by contact ID in 'contact_id' column OR 'contact' column (handling legacy syncs)
+            $presupuestos = Presupuesto::where(function($q) use ($contactIds) {
+                    $q->whereIn('contact_id', $contactIds)
+                      ->orWhereIn('contact', $contactIds);
+                })
+                ->orderBy('date', 'desc')
+                ->get(['id', 'holded_id', 'total', 'date', 'raw_data'])
+                ->map(function ($p) {
+                    return [
+                        'id' => $p->id,
+                        'name' => ($p->raw_data['docNumber'] ?? $p->holded_id) . ' - ' . date('d/m/Y', $p->date) . ' (' . number_format($p->total, 2) . '€)',
+                    ];
+                });
+
+            return response()->json($presupuestos);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error fetching budgets for client ' . $client->id . ': ' . $e->getMessage());
+            return response()->json([], 500);
+        }
     }
 }

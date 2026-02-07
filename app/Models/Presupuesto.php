@@ -17,6 +17,7 @@ class Presupuesto extends Model
         'total',
         'status',
         'raw_data',
+        'google_drive_file_id',
     ];
 
     protected $casts = [
@@ -24,4 +25,9 @@ class Presupuesto extends Model
         'date' => 'integer',
         'total' => 'decimal:2',
     ];
+
+    public function proyectos()
+    {
+        return $this->hasMany(Proyecto::class, 'presupuesto_id');
+    }
 }

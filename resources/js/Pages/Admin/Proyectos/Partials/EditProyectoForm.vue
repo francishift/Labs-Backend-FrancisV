@@ -1,6 +1,6 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3';
-import { watch } from 'vue';
+import { watch, ref } from 'vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
 import CurrencyInput from '@/Components/CurrencyInput.vue';
@@ -25,8 +25,24 @@ const editForm = useForm({
     presupuesto: '',
     estado: '',
     client_id: '',
+    presupuesto_id: '',
     extensiones: [],
 });
+
+const budgets = ref([]);
+const loadingBudgets = ref(false);
+
+const fetchBudgets = async (clientId) => {
+    loadingBudgets.value = true;
+    try {
+        const response = await axios.get(route('admin.clientes.presupuestos', clientId));
+        budgets.value = response.data;
+    } catch (error) {
+        console.error('Error fetching budgets:', error);
+    } finally {
+        loadingBudgets.value = false;
+    }
+};
 
 watch(() => props.proyecto, (proyecto) => {
     if (proyecto) {
@@ -37,10 +53,27 @@ watch(() => props.proyecto, (proyecto) => {
         editForm.presupuesto = proyecto.presupuesto;
         editForm.estado = proyecto.estado;
         editForm.client_id = proyecto.client_id;
+        editForm.presupuesto_id = proyecto.presupuesto_id;
         editForm.extensiones = proyecto.extensiones ? proyecto.extensiones.map(e => e.id) : [];
         editForm.clearErrors();
+        
+        // Load budgets if client is present
+        if (proyecto.client_id) {
+             fetchBudgets(proyecto.client_id);
+        }
     }
 }, { immediate: true });
+
+watch(() => editForm.client_id, (newClientId, oldClientId) => {
+    // Only fetch if client changed AND it's not the initial population logic (handled in first watch)
+    // But since `useForm` is reactive, we need to be careful not to wipe `presupuesto_id` on initial load.
+    // The first watch runs immediately. This watch also runs. 
+    // Simplified strategy: Fetch if customized.
+    if (newClientId && newClientId !== props.proyecto?.client_id) {
+         editForm.presupuesto_id = ''; // Reset if client changes manually
+         fetchBudgets(newClientId);
+    }
+});
 
 watch(() => editForm.estado, (newEstado) => {
     if (newEstado === 'Finalizado' && !editForm.fecha_fin) {
@@ -77,6 +110,20 @@ const submitEdit = () => {
                     class="mt-1"
                 />
                 <InputError class="mt-2" :message="editForm.errors.client_id" />
+            </div>
+
+            <div class="md:col-span-2">
+                <InputLabel for="edit_presupuesto_id" value="Presupuesto Asociado (Holded)" />
+                <SearchableSelect
+                    id="edit_presupuesto_id"
+                    v-model="editForm.presupuesto_id"
+                    :options="budgets"
+                    placeholder="Seleccionar presupuesto..."
+                    :disabled="!editForm.client_id || loadingBudgets"
+                    class="mt-1"
+                />
+                <p v-if="!editForm.client_id" class="text-xs text-gray-500 mt-1">Selecciona un cliente primero.</p>
+                <InputError class="mt-2" :message="editForm.errors.presupuesto_id" />
             </div>
 
             <div class="md:col-span-2">
@@ -120,6 +167,8 @@ const submitEdit = () => {
                 <CurrencyInput id="edit_presupuesto" v-model="editForm.presupuesto" class="mt-1 block w-full" />
                 <InputError class="mt-2" :message="editForm.errors.presupuesto" />
             </div>
+
+
 
             <div>
                 <InputLabel for="edit_estado" value="Estado" />

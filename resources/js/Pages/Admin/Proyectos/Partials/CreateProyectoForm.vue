@@ -8,7 +8,7 @@ import SearchableSelect from '@/Components/SearchableSelect.vue';
 import MultiSelect from '@/Components/MultiSelect.vue';
 import { useForm } from '@inertiajs/vue3';
 import { getTodayDate } from '@/Utils/date';
-import { watch } from 'vue';
+import { watch, ref } from 'vue';
 
 const props = defineProps({
     clients: Array,
@@ -24,7 +24,28 @@ const createForm = useForm({
     presupuesto: '',
     estado: 'En proceso',
     client_id: '',
+    presupuesto_id: '',
     extensiones: [],
+});
+
+const budgets = ref([]);
+const loadingBudgets = ref(false);
+
+watch(() => createForm.client_id, async (newClientId) => {
+    createForm.presupuesto_id = '';
+    budgets.value = [];
+    
+    if (newClientId) {
+        loadingBudgets.value = true;
+        try {
+            const response = await axios.get(route('admin.clientes.presupuestos', newClientId));
+            budgets.value = response.data;
+        } catch (error) {
+            console.error('Error fetching budgets:', error);
+        } finally {
+            loadingBudgets.value = false;
+        }
+    }
 });
 
 watch(() => createForm.estado, (newEstado) => {
@@ -63,6 +84,20 @@ const submitCreate = () => {
                     class="mt-1"
                 />
                 <InputError class="mt-2" :message="createForm.errors.client_id" />
+            </div>
+
+            <div class="md:col-span-2">
+                <InputLabel for="create_presupuesto_id" value="Presupuesto Asociado (Holded)" />
+                <SearchableSelect
+                    id="create_presupuesto_id"
+                    v-model="createForm.presupuesto_id"
+                    :options="budgets"
+                    placeholder="Seleccionar presupuesto..."
+                    :disabled="!createForm.client_id || loadingBudgets"
+                    class="mt-1"
+                />
+                <p v-if="!createForm.client_id" class="text-xs text-gray-500 mt-1">Selecciona un cliente primero.</p>
+                <InputError class="mt-2" :message="createForm.errors.presupuesto_id" />
             </div>
 
             <div class="md:col-span-2">
@@ -106,6 +141,8 @@ const submitCreate = () => {
                 <CurrencyInput id="create_presupuesto" v-model="createForm.presupuesto" class="mt-1 block w-full" />
                 <InputError class="mt-2" :message="createForm.errors.presupuesto" />
             </div>
+
+
 
             <div>
                 <InputLabel for="create_estado" value="Estado" />

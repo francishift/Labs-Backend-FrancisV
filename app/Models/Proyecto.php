@@ -29,6 +29,7 @@ class Proyecto extends Model
         'precio_hora',
         'porcentaje_software',
         'coste_software_anual',
+        'presupuesto_id',
     ];
 
     protected $casts = [
@@ -40,6 +41,11 @@ class Proyecto extends Model
     public function client()
     {
         return $this->belongsTo(Client::class);
+    }
+
+    public function presupuestoAsociado()
+    {
+        return $this->belongsTo(Presupuesto::class, 'presupuesto_id');
     }
 
     public function servicios()

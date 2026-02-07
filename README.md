@@ -25,6 +25,8 @@ Una solución **ERP y CRM completa y premium**, diseñada para agencias digitale
 - **⚡ Optimización de Alto Rendimiento**: Eliminación masiva de consultas N+1 mediante carga ansiosa (`eager loading`) estratégica, resultando en una navegación y guardado instantáneos.
 - **🖱️ Interactividad en Tablas**: Filas clicables en proyectos y mantenimientos para edición directa, mejorando significativamente la eficiencia operativa.
 - **📊 Gráficos Ultra-Nítidos y Optimizados**: Etiquetas inteligentes que se ajustan automáticamente (truncado, rotación) y renderizado SVG para una visualización perfecta en cualquier dispositivo.
+- **🔗 Vinculación Proyecto-Presupuesto**: Asociación directa de presupuestos de Holded a Proyectos, permitiendo un seguimiento financiero preciso y acceso a PDF con un clic.
+- **👥 Gestión Avanzada de Contactos**: Manejo inteligente de perfiles duplicados de Holded mediante "Contactos Secundarios", asegurando la unificación de datos financieros.
 - **🛡️ Persistencia de Precios de Mantenimiento**: Nueva arquitectura de base de datos que registra el historial de precios aplicados, permitiendo actualizaciones de tarifas sin afectar de forma destructiva a la analítica histórica.
 
 ---
@@ -138,7 +140,9 @@ A premium, full-featured **Enterprise Resource Planning (ERP) and CRM solution**
 - **🔔 Global Notifications**: Centralized toast message system for a fluid and consistent user feedback experience.
 - **🛡️ Data Immutability**: Price snapshot system ensuring the integrity of historical reports against changes in global rates.
 - **📄 Proactive Export (PDF)**: Detailed financial report generation for **Clients, Projects, and Maintenance**, with an embedded viewer optimized for mobile and Safari compatibility.
-- **📦 Holded Integration (CRM/ERP)**: Real-time synchronization of estimates and contacts via official API, with local database persistence for maximum performance and integrated document viewing.
+- **📦 Holded Integration (CRM/ERP)**: Real-time synchronization of estimates and contacts via official API, with local database persistence for maximum performance. **New**: Automated PDF storage in Google Drive for resilient, high-speed document retrieval independent of ERP availability.
+- **🔗 Project-Budget Linking**: Direct association of Holded estimates to Projects, enabling precise financial tracking and one-click PDF access.
+- **👥 Advanced Contact Management**: Intelligent handling of duplicate Holded profiles via "Secondary Contacts", ensuring unified financial data aggregation.
 - **🛡️ VPN & Network Management**: Integrated module for provisioning WireGuard VPN access to employees, automating IP allocation and securing internal resources.
 - **🎨 UI Refinement**: Consistent interface for extension management aligned with maintenance modules and improved table readability.
 

@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Admin\Holded;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
 use App\Services\HoldedService;
+use Google\Service\Drive\DriveFile;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 
@@ -59,6 +61,30 @@ class PresupuestoController extends Controller
 
     public function downloadPdf(string $id)
     {
+        $presupuesto = Presupuesto::where('holded_id', $id)->first();
+        
+        // 1. Try to serve from Google Drive if we have the ID locally
+        if ($presupuesto && $presupuesto->google_drive_file_id) {
+            try {
+                $adapter = Storage::disk('google_presupuestos')->getAdapter();
+                $service = $adapter->getService();
+                $response = $service->files->get($presupuesto->google_drive_file_id, ['alt' => 'media']);
+                $fileContent = $response->getBody()->getContents();
+
+                $docNumber = $presupuesto->raw_data['docNumber'] ?? $id;
+                $safeDocNumber = str_replace(['/', '\\'], '-', $docNumber);
+                $disposition = request()->has('download') ? 'attachment' : 'inline';
+
+                return response($fileContent)
+                    ->header('Content-Type', 'application/pdf')
+                    ->header('Content-Disposition', $disposition . '; filename="' . $safeDocNumber . '.pdf"');
+            } catch (\Exception $e) {
+                // Check if it's a 404 or other error, log it, and continue to Holded fallback
+                // \Log::warning("Failed to retrieve from Drive ID {$presupuesto->google_drive_file_id}: " . $e->getMessage());
+            }
+        }
+
+        // 2. Fetch from Holded
         $pdfBase64 = $this->holdedService->getDocumentPdf('estimate', $id);
 
         if (!$pdfBase64) {
@@ -67,8 +93,83 @@ class PresupuestoController extends Controller
 
         $pdfBinary = base64_decode($pdfBase64);
 
+        // 3. Save to Google Drive if we have the budget record
+        if ($presupuesto) {
+            $year = date('Y', $presupuesto->date);
+            $rootId = env('GOOGLE_DRIVE_FOLDER_ID_PRESUPUESTOS');
+            
+            try {
+                $adapter = Storage::disk('google_presupuestos')->getAdapter();
+                $service = $adapter->getService();
+
+                // Check for year folder
+                $optParams = [
+                    'q' => "'$rootId' in parents and mimeType = 'application/vnd.google-apps.folder' and name = '$year' and trashed = false",
+                    'fields' => 'files(id, name)'
+                ];
+                $results = $service->files->listFiles($optParams);
+                $files = $results->getFiles();
+
+                $folderId = null;
+                if (count($files) > 0) {
+                    $folderId = $files[0]->getId();
+                } else {
+                    // Create folder
+                    $folderMeta = new DriveFile([
+                        'name' => $year,
+                        'mimeType' => 'application/vnd.google-apps.folder',
+                        'parents' => [$rootId]
+                    ]);
+                    $folder = $service->files->create($folderMeta, ['fields' => 'id']);
+                    $folderId = $folder->getId();
+                }
+
+                if ($folderId) {
+                    $docNumber = $presupuesto->raw_data['docNumber'] ?? $id;
+                    $safeDocNumber = str_replace(['/', '\\'], '-', $docNumber);
+                    $fileName = "{$safeDocNumber}.pdf";
+
+                    // Check if file already exists in the folder
+                    $fileOptParams = [
+                        'q' => "'$folderId' in parents and name = '$fileName' and trashed = false",
+                        'fields' => 'files(id)'
+                    ];
+                    $existingFiles = $service->files->listFiles($fileOptParams)->getFiles();
+
+                    if (count($existingFiles) > 0) {
+                        $fileId = $existingFiles[0]->getId();
+                    } else {
+                        // Upload file
+                        $fileMeta = new DriveFile([
+                            'name' => $fileName,
+                            'parents' => [$folderId]
+                        ]);
+                        
+                        $file = $service->files->create($fileMeta, [
+                            'data' => $pdfBinary,
+                            'mimeType' => 'application/pdf',
+                            'uploadType' => 'multipart',
+                            'fields' => 'id'
+                        ]);
+                        
+                        $fileId = $file->getId();
+                    }
+                    
+                    $presupuesto->update(['google_drive_file_id' => $fileId]);
+                }
+            } catch (\Exception $e) {
+                // Log error but verify functionality
+                // \Log::error('Google Drive Upload Failed: ' . $e->getMessage());
+            }
+        }
+
+        $docNumber = $presupuesto->raw_data['docNumber'] ?? $id;
+        $safeDocNumber = str_replace(['/', '\\'], '-', $docNumber);
+
+        $disposition = request()->has('download') ? 'attachment' : 'inline';
+
         return response($pdfBinary)
             ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'inline; filename="presupuesto-' . $id . '.pdf"');
+            ->header('Content-Disposition', $disposition . '; filename="' . $safeDocNumber . '.pdf"');
     }
 }

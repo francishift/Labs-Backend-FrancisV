@@ -76,11 +76,30 @@ Para garantizar que el panel web y los PDFs exportados muestren datos idénticos
 
 ### 5.1 Sincronización de Presupuestos
 - **Estrategia**: Sincronización local proactiva a través del módulo de Presupuestos. El sistema opera prioritariamente sobre la base de datos local para evitar latencias de API en las vistas de clientes.
+- **Almacenamiento en Google Drive**:
+    - Los PDFs se descargan de Holded y se almacenan automáticamente en una carpeta dedicada de Google Drive (`/Presupuestos/{Año}/{DocNum}.pdf`).
+    - **Deduplicación**: Se comprueba la existencia del archivo antes de subirlo para garantizar la unicidad.
+    - **Independencia**: Se guarda el ID de archivo de Google Drive localmente. Las lecturas subsiguientes se sirven directamente desde Drive usando la API nativa, eliminando la dependencia de Holded para la visualización de documentos históricos.
+    - **Backups**: El almacenamiento usa un disco aislado (`google_presupuestos`) para no interferir con las copias de seguridad del sistema.
 - **Mapeo de Datos**: Se almacenan el ID, contacto, estados y el objeto JSON original (`raw_data`).
 
 ### 5.2 Sincronización de Clientes
-- Los contactos de Holded se vinculan mediante el `CIF/NIF`.
+- Los contactos de Holded se vinculan mediante el `CIF/NIF` o email.
 - **Rendimiento**: Se ha eliminado la sincronización automática en cada carga del listado para garantizar una navegación instantánea.
+- **Integridad de Datos**: Existe un comando de mantenimiento `php artisan holded:fix-contacts` para recuperar IDs de contacto perdidos escaneando los presupuestos existentes.
+
+### 5.3 Vinculación Proyectos - Presupuestos
+- **Asociación**: Se permite vincular un presupuesto de Holded a un Proyecto. La selección se filtra dinámicamente según el cliente del proyecto.
+- **Visualización**: El PDF del presupuesto asociado es accesible directamente desde la ficha del proyecto (sección Información General), utilizando el visor PDF unificado.
+- **Seguridad**:
+    - **Logs**: Se registran errores de conexión con la API en `laravel.log`.
+    - **Fallos de Datos**: Si un cliente no tiene ID de Holded, el selector de presupuestos muestra "No hay opciones disponibles" en lugar de fallar, y se debe usar el comando de reparación.
+98: 
+99: ### 5.4 Gestión de IDs Secundarios (Duplicados)
+100: - **Problema**: Holded permite tener múltiples fichas para un mismo cliente (ej: errores tipográficos o duplicados históricos). Esto fragmenta los presupuestos.
+101: - **Solución**: Se ha implementado un campo `secondary_contacts` (JSON Array) en la tabla `clients`.
+102:     - El sistema fusiona automáticamente los presupuestos del ID principal (`contact`) y los IDs secundarios al listarlos.
+103:     - **Autogestión**: Los administradores pueden añadir manualmente estos IDs extra desde el formulario de edición de cliente, garantizando que todos los documentos aparezcan unificados sin intervención técnica.
 
 ---
 
@@ -114,4 +133,4 @@ Ubicados en `resources/js/Components/`:
 - Se ha implementado una política estricta de carga ansiosa (`with(['precios', 'cliente', etc.])`) en todos los métodos de los modelos que alimentan gráficos y estadísticas. Esto ha reducido el número de consultas a la base de datos de cientos a menos de 10 por carga de página, garantizando una fluidez extrema incluso en dispositivos móviles.
 
 ---
-*Documentación actualizada el 03/02/2026*
+*Documentación actualizada el 07/02/2026*

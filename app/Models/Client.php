@@ -28,10 +28,12 @@ class Client extends Model
         'country',
         'contact',
         'excel_created_at',
+        'secondary_contacts',
     ];
 
     protected $casts = [
         'excel_created_at' => 'datetime',
+        'secondary_contacts' => 'array',
     ];
 
     public function proyectos()

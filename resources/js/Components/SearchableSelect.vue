@@ -36,12 +36,21 @@ const selectRef = ref(null);
 const inputRef = ref(null);
 
 const selectedOption = computed(() => {
-    return props.options.find(option => option[props.valueKey] === props.modelValue);
+    return (props.options || []).find(option => option[props.valueKey] === props.modelValue);
 });
 
-// Update query when modelValue changes or on initialization
-watch(() => props.modelValue, () => {
-    query.value = selectedOption.value ? selectedOption.value[props.labelKey] : '';
+// Update query when selectedOption changes (handles modelValue changes AND async options loading)
+watch(selectedOption, (newOption) => {
+    // Only update query if we have a match, or if we want to clear it (and not currently searching/typing potentially)
+    // Since this is a select behavior, if the modelValue matches an option, the input should show that option's label.
+    if (newOption) {
+        query.value = newOption[props.labelKey];
+    } else {
+        // If no match found (e.g. cleared selection or option not in list), clear query
+        // But respect if user is typing? No, because typing updates query but NOT modelValue.
+        // modelValue only updates on select. So if selectedOption is null, it means modelValue is null (or invalid).
+        query.value = '';
+    }
 }, { immediate: true });
 
 const filteredOptions = computed(() => {
@@ -109,6 +118,7 @@ onUnmounted(() => {
                 ref="inputRef"
                 type="text"
                 v-bind="$attrs"
+                autocomplete="off"
                 class="w-full rounded-lg border-gray-300 py-2 pl-3 pr-10 text-left shadow-sm focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500 sm:text-sm dark:bg-zinc-900 dark:border-zinc-700 dark:text-zinc-300 dark:focus:border-zinc-500 dark:focus:ring-zinc-500 transition-all duration-200"
                 :placeholder="placeholder"
                 :value="query"
@@ -132,7 +142,7 @@ onUnmounted(() => {
         >
             <ul
                 v-if="isOpen && filteredOptions.length > 0"
-                class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm dark:bg-zinc-800 dark:ring-zinc-700 custom-scrollbar border border-gray-100 dark:border-zinc-700"
+                class="absolute z-[100] mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-xl ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm dark:bg-zinc-800 dark:ring-zinc-700 custom-scrollbar border border-gray-100 dark:border-zinc-700"
             >
                 <li
                     v-for="option in filteredOptions"
@@ -157,6 +167,12 @@ onUnmounted(() => {
                 class="absolute z-50 mt-1 w-full rounded-xl bg-white p-4 text-sm text-gray-500 dark:bg-zinc-800 dark:text-zinc-500 italic shadow-xl border border-gray-100 dark:border-zinc-700"
             >
                 No se encontraron resultados para "{{ query }}"
+            </div>
+            <div 
+                v-else-if="isOpen && options.length === 0" 
+                class="absolute z-50 mt-1 w-full rounded-xl bg-white p-4 text-sm text-gray-500 dark:bg-zinc-800 dark:text-zinc-500 italic shadow-xl border border-gray-100 dark:border-zinc-700"
+            >
+                No hay opciones disponibles.
             </div>
         </transition>
     </div>

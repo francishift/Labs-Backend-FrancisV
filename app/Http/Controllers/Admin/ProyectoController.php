@@ -18,7 +18,7 @@ class ProyectoController extends Controller
     public function index(Request $request)
     {
         $proyectos = Proyecto::query()
-            ->select(['id', 'proyecto', 'descripcion', 'fecha_inicio', 'fecha_fin', 'presupuesto', 'estado', 'client_id'])
+            ->select(['id', 'proyecto', 'descripcion', 'fecha_inicio', 'fecha_fin', 'presupuesto', 'estado', 'client_id', 'presupuesto_id'])
             ->with(['client:id,name', 'extensiones:id,nombre'])
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
@@ -64,6 +64,7 @@ class ProyectoController extends Controller
             'presupuesto' => 'nullable|numeric|min:0',
             'estado' => 'required|string|in:En proceso,Finalizado,Cancelado',
             'client_id' => 'required|exists:clients,id',
+            'presupuesto_id' => 'nullable|exists:presupuestos,id',
             'extensiones' => 'nullable|array',
             'extensiones.*' => 'exists:extensiones,id',
         ]);
@@ -72,14 +73,19 @@ class ProyectoController extends Controller
         $data['porcentaje_software'] = (float) Configuracion::get('porcentaje_software', 2);
         $data['coste_software_anual'] = \App\Models\Software::getTotalAnual();
         
-        $proyecto = Proyecto::create($data);
+        try {
+            $proyecto = Proyecto::create($data);
 
-        if ($request->has('extensiones')) {
-            $proyecto->syncExtensionSnapshots($request->extensiones);
+            if ($request->has('extensiones')) {
+                $proyecto->syncExtensionSnapshots($request->extensiones);
+            }
+
+            return back()
+                ->with('success', 'Proyecto creado correctamente.');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error creating project: ' . $e->getMessage());
+            return back()->withErrors(['error' => 'Error al crear el proyecto: ' . $e->getMessage()]);
         }
-
-        return back()
-            ->with('success', 'Proyecto creado correctamente.');
     }
 
     /**
@@ -89,6 +95,7 @@ class ProyectoController extends Controller
     {
         $proyecto->load([
             'client:id,name,email,phone,mobile',
+            'presupuestoAsociado',
             'servicios' => fn($q) => $q->orderBy('fecha', 'desc')->orderBy('created_at', 'desc'),
             'extensiones:id,nombre,precio,tipo_licencia',
         ]);
@@ -190,18 +197,24 @@ class ProyectoController extends Controller
             'presupuesto' => 'nullable|numeric|min:0',
             'estado' => 'required|string|in:En proceso,Finalizado,Cancelado',
             'client_id' => 'required|exists:clients,id',
+            'presupuesto_id' => 'nullable|exists:presupuestos,id',
             'extensiones' => 'nullable|array',
             'extensiones.*' => 'exists:extensiones,id',
         ]);
 
-        $proyecto->update($data);
+        try {
+            $proyecto->update($data);
 
-        if ($request->has('extensiones')) {
-            $proyecto->syncExtensionSnapshots($request->extensiones);
+            if ($request->has('extensiones')) {
+                $proyecto->syncExtensionSnapshots($request->extensiones);
+            }
+
+            return back()
+                ->with('success', 'Proyecto actualizado correctamente.');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error updating project ' . $proyecto->id . ': ' . $e->getMessage());
+            return back()->withErrors(['error' => 'Error al actualizar el proyecto: ' . $e->getMessage()]);
         }
-
-        return back()
-            ->with('success', 'Proyecto actualizado correctamente.');
     }
 
     /**

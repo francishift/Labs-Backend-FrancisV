@@ -85,6 +85,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Rutas accesibles por Admin y Coordinador
     Route::middleware('role:admin|coordinador')->group(function () {
+        Route::get('/admin/clientes/{client}/presupuestos', [ClientController::class, 'getPresupuestos'])->name('admin.clientes.presupuestos');
         Route::get('/admin/proyectos', [ProyectoController::class, 'index'])->name('admin.proyectos.index');
         Route::get('/admin/proyectos/{proyecto}', [ProyectoController::class, 'show'])->name('admin.proyectos.show');
         Route::get('/admin/proyectos/{proyecto}/export-pdf', [ProyectoController::class, 'exportPdf'])->name('admin.proyectos.pdf');

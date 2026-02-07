@@ -23,6 +23,7 @@ const editForm = useForm({
     province: '',
     country: '',
     contact: '',
+    secondary_contacts: '',
     excel_created_at: '',
 });
 
@@ -40,6 +41,7 @@ watch(() => props.client, (client) => {
         editForm.province = client.province;
         editForm.country = client.country;
         editForm.contact = client.contact || '';
+        editForm.secondary_contacts = Array.isArray(client.secondary_contacts) ? client.secondary_contacts.join(', ') : '';
         editForm.excel_created_at = formatDateForInput(client.excel_created_at);
         editForm.clearErrors();
     }
@@ -112,6 +114,12 @@ const submitEdit = () => {
                 <InputLabel for="edit_contact" value="Contact (Holded ID)" />
                 <TextInput id="edit_contact" v-model="editForm.contact" type="text" class="mt-1 block w-full" />
                 <InputError class="mt-2" :message="editForm.errors.contact" />
+            </div>
+            <div class="lg:col-span-2">
+                <InputLabel for="edit_secondary_contacts" value="IDs Secundarios Holded (separados por coma)" />
+                <TextInput id="edit_secondary_contacts" v-model="editForm.secondary_contacts" type="text" class="mt-1 block w-full" placeholder="ID1, ID2..." />
+                <InputError class="mt-2" :message="editForm.errors.secondary_contacts" />
+                <p class="text-xs text-gray-500 mt-1">Usar solo si el cliente tiene múltiples fichas en Holded.</p>
             </div>
             <div>
                 <InputLabel for="edit_excel_created_at" value="Fecha Creación (Excel)" />
