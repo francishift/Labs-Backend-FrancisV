@@ -27,18 +27,27 @@ const editForm = useForm({
     client_id: '',
     presupuesto_id: '',
     extensiones: [],
+    facturas: [],
 });
 
 const budgets = ref([]);
+const availableFacturas = ref([]);
 const loadingBudgets = ref(false);
 
-const fetchBudgets = async (clientId) => {
+const fetchClientData = async (clientId) => {
     loadingBudgets.value = true;
     try {
-        const response = await axios.get(route('admin.clientes.presupuestos', clientId));
-        budgets.value = response.data;
+        const [budgetsResponse, facturasResponse] = await Promise.all([
+            axios.get(route('admin.clientes.presupuestos', clientId)),
+            axios.get(route('admin.clientes.facturas', clientId))
+        ]);
+        budgets.value = budgetsResponse.data;
+        
+        // Filter invoices: show those with NO project OR those associated with THIS project
+        const currentProjectId = props.proyecto?.id;
+        availableFacturas.value = facturasResponse.data.filter(f => !f.proyecto_id || f.proyecto_id === currentProjectId);
     } catch (error) {
-        console.error('Error fetching budgets:', error);
+        console.error('Error fetching client data:', error);
     } finally {
         loadingBudgets.value = false;
     }
@@ -55,23 +64,22 @@ watch(() => props.proyecto, (proyecto) => {
         editForm.client_id = proyecto.client_id;
         editForm.presupuesto_id = proyecto.presupuesto_id;
         editForm.extensiones = proyecto.extensiones ? proyecto.extensiones.map(e => e.id) : [];
+        editForm.facturas = proyecto.facturas ? proyecto.facturas.map(f => f.id) : [];
         editForm.clearErrors();
         
         // Load budgets if client is present
         if (proyecto.client_id) {
-             fetchBudgets(proyecto.client_id);
+             fetchClientData(proyecto.client_id);
         }
     }
 }, { immediate: true });
 
 watch(() => editForm.client_id, (newClientId, oldClientId) => {
     // Only fetch if client changed AND it's not the initial population logic (handled in first watch)
-    // But since `useForm` is reactive, we need to be careful not to wipe `presupuesto_id` on initial load.
-    // The first watch runs immediately. This watch also runs. 
-    // Simplified strategy: Fetch if customized.
     if (newClientId && newClientId !== props.proyecto?.client_id) {
          editForm.presupuesto_id = ''; // Reset if client changes manually
-         fetchBudgets(newClientId);
+         editForm.facturas = [];
+         fetchClientData(newClientId);
     }
 });
 
@@ -124,6 +132,20 @@ const submitEdit = () => {
                 />
                 <p v-if="!editForm.client_id" class="text-xs text-gray-500 mt-1">Selecciona un cliente primero.</p>
                 <InputError class="mt-2" :message="editForm.errors.presupuesto_id" />
+            </div>
+
+            <div class="md:col-span-2">
+                <InputLabel for="edit_facturas" value="Facturas Asociadas" />
+                <MultiSelect
+                    id="edit_facturas"
+                    v-model="editForm.facturas"
+                    :options="availableFacturas"
+                    label-key="name"
+                    placeholder="Seleccionar facturas..."
+                    :disabled="!editForm.client_id || loadingBudgets"
+                    class="mt-1"
+                />
+                <InputError class="mt-2" :message="editForm.errors.facturas" />
             </div>
 
             <div class="md:col-span-2">

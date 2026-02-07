@@ -76,7 +76,7 @@ class FacturaController extends Controller
         $fileContent = $this->ensureInDrive($factura, $id);
 
         if (!$fileContent) {
-             return back()->with('error', 'No se pudo recuperar el PDF.');
+             abort(404, 'No se pudo recuperar el PDF.');
         }
 
         $docNumber = $factura->raw_data['docNumber'] ?? $id;
@@ -209,7 +209,24 @@ class FacturaController extends Controller
             $output = \Artisan::output();
 
             if ($exitCode === 0) {
-                return back()->with('success', 'Sincronización con Drive completada con éxito. Revisa el log para detalles.');
+                $stats = [];
+                if (preg_match('/JSON_RESULT=(.*)/', $output, $matches)) {
+                    $json = $matches[1];
+                    $stats = json_decode($json, true) ?? [];
+                }
+
+                $message = 'Sincronización con Drive completada.<br>';
+                if (!empty($stats)) {
+                    $message .= "Facturas recuperadas: {$stats['synced']}<br>" .
+                                "Procesadas: {$stats['processed']}<br>" .
+                                "Subidas a Drive: {$stats['uploaded']}<br>" .
+                                "Ya existentes: {$stats['skipped']}<br>" .
+                                "Errores: {$stats['errors']}";
+                } else {
+                    $message .= " Revisa el log para detalles.";
+                }
+
+                return back()->with('success', $message);
             } else {
                 return back()->with('error', 'Hubo un error al sincronizar con Drive.');
             }

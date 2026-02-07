@@ -253,4 +253,38 @@ class ClientController extends Controller
             return response()->json([], 500);
         }
     }
+
+    public function getFacturas(Client $client)
+    {
+        if (!$client->contact && empty($client->secondary_contacts)) {
+            return response()->json([]);
+        }
+
+        try {
+            $contactIds = array_filter([
+                $client->contact,
+                ...($client->secondary_contacts ?? [])
+            ]);
+
+            // Search by contact ID in 'contact_id' column OR 'contact' column (handling legacy syncs)
+            $facturas = \App\Models\Factura::where(function($q) use ($contactIds) {
+                    $q->whereIn('contact_id', $contactIds)
+                      ->orWhereIn('contact', $contactIds);
+                })
+                ->orderBy('date', 'desc')
+                ->get(['id', 'holded_id', 'total', 'date', 'raw_data', 'proyecto_id'])
+                ->map(function ($f) {
+                    return [
+                        'id' => $f->id,
+                        'name' => ($f->raw_data['docNumber'] ?? $f->holded_id) . ' - ' . date('d/m/Y', $f->date) . ' (' . number_format($f->total, 2) . '€)',
+                        'proyecto_id' => $f->proyecto_id,
+                    ];
+                });
+
+            return response()->json($facturas);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error fetching invoices for client ' . $client->id . ': ' . $e->getMessage());
+            return response()->json([], 500);
+        }
+    }
 }

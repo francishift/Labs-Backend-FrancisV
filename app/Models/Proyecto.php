@@ -53,6 +53,11 @@ class Proyecto extends Model
         return $this->hasMany(Servicio::class);
     }
 
+    public function facturas()
+    {
+        return $this->hasMany(Factura::class);
+    }
+
     /**
      * Scope para proyectos en proceso.
      */
@@ -204,6 +209,10 @@ class Proyecto extends Model
             'extensionsTotal' => $extensionsTotal,
             'costeSoftware' => $costeSoftware,
             'grandTotal' => $grandTotal,
+            'totalFacturado' => $this->facturas->sum('total'),
+            'totalFacturadoNeto' => $this->facturas->sum(function ($factura) {
+                return $factura->raw_data['subtotal'] ?? $factura->total;
+            }),
         ];
     }
 }

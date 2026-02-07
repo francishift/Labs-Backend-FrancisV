@@ -55,11 +55,14 @@ class HoldedDriveSyncFacturas extends Command
         $bar = $this->output->createProgressBar($total);
         $bar->start();
 
+        $uploaded = 0;
+        $skipped = 0;
+        $errors = 0;
+
         foreach ($facturas as $factura) {
             // Idempotency: skip if already has Drive ID
             if ($factura->google_drive_file_id) {
-                // Optional: Verify if file actually exists if you want to be paranoid, 
-                // but for now we trust the DB to avoid API spam.
+                $skipped++;
                 $bar->advance();
                 continue;
             }
@@ -67,19 +70,29 @@ class HoldedDriveSyncFacturas extends Command
             // Upload
             try {
                 $facturaController->ensureInDrive($factura, $factura->holded_id);
+                $uploaded++;
             } catch (\Exception $e) {
+                $errors++;
                 $this->error("Failed to upload invoice {$factura->holded_id}: " . $e->getMessage());
             }
 
             $bar->advance();
-            // detailed info for verbose output
-            // $this->line("Processed {$factura->holded_id}");
         }
 
         $bar->finish();
         $this->newLine();
         $this->info("Drive sync completed.");
         
+        $stats = [
+            'synced' => $count, // Invoices from Holded
+            'processed' => $total, // Invoices in DB for the period
+            'uploaded' => $uploaded,
+            'skipped' => $skipped, // Already in Drive
+            'errors' => $errors,
+        ];
+
+        $this->line("JSON_RESULT=" . json_encode($stats));
+
         return 0;
     }
 }

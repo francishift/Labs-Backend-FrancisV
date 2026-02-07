@@ -18,6 +18,7 @@ class Factura extends Model
         'status',
         'raw_data',
         'google_drive_file_id',
+        'proyecto_id',
     ];
 
     protected $casts = [
@@ -25,4 +26,8 @@ class Factura extends Model
         'date' => 'integer',
         'total' => 'decimal:2',
     ];
+    public function proyecto()
+    {
+        return $this->belongsTo(Proyecto::class);
+    }
 }

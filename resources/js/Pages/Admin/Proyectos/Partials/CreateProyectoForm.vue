@@ -26,22 +26,31 @@ const createForm = useForm({
     client_id: '',
     presupuesto_id: '',
     extensiones: [],
+    facturas: [],
 });
 
 const budgets = ref([]);
+const availableFacturas = ref([]);
 const loadingBudgets = ref(false);
 
 watch(() => createForm.client_id, async (newClientId) => {
     createForm.presupuesto_id = '';
+    createForm.facturas = [];
     budgets.value = [];
+    availableFacturas.value = [];
     
     if (newClientId) {
         loadingBudgets.value = true;
         try {
-            const response = await axios.get(route('admin.clientes.presupuestos', newClientId));
-            budgets.value = response.data;
+            const [budgetsResponse, facturasResponse] = await Promise.all([
+                axios.get(route('admin.clientes.presupuestos', newClientId)),
+                axios.get(route('admin.clientes.facturas', newClientId))
+            ]);
+            budgets.value = budgetsResponse.data;
+            // Filter invoices: show those with NO project OR those associated with THIS project (none in create mode)
+            availableFacturas.value = facturasResponse.data.filter(f => !f.proyecto_id);
         } catch (error) {
-            console.error('Error fetching budgets:', error);
+            console.error('Error fetching client data:', error);
         } finally {
             loadingBudgets.value = false;
         }
@@ -98,6 +107,20 @@ const submitCreate = () => {
                 />
                 <p v-if="!createForm.client_id" class="text-xs text-gray-500 mt-1">Selecciona un cliente primero.</p>
                 <InputError class="mt-2" :message="createForm.errors.presupuesto_id" />
+            </div>
+
+            <div class="md:col-span-2">
+                <InputLabel for="create_facturas" value="Facturas Asociadas" />
+                <MultiSelect
+                    id="create_facturas"
+                    v-model="createForm.facturas"
+                    :options="availableFacturas"
+                    label-key="name"
+                    placeholder="Seleccionar facturas..."
+                    :disabled="!createForm.client_id || loadingBudgets"
+                    class="mt-1"
+                />
+                <InputError class="mt-2" :message="createForm.errors.facturas" />
             </div>
 
             <div class="md:col-span-2">

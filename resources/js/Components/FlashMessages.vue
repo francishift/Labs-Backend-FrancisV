@@ -51,7 +51,7 @@ watch(
               <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
                 {{ msg.type === 'success' ? 'Éxito' : (msg.type === 'error' ? 'Error' : 'Info') }}
               </p>
-              <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ msg.message }}</p>
+              <div class="mt-1 text-sm text-gray-500 dark:text-gray-400" v-html="msg.message"></div>
             </div>
             <div class="ml-4 flex flex-shrink-0">
               <button 

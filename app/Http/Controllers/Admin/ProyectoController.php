@@ -19,7 +19,7 @@ class ProyectoController extends Controller
     {
         $proyectos = Proyecto::query()
             ->select(['id', 'proyecto', 'descripcion', 'fecha_inicio', 'fecha_fin', 'presupuesto', 'estado', 'client_id', 'presupuesto_id'])
-            ->with(['client:id,name', 'extensiones:id,nombre'])
+            ->with(['client:id,name', 'extensiones:id,nombre', 'facturas:id,proyecto_id'])
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('proyecto', 'like', "%{$search}%")
@@ -67,6 +67,8 @@ class ProyectoController extends Controller
             'presupuesto_id' => 'nullable|exists:presupuestos,id',
             'extensiones' => 'nullable|array',
             'extensiones.*' => 'exists:extensiones,id',
+            'facturas' => 'nullable|array',
+            'facturas.*' => 'exists:facturas,id',
         ]);
 
         $data['precio_hora'] = Configuracion::get('precio_hora', 0);
@@ -78,6 +80,10 @@ class ProyectoController extends Controller
 
             if ($request->has('extensiones')) {
                 $proyecto->syncExtensionSnapshots($request->extensiones);
+            }
+
+            if ($request->has('facturas')) {
+                \App\Models\Factura::whereIn('id', $request->facturas)->update(['proyecto_id' => $proyecto->id]);
             }
 
             return back()
@@ -96,6 +102,7 @@ class ProyectoController extends Controller
         $proyecto->load([
             'client:id,name,email,phone,mobile',
             'presupuestoAsociado',
+            'facturas',
             'servicios' => fn($q) => $q->orderBy('fecha', 'desc')->orderBy('created_at', 'desc'),
             'extensiones:id,nombre,precio,tipo_licencia',
         ]);
@@ -200,6 +207,8 @@ class ProyectoController extends Controller
             'presupuesto_id' => 'nullable|exists:presupuestos,id',
             'extensiones' => 'nullable|array',
             'extensiones.*' => 'exists:extensiones,id',
+            'facturas' => 'nullable|array',
+            'facturas.*' => 'exists:facturas,id',
         ]);
 
         try {
@@ -207,6 +216,13 @@ class ProyectoController extends Controller
 
             if ($request->has('extensiones')) {
                 $proyecto->syncExtensionSnapshots($request->extensiones);
+            }
+
+            // Disassociate all current invoices
+            $proyecto->facturas()->update(['proyecto_id' => null]);
+            // Associate selected invoices
+            if ($request->has('facturas')) {
+                \App\Models\Factura::whereIn('id', $request->facturas)->update(['proyecto_id' => $proyecto->id]);
             }
 
             return back()

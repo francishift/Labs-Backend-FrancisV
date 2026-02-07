@@ -127,7 +127,7 @@ class HoldedService
                 return $data['data'] ?? null;
             }
 
-            Log::error("Holded API PDF error: " . $response->status() . " " . $response->body());
+            return null;
             return null;
         } catch (\Exception $e) {
             Log::error("Holded API PDF exception: " . $e->getMessage());
