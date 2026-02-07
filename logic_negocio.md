@@ -104,6 +104,22 @@ Para garantizar que el panel web y los PDFs exportados muestren datos idénticos
 102:     - El sistema fusiona automáticamente los presupuestos del ID principal (`contact`) y los IDs secundarios al listarlos.
 103:     - **Autogestión**: Los administradores pueden añadir manualmente estos IDs extra desde el formulario de edición de cliente, garantizando que todos los documentos aparezcan unificados sin intervención técnica.
 
+### 5.5 Gestión de Facturas
+- **Sincronización Inteligente**:
+    - **Visual** ("Lazy"): Al visitar el listado, se sincronizan los metadatos de Holded.
+    - **Documental**: Al solicitar el PDF, el sistema verifica si existe en Drive. Si no, lo descarga de Holded, lo sube a Drive y guarda la referencia.
+    - **Masiva**: Comando `holded:drive-sync-facturas {año}` para procesar lotes completos en segundo plano.
+- **Almacenamiento y Naming**:
+    - Estructura: `{Año}/VENTAS/{Trimestre}tri/`.
+    - Ficheros: `{Nº Factura} - {Cliente}.pdf` (sanitizado).
+- **Lógica de Estados**:
+    - **Pagada**: `paymentsPending` = 0.
+    - **Pendiente**: `paymentsTotal` = 0.
+    - **Parcial**: Resto de casos.
+- **UX**:
+    - Filtrado nativo por estado.
+    - Botón de sincronización manual en cabecera con feedback de progreso.
+
 ---
 
 ## 6. Frontend y UX Estándar

@@ -35,6 +35,13 @@ const filters = reactive({
   status: props.filters.status,
 })
 
+const statusOptions = [
+    { value: '', label: 'Todos' },
+    { value: 'pagada', label: 'Pagada' },
+    { value: 'pendiente', label: 'Pendiente' },
+    { value: 'parcial', label: 'Parcial' },
+]
+
 // Columnas para la tabla de facturas de Holded
 const columns = [
   { key: 'num', label: 'Nº Factura' },
