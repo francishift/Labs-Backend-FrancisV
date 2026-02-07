@@ -43,6 +43,16 @@ class FacturaController extends Controller
                       ->orWhere('raw_data->docNumber', 'like', "%{$search}%");
                 });
             })
+            ->when(request('status'), function ($query, $status) {
+                if ($status === 'pagada') {
+                    $query->where('raw_data->paymentsPending', 0);
+                } elseif ($status === 'pendiente') {
+                    $query->where('raw_data->paymentsTotal', 0);
+                } elseif ($status === 'parcial') {
+                    $query->where('raw_data->paymentsPending', '>', 0)
+                          ->where('raw_data->paymentsTotal', '>', 0);
+                }
+            })
             ->orderBy('date', 'desc')
             ->paginate(10)
             ->withQueryString();

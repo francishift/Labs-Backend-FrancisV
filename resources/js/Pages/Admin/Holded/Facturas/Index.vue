@@ -7,6 +7,7 @@ import DataTable from '@/Components/DataTable.vue'
 import PageHeader from '@/Components/PageHeader.vue'
 import SecondaryButton from '@/Components/SecondaryButton.vue'
 import TextInput from '@/Components/TextInput.vue'
+import SelectInput from '@/Components/SelectInput.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import debounce from 'lodash/debounce'
 import Pagination from '@/Components/Pagination.vue'
@@ -24,12 +25,14 @@ const props = defineProps({
 const { formatDate: baseFormatDate } = useFormatters()
 const { search } = useDebouncedSearch(props.filters.search, 'admin.holded.facturas.index', {
     start: props.filters.start,
-    end: props.filters.end
+    end: props.filters.end,
+    status: props.filters.status,
 })
 
 const filters = reactive({
   start: props.filters.start,
   end: props.filters.end,
+  status: props.filters.status,
 })
 
 // Columnas para la tabla de facturas de Holded
@@ -75,6 +78,7 @@ const updateResults = debounce(() => {
   router.get(route('admin.holded.facturas.index'), {
     start: filters.start,
     end: filters.end,
+    status: filters.status,
     search: search.value
   }, {
     preserveState: true,
@@ -163,6 +167,19 @@ const syncDrive = () => {
                 class="mt-1 block w-full"
                 v-model="filters.end"
               />
+            </div>
+            <div class="w-full sm:w-40">
+              <InputLabel for="status" value="Estado" />
+              <SelectInput
+                id="status"
+                class="mt-1 block w-full"
+                v-model="filters.status"
+              >
+                <option value="">Todos</option>
+                <option value="pagada">Pagada</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="parcial">Parcial</option>
+              </SelectInput>
             </div>
             <div class="w-full sm:w-64">
               <InputLabel for="search-facturas" value="Buscar" />
