@@ -130,10 +130,27 @@ class ClientController extends Controller
             'mantenimientos.extensiones:id,nombre,precio,tipo_licencia'
         ]);
 
-        // Fetch budgets from Holded associated with this client
+        // Fetch budgets and invoices from Holded associated with this client
+        $contactIds = array_filter([
+            $client->contact,
+            ...($client->secondary_contacts ?? [])
+        ]);
+
         $presupuestos = [];
-        if ($client->contact) {
-            $presupuestos = Presupuesto::where('contact', $client->contact)
+        $facturas = [];
+
+        if (!empty($contactIds)) {
+            $presupuestos = Presupuesto::where(function($q) use ($contactIds) {
+                    $q->whereIn('contact_id', $contactIds)
+                      ->orWhereIn('contact', $contactIds);
+                })
+                ->orderBy('date', 'desc')
+                ->get();
+
+            $facturas = \App\Models\Factura::where(function($q) use ($contactIds) {
+                    $q->whereIn('contact_id', $contactIds)
+                      ->orWhereIn('contact', $contactIds);
+                })
                 ->orderBy('date', 'desc')
                 ->get();
         }
@@ -175,6 +192,7 @@ class ClientController extends Controller
         return Inertia::render('Admin/Clients/Show', [
             'client' => $client,
             'presupuestos' => $presupuestos,
+            'facturas' => $facturas,
             'pagination' => $paginationData,
             'stats' => [
                 'active_projects_budget' => $client->active_projects_budget,

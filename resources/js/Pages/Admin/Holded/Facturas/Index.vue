@@ -1,20 +1,17 @@
 <script setup>
-import { ref, watch, reactive } from 'vue'
+import { ref, reactive } from 'vue'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import { Head, Link, router } from '@inertiajs/vue3'
+import { Head, router } from '@inertiajs/vue3'
 import Card from '@/Components/Card.vue'
-import DataTable from '@/Components/DataTable.vue'
 import PageHeader from '@/Components/PageHeader.vue'
 import SecondaryButton from '@/Components/SecondaryButton.vue'
-import TextInput from '@/Components/TextInput.vue'
-import SelectInput from '@/Components/SelectInput.vue'
-import InputLabel from '@/Components/InputLabel.vue'
-import debounce from 'lodash/debounce'
 import Pagination from '@/Components/Pagination.vue'
-import SearchInput from '@/Components/SearchInput.vue'
-import { EyeIcon, CloudArrowUpIcon } from '@heroicons/vue/24/outline'
-import { useDebouncedSearch } from '@/Composables/useDebouncedSearch'
-import { useFormatters } from '@/Composables/useFormatters'
+import { CloudArrowUpIcon } from '@heroicons/vue/24/outline'
+import debounce from 'lodash/debounce'
+
+// Partials
+import FacturasFilters from './Partials/FacturasFilters.vue'
+import FacturasTable from './Partials/FacturasTable.vue'
 
 const props = defineProps({
   facturas: Object,
@@ -22,70 +19,24 @@ const props = defineProps({
   errorMessage: String,
 })
 
-const { formatDate: baseFormatDate } = useFormatters()
-const { search } = useDebouncedSearch(props.filters.search, 'admin.holded.facturas.index', {
-    start: props.filters.start,
-    end: props.filters.end,
-    status: props.filters.status,
-})
-
+const search = ref(props.filters.search || '')
 const filters = reactive({
   start: props.filters.start,
   end: props.filters.end,
   status: props.filters.status,
 })
 
-const statusOptions = [
-    { value: '', label: 'Todos' },
-    { value: 'pagada', label: 'Pagada' },
-    { value: 'pendiente', label: 'Pendiente' },
-    { value: 'parcial', label: 'Parcial' },
-]
-
-// Columnas para la tabla de facturas de Holded
-const columns = [
-  { key: 'num', label: 'Nº Factura' },
-  { key: 'contact_name', label: 'Contacto' },
-  { key: 'date', label: 'Fecha' },
-  { key: 'total', label: 'Total', align: 'right' },
-  { key: 'status', label: 'Estado' },
-  { key: 'actions', label: 'Acciones', align: 'right' },
-]
-
-const formatCurrency = (value) => {
-  return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(value)
-}
-
-const formatDate = (timestamp) => {
-  if (!timestamp) return '-'
-  return new Date(timestamp * 1000).toLocaleDateString('es-ES')
-}
-
-// Holded Invoice Statuses
-const getStatusLabel = (item) => {
-  const pending = parseFloat(item.raw_data?.paymentsPending || 0)
-  const paid = parseFloat(item.raw_data?.paymentsTotal || 0)
-
-  if (pending === 0) return 'Pagada'
-  if (paid === 0) return 'Pendiente'
-  return 'Parcial'
-}
-
-const getStatusClass = (item) => {
-  const label = getStatusLabel(item)
-  switch (label) {
-      case 'Pagada': return 'bg-green-100 text-green-800'
-      case 'Pendiente': return 'bg-gray-100 text-gray-800'
-      case 'Parcial': return 'bg-yellow-100 text-yellow-800'
-      default: return 'bg-gray-100 text-gray-800'
-  }
-}
+import { watch } from 'vue'
+watch(() => props.filters, (newFilters) => {
+    filters.start = newFilters.start
+    filters.end = newFilters.end
+    filters.status = newFilters.status
+    search.value = newFilters.search || ''
+}, { deep: true })
 
 const updateResults = debounce(() => {
   router.get(route('admin.holded.facturas.index'), {
-    start: filters.start,
-    end: filters.end,
-    status: filters.status,
+    ...filters,
     search: search.value
   }, {
     preserveState: true,
@@ -94,9 +45,9 @@ const updateResults = debounce(() => {
   })
 }, 300)
 
-watch(filters, () => {
-  updateResults()
-})
+const onFilterChange = () => {
+    updateResults()
+}
 
 const currentUrl = typeof window !== 'undefined' ? window.location.href : ''
 
@@ -107,8 +58,8 @@ const viewPdf = (item) => {
         backUrl: currentUrl
     });
 }
-const isSyncing = ref(false)
 
+const isSyncing = ref(false)
 const syncDrive = () => {
     isSyncing.value = true
     router.post(route('admin.holded.facturas.sync-drive'), {}, {
@@ -121,12 +72,12 @@ const syncDrive = () => {
 </script>
 
 <template>
-  <Head title="Facturas de Holded" />
+  <Head title="Facturas ventas" />
 
   <AuthenticatedLayout>
     <template #header>
-      <div class="flex justify-between items-center">
-        <PageHeader title="Facturas de Holded" />
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 sm:gap-0">
+        <PageHeader title="Facturas ventas" />
         <SecondaryButton 
           @click="syncDrive" 
           :disabled="isSyncing"
@@ -151,103 +102,23 @@ const syncDrive = () => {
           <p>{{ errorMessage }}</p>
         </div>
 
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
-          <div>
-            <p class="text-sm text-gray-500 dark:text-zinc-400">Listado filtrado por fecha</p>
-          </div>
-          
-          <div class="flex flex-col sm:flex-row gap-4">
-            <div class="w-full sm:w-40">
-              <InputLabel for="start_date" value="Fecha inicio" />
-              <TextInput
-                id="start_date"
-                type="date"
-                class="mt-1 block w-full"
-                v-model="filters.start"
-              />
-            </div>
-            <div class="w-full sm:w-40">
-              <InputLabel for="end_date" value="Fecha fin" />
-              <TextInput
-                id="end_date"
-                type="date"
-                class="mt-1 block w-full"
-                v-model="filters.end"
-              />
-            </div>
-            <div class="w-full sm:w-40">
-              <InputLabel for="status" value="Estado" />
-              <SelectInput
-                id="status"
-                class="mt-1 block w-full"
-                v-model="filters.status"
-                :options="statusOptions"
-              />
-            </div>
-            <div class="w-full sm:w-64">
-              <InputLabel for="search-facturas" value="Buscar" />
-              <SearchInput 
-                id="search-facturas"
-                name="search"
-                placeholder="Buscar por contacto o nº..."
-                class="mt-1 block w-full"
-                v-model="search"
-              />
-            </div>
-          </div>
-        </div>
+        <!-- Filters Partial -->
+        <FacturasFilters 
+            v-model="filters" 
+            v-model:search="search"
+            @change="onFilterChange"
+        />
         
-        <DataTable
-          :columns="columns"
-          :items="facturas.data"
-          @row-click="viewPdf"
-          class="cursor-pointer"
-        >
-          <template #cell-num="{ item }">
-            <span class="font-medium text-zinc-900 dark:text-white">
-                {{ item.raw_data?.docNumber || item.holded_id }}
-            </span>
-          </template>
-
-          <template #cell-contact_name="{ item }">
-            {{ item.contact_name }}
-          </template>
-          
-          <template #cell-date="{ item }">
-            {{ formatDate(item.date) }}
-          </template>
-
-          <template #cell-total="{ item }">
-            {{ formatCurrency(item.total) }}
-          </template>
-
-          <template #cell-status="{ item }">
-            <span 
-              class="px-2 py-1 text-xs font-semibold rounded-full"
-              :class="getStatusClass(item)"
-            >
-              {{ getStatusLabel(item) }}
-            </span>
-          </template>
-
-          <template #cell-actions="{ item }">
-            <div class="flex justify-end">
-              <Link :href="route('admin.visor-pdf', { 
-                  url: route('admin.holded.facturas.pdf', item.holded_id),
-                  title: `Factura: ${item.raw_data?.docNumber || item.holded_id}`,
-                  backUrl: currentUrl
-              })" @click.stop>
-                <SecondaryButton title="Ver PDF">
-                  <EyeIcon class="h-4 w-4" />
-                </SecondaryButton>
-              </Link>
-            </div>
-          </template>
-        </DataTable>
+        <!-- Table Partial -->
+        <FacturasTable 
+            :items="facturas.data"
+            :current-url="currentUrl"
+            @row-click="viewPdf"
+        />
 
         <Pagination :links="facturas.links" class="mt-6" />
 
-        <div v-if="facturas.data.length === 0 && !errorMessage" class="text-center py-8 text-gray-500">
+        <div v-if="facturas.data.length === 0 && !errorMessage" class="text-center py-8 text-gray-500 italic">
           No se encontraron facturas en el rango seleccionado.
         </div>
       </Card>

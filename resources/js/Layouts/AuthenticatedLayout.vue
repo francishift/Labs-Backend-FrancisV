@@ -102,7 +102,11 @@ onUnmounted(() => {
             <main class="flex-1 pb-8 px-3 sm:px-5">
                 <div class="mx-auto max-w-7xl">
                     <FlashMessages />
-                    <slot />
+                    <Transition name="page-fade" mode="out-in">
+                        <div :key="$page.url">
+                            <slot />
+                        </div>
+                    </Transition>
                 </div>
             </main>
 

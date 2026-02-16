@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue'
 import { Link } from '@inertiajs/vue3'
 import ApplicationLogo from '@/Components/ApplicationLogo.vue'
 import { 
@@ -17,46 +18,62 @@ import {
     DocumentTextIcon
 } from '@heroicons/vue/24/outline'
 
-defineProps({
+const props = defineProps({
     auth: Object,
     showMobile: Boolean
 })
 
 const emit = defineEmits(['close'])
 
-const navigation = [
-    { name: 'Panel de control', href: route('dashboard'), icon: Squares2X2Icon, active: route().current('dashboard') || route().current('admin.dashboard') },
-]
+const hasRole = (role) => {
+    if (!props.auth?.roles) return false
+    if (role === 'coordinador') {
+        return props.auth.roles.some(r => ['admin', 'coordinador'].includes(r))
+    }
+    return props.auth.roles.includes(role)
+}
 
-const adminNavigation = [
-    { name: 'Proyectos', href: route('admin.proyectos.index'), icon: BriefcaseIcon, active: route().current('admin.proyectos.*'), role: 'coordinador' },
-    { name: 'Mantenimientos', href: route('admin.mantenimientos.index'), icon: ClockIcon, active: route().current('admin.mantenimientos.*'), role: 'admin' },
-    { name: 'Extensiones', href: route('admin.extensiones.index'), icon: PuzzlePieceIcon, active: route().current('admin.extensiones.*'), role: 'admin' },
-    { name: 'Software / Hosting', href: route('admin.softwares.index'), icon: ComputerDesktopIcon, active: route().current('admin.softwares.*'), role: 'admin' },
-    { name: 'Tareas de Mantenimiento', href: route('admin.mantenimiento-servicios.index'), icon: ClipboardDocumentCheckIcon, active: route().current('admin.mantenimiento-servicios.*'), role: 'admin' },
-    { name: 'Servicios', href: route('admin.servicios.index'), icon: WrenchScrewdriverIcon, active: route().current('admin.servicios.*'), role: 'coordinador' },
-    { name: 'Resumen horas', href: route('admin.resumen-horas.index'), icon: ClockIcon, active: route().current('admin.resumen-horas.*'), role: 'admin' },
-]
-
-const securityNavigation = [
-    { name: 'Usuarios', href: route('admin.usuarios.index'), icon: UsersIcon, active: route().current('admin.usuarios.*'), role: 'admin' },
-    { name: 'Logs VPN', href: route('admin.logs.index'), icon: ShieldCheckIcon, active: route().current('admin.logs.*'), role: 'admin' },
-]
-
-const holdedNavigation = [
-    { name: 'Clientes', href: route('admin.clientes.index'), icon: UserGroupIcon, active: route().current('admin.clientes.*'), role: 'admin' },
-    { name: 'Presupuestos', href: route('admin.holded.presupuestos.index'), icon: DocumentTextIcon, active: route().current('admin.holded.presupuestos.*'), role: 'admin' },
-    { name: 'Facturas', href: route('admin.holded.facturas.index'), icon: DocumentTextIcon, active: route().current('admin.holded.facturas.*'), role: 'admin' },
-]
+const navigationGroups = computed(() => [
+    {
+        title: null,
+        items: [
+            { name: 'Panel de control', href: route('dashboard'), icon: Squares2X2Icon, active: route().current('dashboard') || route().current('admin.dashboard') }
+        ]
+    },
+    {
+        title: 'Gestión Administrativa',
+        show: props.auth?.roles?.some(r => ['admin', 'coordinador'].includes(r)),
+        items: [
+            { name: 'Proyectos', href: route('admin.proyectos.index'), icon: BriefcaseIcon, active: route().current('admin.proyectos.*'), role: 'coordinador' },
+            { name: 'Mantenimientos', href: route('admin.mantenimientos.index'), icon: ClockIcon, active: route().current('admin.mantenimientos.*'), role: 'admin' },
+            { name: 'Extensiones', href: route('admin.extensiones.index'), icon: PuzzlePieceIcon, active: route().current('admin.extensiones.*'), role: 'admin' },
+            { name: 'Software / Hosting', href: route('admin.softwares.index'), icon: ComputerDesktopIcon, active: route().current('admin.softwares.*'), role: 'admin' },
+            { name: 'Tareas de Mantenimiento', href: route('admin.mantenimiento-servicios.index'), icon: ClipboardDocumentCheckIcon, active: route().current('admin.mantenimiento-servicios.*'), role: 'admin' },
+            { name: 'Servicios', href: route('admin.servicios.index'), icon: WrenchScrewdriverIcon, active: route().current('admin.servicios.*'), role: 'coordinador' },
+            { name: 'Resumen horas', href: route('admin.resumen-horas.index'), icon: ClockIcon, active: route().current('admin.resumen-horas.*'), role: 'admin' }
+        ]
+    },
+    {
+        title: 'Accesos y Seguridad',
+        show: props.auth?.roles?.includes('admin'),
+        items: [
+            { name: 'Usuarios', href: route('admin.usuarios.index'), icon: UsersIcon, active: route().current('admin.usuarios.*'), role: 'admin' },
+            { name: 'Logs VPN', href: route('admin.logs.index'), icon: ShieldCheckIcon, active: route().current('admin.logs.*'), role: 'admin' }
+        ]
+    },
+    {
+        title: 'Contabilidad',
+        show: props.auth?.roles?.includes('admin'),
+        items: [
+            { name: 'Clientes', href: route('admin.clientes.index'), icon: UserGroupIcon, active: route().current('admin.clientes.*'), role: 'admin' },
+            { name: 'Presupuestos', href: route('admin.holded.presupuestos.index'), icon: DocumentTextIcon, active: route().current('admin.holded.presupuestos.*'), role: 'admin' },
+            { name: 'Facturas ventas', href: route('admin.holded.facturas.index'), icon: DocumentTextIcon, active: route().current('admin.holded.facturas.*'), role: 'admin' },
+            { name: 'Facturas compras', href: route('admin.purchase-facturas.index'), icon: DocumentTextIcon, active: route().current('admin.purchase-facturas.*'), role: 'admin' }
+        ]
+    }
+])
 
 const settingsLink = { name: 'Ajustes', href: route('admin.settings.index'), icon: Cog6ToothIcon, active: route().current('admin.settings.*'), role: 'admin' }
-
-const hasRole = (auth, role) => {
-    if (role === 'coordinador') {
-        return auth?.roles?.some(r => ['admin', 'coordinador'].includes(r))
-    }
-    return auth?.roles?.includes(role)
-}
 </script>
 
 <template>
@@ -72,96 +89,30 @@ const hasRole = (auth, role) => {
 
             <!-- Navigation -->
             <nav class="flex-1 px-4 py-6 space-y-8 overflow-y-auto custom-scrollbar">
-                <!-- Main Links -->
-                <div class="space-y-1">
-                    <Link
-                        v-for="item in navigation"
-                        :key="item.name"
-                        :href="item.href"
-                        :class="[
-                            item.active
-                                ? 'bg-zinc-800 text-white border border-zinc-700/50'
-                                : 'text-zinc-400 hover:text-white hover:bg-zinc-800',
-                            'group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200'
-                        ]"
-                        prefetch
-                    >
-                        <component :is="item.icon" class="me-3 flex-shrink-0 h-5 w-5" aria-hidden="true" />
-                        {{ item.name }}
-                    </Link>
-                </div>
-
-                <!-- Admin Section -->
-                <div v-if="auth?.roles?.some(r => ['admin', 'coordinador'].includes(r))">
-                    <h3 class="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
-                        Gestión Administrativa
-                    </h3>
-                    <div class="space-y-1">
-                        <template v-for="item in adminNavigation" :key="item.name">
-                            <Link
-                                v-if="hasRole(auth, item.role)"
-                                :href="item.href"
-                                :class="[
-                                    item.active
-                                        ? 'bg-zinc-800 text-white border border-zinc-700/50'
-                                        : 'text-zinc-400 hover:text-white hover:bg-zinc-800',
-                                    'group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200'
-                                ]"
-                                prefetch
-                            >
-                                <component :is="item.icon" class="me-3 flex-shrink-0 h-5 w-5" aria-hidden="true" />
-                                {{ item.name }}
-                            </Link>
-                        </template>
-                    </div>
-                </div>
-
-                <!-- Security Section -->
-                 <div v-if="auth?.roles?.includes('admin')">
-                    <h3 class="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
-                        Accesos y Seguridad
-                    </h3>
-                    <div class="space-y-1">
-                        <template v-for="item in securityNavigation" :key="item.name">
-                            <Link
-                                :href="item.href"
-                                :class="[
-                                    item.active
-                                        ? 'bg-zinc-800 text-white border border-zinc-700/50'
-                                        : 'text-zinc-400 hover:text-white hover:bg-zinc-800',
-                                    'group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200'
-                                ]"
-                                prefetch
-                            >
-                                <component :is="item.icon" class="me-3 flex-shrink-0 h-5 w-5" aria-hidden="true" />
-                                {{ item.name }}
-                            </Link>
-                        </template>
-                    </div>
-                </div>
-
-                <!-- Holded Section -->
-                <div v-if="auth?.roles?.includes('admin')">
-                    <h3 class="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
-                        Integración Holded
-                    </h3>
-                    <div class="space-y-1">
-                        <template v-for="item in holdedNavigation" :key="item.name">
-                            <Link
-                                :href="item.href"
-                                :class="[
-                                    item.active
-                                        ? 'bg-zinc-800 text-white border border-zinc-700/50'
-                                        : 'text-zinc-400 hover:text-white hover:bg-zinc-800',
-                                    'group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200'
-                                ]"
-                                prefetch
-                            >
-                                <component :is="item.icon" class="me-3 flex-shrink-0 h-5 w-5" aria-hidden="true" />
-                                {{ item.name }}
-                            </Link>
-                        </template>
-                    </div>
+                <div v-for="(group, idx) in navigationGroups" :key="idx">
+                    <template v-if="group.show !== false">
+                        <h3 v-if="group.title" class="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
+                            {{ group.title }}
+                        </h3>
+                        <div class="space-y-1">
+                            <template v-for="item in group.items" :key="item.name">
+                                <Link
+                                    v-if="!item.role || hasRole(item.role)"
+                                    :href="item.href"
+                                    :class="[
+                                        item.active
+                                            ? 'bg-zinc-800 text-white border border-zinc-700/50'
+                                            : 'text-zinc-400 hover:text-white hover:bg-zinc-800',
+                                        'group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200'
+                                    ]"
+                                    prefetch
+                                >
+                                    <component :is="item.icon" class="me-3 flex-shrink-0 h-5 w-5" aria-hidden="true" />
+                                    {{ item.name }}
+                                </Link>
+                            </template>
+                        </div>
+                    </template>
                 </div>
             </nav>
 
@@ -175,7 +126,7 @@ const hasRole = (auth, role) => {
                 </div>
 
                 <Link
-                    v-if="hasRole(auth, settingsLink.role)"
+                    v-if="hasRole(settingsLink.role)"
                     :href="settingsLink.href"
                     title="Ajustes de sistema"
                     :class="[
@@ -193,9 +144,10 @@ const hasRole = (auth, role) => {
     </aside>
 
     <!-- Mobile Sidebar (Drawer) -->
-    <div v-show="showMobile" class="relative z-[60] lg:hidden" role="dialog" aria-modal="true">
+    <div v-if="showMobile" class="relative z-[60] lg:hidden" role="dialog" aria-modal="true">
         <!-- Backdrop -->
         <transition
+            appear
             enter-active-class="transition-opacity ease-linear duration-300"
             enter-from-class="opacity-0"
             enter-to-class="opacity-100"
@@ -209,6 +161,7 @@ const hasRole = (auth, role) => {
         <div class="fixed inset-0 flex">
             <!-- Sidebar panel -->
             <transition
+                appear
                 enter-active-class="transition ease-in-out duration-300 transform"
                 enter-from-class="-translate-x-full"
                 enter-to-class="translate-x-0"
@@ -216,7 +169,7 @@ const hasRole = (auth, role) => {
                 leave-from-class="translate-x-0"
                 leave-to-class="-translate-x-full"
             >
-                <div class="relative flex-1 flex flex-col max-w-xs w-full bg-zinc-900 pt-5 pb-4">
+                <div class="relative flex-1 flex flex-col max-w-xs w-full bg-zinc-900 pt-5 pb-4 will-change-transform translate-z-0">
                     <div class="absolute top-0 right-0 -mr-12 pt-2">
                         <button 
                             @click="$emit('close')"
@@ -235,92 +188,30 @@ const hasRole = (auth, role) => {
 
                     <div class="mt-8 flex-1 h-0 overflow-y-auto px-4 custom-scrollbar">
                         <nav class="space-y-8">
-                            <div class="space-y-1">
-                                <Link
-                                    v-for="item in navigation"
-                                    :key="item.name"
-                                    :href="item.href"
-                                    @click="$emit('close')"
-                                    :class="[
-                                        item.active
-                                            ? 'bg-zinc-800 text-white border border-zinc-700/50'
-                                            : 'text-zinc-400 hover:text-white hover:bg-zinc-800',
-                                        'group flex items-center px-3 py-3 text-base font-medium rounded-xl'
-                                    ]"
-                                >
-                                    <component :is="item.icon" class="mr-4 flex-shrink-0 h-6 w-6 text-zinc-300" aria-hidden="true" />
-                                    {{ item.name }}
-                                </Link>
-                            </div>
-
-                            <div v-if="auth?.roles?.some(r => ['admin', 'coordinador'].includes(r))">
-                                <h3 class="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
-                                    Administración
-                                </h3>
-                                <div class="space-y-1">
-                                    <template v-for="item in adminNavigation" :key="item.name">
-                                        <Link
-                                            v-if="hasRole(auth, item.role)"
-                                            :href="item.href"
-                                            @click="$emit('close')"
-                                            :class="[
-                                                item.active
-                                                    ? 'bg-zinc-800 text-white border border-zinc-700/50'
-                                                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800',
-                                                'group flex items-center px-3 py-3 text-base font-medium rounded-xl'
-                                            ]"
-                                        >
-                                            <component :is="item.icon" class="mr-4 flex-shrink-0 h-6 w-6 text-zinc-400" aria-hidden="true" />
-                                            {{ item.name }}
-                                        </Link>
-                                    </template>
-                                </div>
-                            </div>
-
-                            <div v-if="auth?.roles?.includes('admin')">
-                                <h3 class="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
-                                    Accesos y Seguridad
-                                </h3>
-                                <div class="space-y-1">
-                                    <template v-for="item in securityNavigation" :key="item.name">
-                                        <Link
-                                            :href="item.href"
-                                            @click="$emit('close')"
-                                            :class="[
-                                                item.active
-                                                    ? 'bg-zinc-800 text-white border border-zinc-700/50'
-                                                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800',
-                                                'group flex items-center px-3 py-3 text-base font-medium rounded-xl'
-                                            ]"
-                                        >
-                                            <component :is="item.icon" class="mr-4 flex-shrink-0 h-6 w-6 text-zinc-300" aria-hidden="true" />
-                                            {{ item.name }}
-                                        </Link>
-                                    </template>
-                                </div>
-                            </div>
-
-                            <div v-if="auth?.roles?.includes('admin')">
-                                <h3 class="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
-                                    Holded
-                                </h3>
-                                <div class="space-y-1">
-                                    <template v-for="item in holdedNavigation" :key="item.name">
-                                        <Link
-                                            :href="item.href"
-                                            @click="$emit('close')"
-                                            :class="[
-                                                item.active
-                                                    ? 'bg-zinc-800 text-white border border-zinc-700/50'
-                                                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800',
-                                                'group flex items-center px-3 py-3 text-base font-medium rounded-xl'
-                                            ]"
-                                        >
-                                            <component :is="item.icon" class="mr-4 flex-shrink-0 h-6 w-6 text-zinc-400" aria-hidden="true" />
-                                            {{ item.name }}
-                                        </Link>
-                                    </template>
-                                </div>
+                            <div v-for="(group, idx) in navigationGroups" :key="idx">
+                                <template v-if="group.show !== false">
+                                    <h3 v-if="group.title" class="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
+                                        {{ group.title }}
+                                    </h3>
+                                    <div class="space-y-1">
+                                        <template v-for="item in group.items" :key="item.name">
+                                            <Link
+                                                v-if="!item.role || hasRole(item.role)"
+                                                :href="item.href"
+                                                @click="$emit('close')"
+                                                :class="[
+                                                    item.active
+                                                        ? 'bg-zinc-800 text-white border border-zinc-700/50'
+                                                        : 'text-zinc-400 hover:text-white hover:bg-zinc-800',
+                                                    'group flex items-center px-3 py-3 text-base font-medium rounded-xl transition-all duration-200'
+                                                ]"
+                                            >
+                                                <component :is="item.icon" class="mr-4 flex-shrink-0 h-6 w-6 text-zinc-300" aria-hidden="true" />
+                                                {{ item.name }}
+                                            </Link>
+                                        </template>
+                                    </div>
+                                </template>
                             </div>
                         </nav>
                     </div>
@@ -335,7 +226,7 @@ const hasRole = (auth, role) => {
                         </div>
 
                         <Link
-                            v-if="hasRole(auth, settingsLink.role)"
+                            v-if="hasRole(settingsLink.role)"
                             :href="settingsLink.href"
                             @click="$emit('close')"
                             title="Ajustes de sistema"
@@ -372,5 +263,12 @@ const hasRole = (auth, role) => {
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #52525b;
+}
+
+.will-change-transform {
+    will-change: transform;
+}
+.translate-z-0 {
+    transform: translateZ(0);
 }
 </style>

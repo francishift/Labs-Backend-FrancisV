@@ -1,4 +1,15 @@
-<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-  <rect width="512" height="512" rx="64" fill="#3b82f6"/>
-  <text x="50%" y="55%" font-family="Arial, sans-serif" font-size="240" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">FV</text>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="98" height="120" version="1.1" viewBox="0 0 98 120">
+  <!-- Generator: Adobe Illustrator 28.7.1, SVG Export Plug-In . SVG Version: 1.2.0 Build 142)  -->
+  <g>
+    <g id="Capa_1">
+      <g id="Capa_1-2" data-name="Capa_1">
+        <g id="Capa_2">
+          <g id="Primer_plano">
+            <path d="M37.2,108.5L13,37.9h20.3V11h30.1v26.9h19.2l-23.9,70.6h-21.6,0ZM33.4,38l14.8,48h.3l14.8-48.1-10.3,4.4v-22.1h-9.3v22.1s-10.3-4.3-10.3-4.3Z" fill-rule="evenodd"/>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
 </svg>

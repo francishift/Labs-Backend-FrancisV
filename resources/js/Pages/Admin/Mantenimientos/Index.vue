@@ -151,7 +151,9 @@ const navigateToShow = (item) => {
                 <span class="capitalize">{{ item.tipo_pago }}</span>
               </template>
               <template #cell-importe="{ item }">
-                {{ formatCurrency(item.importe) }}
+                <span class="whitespace-nowrap text-nowrap">
+                  {{ formatCurrency(item.importe) }}
+                </span>
               </template>
               <template #cell-estado="{ item }">
                 <Badge :variant="getStatusVariant(item.estado)">

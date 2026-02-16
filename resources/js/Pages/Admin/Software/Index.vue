@@ -150,7 +150,9 @@ const destroySoftware = () => {
                 <Badge variant="zinc">{{ item.tipo_licencia }}</Badge>
               </template>
               <template #cell-precio="{ item }">
+                <span class="whitespace-nowrap">
                 {{ formatCurrency(item.precio) }}
+              </span>
               </template>
               <template #cell-estado="{ item }">
                 <Badge :variant="item.estado === 'Activa' ? 'success' : 'danger'">{{ item.estado }}</Badge>

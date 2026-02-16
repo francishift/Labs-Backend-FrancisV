@@ -1,32 +1,31 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import { Head, Link, useForm, router } from '@inertiajs/vue3'
-import { watch, ref } from 'vue'
+import { Head, useForm, router } from '@inertiajs/vue3'
+import { ref, watch } from 'vue'
 import debounce from 'lodash/debounce'
-import { useFormatters } from '@/Composables/useFormatters'
 import PageHeader from '@/Components/PageHeader.vue'
 import Card from '@/Components/Card.vue'
-import DataTable from '@/Components/DataTable.vue'
 import Pagination from '@/Components/Pagination.vue'
 import SearchInput from '@/Components/SearchInput.vue'
 import PrimaryButton from '@/Components/PrimaryButton.vue'
 import SecondaryButton from '@/Components/SecondaryButton.vue'
-import DangerButton from '@/Components/DangerButton.vue'
 import DialogModal from '@/Components/DialogModal.vue'
 import ConfirmModal from '@/Components/ConfirmModal.vue'
-import { useCRUDModals } from '@/Composables/useCRUDModals'
-import { PlusIcon, PencilIcon, TrashIcon, EyeIcon } from '@heroicons/vue/24/outline'
+import { PlusIcon } from '@heroicons/vue/24/outline'
 
+// Partials
+import MantenimientoServiciosTable from './Partials/MantenimientoServiciosTable.vue'
 import CreateMantenimientoServicioGlobalForm from './Partials/CreateMantenimientoServicioGlobalForm.vue'
 import EditMantenimientoServicioForm from '../Mantenimientos/Partials/EditMantenimientoServicioForm.vue'
+
+// Composables
+import { useCRUDModals } from '@/Composables/useCRUDModals'
 
 const props = defineProps({
     servicios: Object,
     filters: Object,
     mantenimientos: Array,
 })
-
-const { formatDate, formatCurrency } = useFormatters()
 
 const {
     showCreateModal,
@@ -51,12 +50,6 @@ watch(search, debounce((value) => {
     })
 }, 300))
 
-const formatMinutesToHours = (minutes) => {
-    const h = Math.floor(minutes / 60)
-    const m = minutes % 60
-    return m > 0 ? `${h}h ${m}min` : `${h}h`
-}
-
 const destroyService = () => {
     if (!itemToDelete.value) return
     useForm({}).delete(route('admin.mantenimiento-servicios.destroy', itemToDelete.value.id), {
@@ -64,14 +57,6 @@ const destroyService = () => {
         preserveScroll: true
     })
 }
-
-const columns = [
-    { key: 'fecha', label: 'Fecha' },
-    { key: 'descripcion', label: 'Descripción' },
-    { key: 'aplicacion', label: 'Cliente' },
-    { key: 'duracion_minutos', label: 'Duración', align: 'center' },
-    { key: 'actions', label: '', align: 'right' },
-]
 </script>
 
 <template>
@@ -90,57 +75,27 @@ const columns = [
         </template>
 
         <div class="py-6 space-y-6">
-                <Card class="p-4 sm:p-6">
-                    <div class="mb-6">
-                        <SearchInput 
-                          id="search-mantenimiento-servicios"
-                          name="search-mantenimiento-servicios"
-                          v-model="search" 
-                          placeholder="Busca por descripción o aplicación..." 
-                        />
-                   </div>
+            <Card class="p-4 sm:p-6">
+                <div class="mb-6">
+                    <SearchInput 
+                        id="search-mantenimiento-servicios"
+                        name="search-mantenimiento-servicios"
+                        v-model="search" 
+                        placeholder="Busca por descripción o aplicación..." 
+                    />
+                </div>
 
-                    <DataTable :columns="columns" :items="servicios.data" @row-click="openEditModal">
-                        <template #cell-aplicacion="{ item }">
-                            <div class="flex flex-col">
-                                <span class="text-gray-900 dark:text-zinc-100">{{ item.mantenimiento?.aplicacion || 'N/A' }}</span>
-                                <span class="text-xs text-gray-500 dark:text-zinc-400">{{ item.mantenimiento?.cliente?.name || 'S/N' }}</span>
-                            </div>
-                        </template>
+                <MantenimientoServiciosTable 
+                    :items="servicios.data"
+                    @row-click="openEditModal"
+                    @edit="openEditModal"
+                    @delete="confirmDelete"
+                />
 
-                        <template #cell-descripcion="{ item }">
-                            <span class="text-sm truncate max-w-xs block" :title="item.descripcion">{{ item.descripcion }}</span>
-                        </template>
-
-                        <template #cell-duracion_minutos="{ item }">
-                            <span class="text-sm font-medium">{{ formatMinutesToHours(item.duracion_minutos) }}</span>
-                        </template>
-
-                        <template #cell-fecha="{ item }">
-                            <span class="text-sm text-gray-500">{{ formatDate(item.fecha) }}</span>
-                        </template>
-
-                        <template #cell-actions="{ item }">
-                            <div class="flex justify-end gap-2">
-                                <Link :href="route('admin.mantenimientos.show', item.mantenimiento_id)" @click.stop>
-                                    <SecondaryButton title="Ver Mantenimiento">
-                                        <EyeIcon class="h-4 w-4" />
-                                    </SecondaryButton>
-                                </Link>
-                                <SecondaryButton @click.stop="openEditModal(item)" title="Editar">
-                                    <PencilIcon class="h-4 w-4" />
-                                </SecondaryButton>
-                                <DangerButton @click.stop="confirmDelete(item)" title="Eliminar">
-                                    <TrashIcon class="h-4 w-4" />
-                                </DangerButton>
-                            </div>
-                        </template>
-                    </DataTable>
-
-                    <div class="mt-6">
-                        <Pagination :links="servicios.links" />
-                    </div>
-                </Card>
+                <div class="mt-6">
+                    <Pagination :links="servicios.links" />
+                </div>
+            </Card>
         </div>
 
         <!-- Modals -->

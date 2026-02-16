@@ -76,6 +76,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/admin/visor-pdf', [PdfViewerController::class, 'show'])->name('admin.visor-pdf');
         Route::get('/admin/resumen-horas', [ResumenHoraController::class, 'index'])->name('admin.resumen-horas.index');
 
+        Route::get('/admin/purchase-facturas', [\App\Http\Controllers\Admin\PurchaseFacturaController::class, 'index'])->name('admin.purchase-facturas.index');
+        Route::post('/admin/purchase-facturas', [\App\Http\Controllers\Admin\PurchaseFacturaController::class, 'store'])->name('admin.purchase-facturas.store');
+        Route::get('/admin/purchase-facturas/{purchaseFactura}/pdf', [\App\Http\Controllers\Admin\PurchaseFacturaController::class, 'showPdf'])->name('admin.purchase-facturas.pdf');
+        Route::put('/admin/purchase-facturas/{purchaseFactura}', [\App\Http\Controllers\Admin\PurchaseFacturaController::class, 'update'])->name('admin.purchase-facturas.update');
+        Route::delete('/admin/purchase-facturas/{purchaseFactura}', [\App\Http\Controllers\Admin\PurchaseFacturaController::class, 'destroy'])->name('admin.purchase-facturas.destroy');
+        Route::post('/admin/purchase-facturas/{purchaseFactura}/overwrite', [\App\Http\Controllers\Admin\PurchaseFacturaController::class, 'confirmOverwrite'])->name('admin.purchase-facturas.overwrite');
+        
+
         // Holded
         Route::prefix('admin/holded')->name('admin.holded.')->group(function () {
             Route::get('/presupuestos', [\App\Http\Controllers\Admin\Holded\PresupuestoController::class, 'index'])->name('presupuestos.index');

@@ -132,7 +132,9 @@ const destroyExtension = () => {
                 </span>
               </template>
               <template #cell-precio="{ item }">
+                <span class="whitespace-nowrap text-nowrap">
                 {{ formatCurrency(item.precio) }}
+                </span>
               </template>
               <template #cell-actions="{ item }">
                 <div class="flex justify-end gap-2">

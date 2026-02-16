@@ -21,8 +21,15 @@ class FacturaController extends Controller
 
     public function index(Request $request)
     {
-        $start = $request->input('start', '2025-01-01');
-        $end = $request->input('end', date('Y-m-d'));
+        $month = now()->month;
+        $year = now()->year;
+        $quarter = ceil($month / 3);
+        
+        $defaultStart = sprintf('%04d-%02d-01', $year, ($quarter - 1) * 3 + 1);
+        $defaultEnd = (new \DateTime(sprintf('%04d-%02d-01', $year, $quarter * 3)))->format('Y-m-t');
+
+        $start = $request->input('start', $defaultStart);
+        $end = $request->input('end', $defaultEnd);
 
         // Convert dates to timestamps for Holded API
         $startTimestamp = strtotime($start . ' 00:00:00');
@@ -64,6 +71,7 @@ class FacturaController extends Controller
                 'start' => $start,
                 'end' => $end,
                 'search' => $request->input('search'),
+                'status' => $request->input('status'),
             ],
         ]);
     }
