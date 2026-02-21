@@ -22,7 +22,7 @@ class GeminiInvoiceService
     }
 
     /**
-     * Extraer datos de un archivo PDF usando Google Gemini 1.5 Flash.
+     * Extraer datos de un archivo PDF usando Google Gemini 2.5 Flash.
      */
     public function extractInvoiceData(string $fileBinary): array
     {
@@ -30,8 +30,8 @@ class GeminiInvoiceService
             $base64Pdf = base64_encode($fileBinary);
 
             $prompt = <<<EOT
-You are an expert accountant system. Extract the requested invoice information from the provided PDF invoice.
-Return the information strictly as a valid JSON object matching exactly this structure and nothing else.
+Eres un sistema contable experto. Extrae la información solicitada de la factura PDF proporcionada.
+Devuelve la información estrictamente como un objeto JSON válido que coincida exactamente con esta estructura y nada más.
 
 {
   "total_amount": 0.0,
@@ -39,19 +39,19 @@ Return the information strictly as a valid JSON object matching exactly this str
   "tax_amount": 0.0,
   "currency": "EUR",
   "invoice_date": "YYYY-MM-DD",
-  "supplier_name": "Name of the company or person issuing the invoice",
-  "invoice_id": "Invoice number or ID",
-  "receiver_name": "Name of the company or person receiving the invoice (who it is billed to)"
+  "supplier_name": "Nombre de la empresa o persona que emite la factura",
+  "invoice_id": "Número o ID de factura",
+  "receiver_name": "Nombre de la empresa o persona que recibe la factura (a quién se le factura)"
 }
 
-Rules:
-- CRITICAL: Never hallucinate or invent data. If a value is missing, use 0.0 for numbers and null for strings.
-- The invoice might be in Spanish. Look for "Total Factura", "Base Imponible", "Importe Neto" (net_amount), "IVA" or "Cuota" (tax_amount).
-- Amounts must be numeric floats.
-- `currency` should be the 3-letter ISO code if known, otherwise EUR.
-- `invoice_date`: ALWAYS look specifically for "Fecha factura", "Fecha de factura", or "Invoice date". Ignore other dates like "Fecha de vencimiento", "Periodo de facturación", or document generation dates. Format strictly as YYYY-MM-DD (e.g., "10 de febrero de 2026" becomes "2026-02-10"). If the true invoice date is not found, use null.
-- `supplier_name`: The entity CHARGING the money. Look for the FULL LEGAL CORPORATE NAME (e.g., "Orange Espagne, S.A.U.", not just "Orange"). In large companies, this is often written in small print at the bottom or side of the page, usually next to the text "CIF", "NIF", "S.A.", "S.L.", or "Registro Mercantil". Strongly prefer the formal legal name over the commercial/logo name. Do NOT confuse the supplier with the receiver.
-- `receiver_name`: The entity BEING BILLED. This is usually "Francisco Valenzuela", "Labs Francis", etc., and appears in the "Datos del cliente" or "Facturar a" section. This entity PAYS the invoice.
+Reglas:
+- CRÍTICO: Nunca alucines ni inventes datos. Si falta un valor, usa 0.0 para números y null para cadenas de texto.
+- La factura suele estar en español. Busca "Total Factura", "Base Imponible", "Importe Neto" (net_amount), "IVA" o "Cuota" (tax_amount).
+- Los montos deben ser números de punto flotante.
+- `currency` debe ser el código ISO de 3 letras si se conoce, de lo contrario EUR.
+- `invoice_date`: Busca SIEMPRE específicamente "Fecha factura", "Fecha de factura" o "Invoice date". Ignora otras fechas como "Fecha de vencimiento", "Periodo de facturación" o fechas de generación del documento. Formatea estrictamente como AAAA-MM-DD (ej., "10 de febrero de 2026" se convierte en "2026-02-10"). Si no se encuentra la fecha real de la factura, usa null.
+- `supplier_name`: La entidad que COBRA el dinero (emisor). Busca el NOMBRE CORPORATIVO LEGAL COMPLETO (ej., "Orange Espagne, S.A.U.", no solo "Orange"). En grandes empresas, esto suele estar escrito en letra pequeña al pie o al lado de la página, generalmente junto al texto "CIF", "NIF", "S.A.", "S.L." o "Registro Mercantil". Prefiere siempre el nombre legal formal sobre el nombre comercial o logo. NO confundas al proveedor con el receptor.
+- `receiver_name`: La entidad a la que se le FACTURA (receptor). Normalmente es "Francisco Valenzuela", "Labs Francis", etc., y aparece en la sección "Datos del cliente" o "Facturar a". Esta entidad es la que PAGA la factura.
 EOT;
 
             $response = $this->client->generativeModel('gemini-2.5-flash')
