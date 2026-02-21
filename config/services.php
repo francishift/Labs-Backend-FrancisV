@@ -35,6 +35,11 @@ return [
         ],
     ],
 
+
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+    ],
+
     'holded' => [
         'key' => env('HOLDED_API_KEY'),
     ],

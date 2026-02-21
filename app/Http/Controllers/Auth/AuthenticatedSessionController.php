@@ -33,6 +33,15 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        \App\Models\VpnAccessLog::create([
+            'user_id' => \Illuminate\Support\Facades\Auth::id(),
+            'target_device_id' => null,
+            'action' => 'USER_LOGIN',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'details' => 'Usuario ha iniciado sesión en el panel.',
+        ]);
+
         return redirect()->intended(route('dashboard', absolute: false));
     }
 
@@ -41,11 +50,24 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $userId = Auth::guard('web')->id();
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
 
         $request->session()->regenerateToken();
+
+        if ($userId) {
+            \App\Models\VpnAccessLog::create([
+                'user_id' => $userId,
+                'target_device_id' => null,
+                'action' => 'USER_LOGOUT',
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'details' => 'Usuario ha cerrado sesión en el panel.',
+            ]);
+        }
 
         return redirect('/');
     }

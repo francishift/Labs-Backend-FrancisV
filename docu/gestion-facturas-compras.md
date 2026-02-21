@@ -9,11 +9,12 @@ Este sistema automatiza la recepción, procesamiento y almacenamiento de factura
     *   Interfaz de arrastrar y soltar (Drag & Drop).
     *   Cola de subida uno a uno para evitar timeouts del servidor y monitorizar el progreso individual.
 
-2.  **Procesamiento (Document AI)**:
-    *   El sistema utiliza **Google Document AI** para extraer automáticamente:
+2.  **Procesamiento (Google Gemini 1.5 Flash)**:
+    *   El sistema utiliza la inteligencia artificial de **Gemini** mediante el SDK oficial para extraer automáticamente:
         *   Número de factura, Proveedor y Fecha.
         *   Base imponible (`net_amount`), Cuota de IVA (`tax_amount`) y Total.
-    *   **Heurística de Validación**: El sistema cuenta con lógica para evitar confundir al usuario/empresa como el proveedor de la factura.
+    *   **Prompting Estricto**: Se han configurado instrucciones precisas para que prefiera extraer el nombre legal/societario (ej. S.A.U., S.L.) sobre el nombre comercial y distinga el emisor del receptor.
+    *   **Heurística de Validación**: El sistema cuenta con lógica post-procesado para evitar confundir a "Labs Francis" u otros nombres del cliente como el proveedor de la factura.
 
 3.  **Gestión de Duplicados**:
     *   Detección inteligente por número de factura.
@@ -33,7 +34,7 @@ Este sistema automatiza la recepción, procesamiento y almacenamiento de factura
 ### Backend
 *   **Controlador**: `App\Http\Controllers\Admin\PurchaseFacturaController`
 *   **Modelo**: `App\Models\PurchaseFactura`
-*   **Servicio de IA**: `App\Services\DocumentAiService`
+*   **Servicio de IA**: `App\Services\GeminiInvoiceService`
 
 ### Frontend
 *   **Página Principal**: `resources/js/Pages/Admin/PurchaseFacturas/Index.vue`

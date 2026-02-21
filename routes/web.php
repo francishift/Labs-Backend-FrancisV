@@ -42,6 +42,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Rutas VPN
         Route::post('/admin/usuarios/{user}/network-access', [\App\Http\Controllers\Admin\VpnController::class, 'store'])->name('admin.vpn.store');
         Route::get('/admin/sys/logs', [\App\Http\Controllers\Admin\VpnLogsController::class, 'index'])->name('admin.logs.index');
+        Route::delete('/admin/sys/logs/clear', [\App\Http\Controllers\Admin\VpnLogsController::class, 'clear'])->name('admin.logs.clear');
         Route::post('/admin/sys/d/{id}', [\App\Http\Controllers\Admin\VpnController::class, 'destroy'])->name('admin.vpn.destroy');
 
         Route::get('/admin/clientes', [ClientController::class, 'index'])->name('admin.clientes.index');

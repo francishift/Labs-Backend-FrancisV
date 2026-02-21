@@ -4,56 +4,42 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PurchaseFactura;
+use App\Models\Client;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
 use Google\Service\Drive\DriveFile;
+use App\Services\HoldedApiService;
+use App\Services\GeminiInvoiceService;
+use Illuminate\Support\Facades\Log;
+use App\Services\GoogleDriveService; // Added this line
 
 class PurchaseFacturaController extends Controller
 {
-    protected $documentAi;
-
-    public function __construct(\App\Services\DocumentAiService $documentAi)
-    {
-        $this->documentAi = $documentAi;
-    }
-
     public function index(Request $request)
     {
         $query = PurchaseFactura::query();
 
-        // 1. Search (Number or Provider)
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('number', 'like', "%{$search}%")
-                  ->orWhere('provider_name', 'like', "%{$search}%");
+        // Search
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where(function($q) use ($search) {
+                $q->where('supplier_name', 'like', "%{$search}%")
+                  ->orWhere('invoice_id', 'like', "%{$search}%");
             });
         }
 
-        // 2. Filter by Provider
-        if ($request->filled('provider')) {
-            $query->where('provider_name', $request->provider);
+        // Provider Filter
+        if ($request->has('provider') && !empty($request->get('provider'))) {
+            $query->where('provider_name', $request->get('provider'));
         }
 
-        // 3. Filter by Date Range (Default to current quarter)
-        $dateFrom = $request->input('date_from');
-        $dateTo = $request->input('date_to');
-
-        if (!$request->filled('date_from') && !$request->filled('date_to') && !$request->filled('search')) {
-            $month = now()->month;
-            $year = now()->year;
-            $quarter = ceil($month / 3);
-            
-            $dateFrom = sprintf('%04d-%02d-01', $year, ($quarter - 1) * 3 + 1);
-            $dateTo = (new \DateTime(sprintf('%04d-%02d-01', $year, $quarter * 3)))->format('Y-m-t');
+        // Date Filters
+        if ($request->has('date_from') && !empty($request->get('date_from'))) {
+            $query->whereDate('date', '>=', $request->get('date_from'));
         }
-
-        if ($dateFrom) {
-            $query->whereDate('date', '>=', $dateFrom);
-        }
-        if ($dateTo) {
-            $query->whereDate('date', '<=', $dateTo);
+        if ($request->has('date_to') && !empty($request->get('date_to'))) {
+            $query->whereDate('date', '<=', $request->get('date_to'));
         }
 
         // 4. Sorting
@@ -81,8 +67,8 @@ class PurchaseFacturaController extends Controller
             'facturas' => $facturas,
             'providers' => $providers,
             'filters' => array_merge($request->only(['search', 'provider', 'sort', 'direction']), [
-                'date_from' => $dateFrom,
-                'date_to' => $dateTo,
+                'date_from' => $request->input('date_from'),
+                'date_to' => $request->input('date_to'),
             ]),
         ]);
     }
@@ -113,7 +99,8 @@ class PurchaseFacturaController extends Controller
             $factura->update(['google_drive_file_id' => $driveFileId]);
             
             // 3. Data Extraction
-            $extractedData = $this->documentAi->extractInvoiceData($pdfBinary);
+            $geminiService = new \App\Services\GeminiInvoiceService();
+            $extractedData = $geminiService->extractInvoiceData($pdfBinary);
 
             if (empty($extractedData)) {
                 $factura->update(['status' => 'error_ia', 'provider_name' => 'Error en extracción IA']);
