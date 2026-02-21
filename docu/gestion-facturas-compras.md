@@ -38,9 +38,11 @@ Este sistema automatiza la recepción, procesamiento y almacenamiento de factura
 
 ### Frontend
 *   **Página Principal**: `resources/js/Pages/Admin/PurchaseFacturas/Index.vue`
-*   **Filtros**: Búsqueda por texto, filtro de proveedor (con sugerencias) y rango de fechas.
-*   **Ordenación**: Todas las columnas son ordenables dinámicamente.
-*   **Tematización**: Soporte completo para modo claro y oscuro.
+*   **Interfaz Dedicada en Vue**: Vista interactiva diseñada específicamente para gestionar el alto volumen de facturas, facilitando la auditoría visual y corrección rápida.
+*   **Filtros Avanzados**: Búsqueda por texto, filtro reactivo de proveedor (con auto-sugerencias desde la base de datos) y selección por rango de fechas para conciliación.
+*   **Ordenación Reactiva**: Todas las columnas son ordenables dinámicamente sin recargar la página.
+*   **Revisión y Edición "In-Place"**: Formularios emergentes (modals) para corregir los datos extraídos por Gemini de forma ágil.
+*   **Tematización**: Soporte completo para modo claro y oscuro, respetando la estética global del panel.
 
 ## Mantenimiento y Auditoría
 

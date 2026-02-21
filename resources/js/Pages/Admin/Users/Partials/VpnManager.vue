@@ -134,7 +134,7 @@ const downloadConfig = () => {
                         <QrcodeVue 
                             v-if="vpnConfig" 
                             :value="vpnConfig" 
-                            :size="300" 
+                            :size="200" 
                             level="H" 
                             background="#ffffff"
                             foreground="#000000"

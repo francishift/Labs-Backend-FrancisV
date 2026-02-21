@@ -74,7 +74,34 @@ class UserController extends Controller
 
         $user->syncRoles([$data['role']]);
 
-        $user->notify(new \App\Notifications\WelcomeUserSpanish($plainPassword));
+        try {
+            $vpnService = app(\App\Services\VpnService::class);
+            $keys = $vpnService->generateKeyPair();
+            $internalIp = $vpnService->getNextAvailableIp();
+
+            $device = $user->vpnDevices()->create([
+                'name' => 'Dispositivo Principal',
+                'public_key' => $keys['public'],
+                'internal_ip' => $internalIp,
+            ]);
+
+            $vpnService->addPeer($device);
+            $vpnConfig = $vpnService->generateConfig($device, $keys['private']);
+
+            \App\Models\VpnAccessLog::create([
+                'user_id' => request()->user()->id,
+                'target_device_id' => $device->id,
+                'action' => 'CREATE_SUCCESS',
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'details' => "Dispositivo '{$device->name}' autogenerado en alta de usuario.",
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Fallo al crear VPN en alta de usuario: " . $e->getMessage());
+            $vpnConfig = null;
+        }
+
+        $user->notify(new \App\Notifications\WelcomeUserSpanish($plainPassword, $vpnConfig));
 
         return back()
             ->with('success', 'Usuario creado y email enviado.');

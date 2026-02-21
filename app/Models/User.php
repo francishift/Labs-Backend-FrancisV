@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasRoles;
@@ -48,25 +47,6 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'must_change_password' => 'boolean',
         ];
-    }
-
-    /**
-     * Send the email verification notification.
-     *
-     * @return void
-     */
-    public function sendEmailVerificationNotification()
-    {
-        // Hemos implementado un correo de bienvenida personalizado en el UserController
-        // que incluye la contraseña y el enlace de verificación.
-        // Por tanto, suprimimos el envío automático del correo por defecto de Laravel
-        // si acabamos de crear al usuario.
-        if ($this->wasRecentlyCreated) {
-            return;
-        }
-
-        // Para el botón "Reenviar verificación", usamos nuestra notificación en español.
-        $this->notify(new \App\Notifications\VerifyEmailSpanish);
     }
 
     /**
