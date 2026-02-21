@@ -25,17 +25,17 @@ class PresupuestoController extends Controller
         $start = $request->input('start', '2025-01-01');
         $end = $request->input('end', date('Y-m-d'));
 
-        // Convert dates to timestamps for Holded API
+        // Convertir fechas a timestamps para la API de Holded
         $startTimestamp = strtotime($start . ' 00:00:00');
         $endTimestamp = strtotime($end . ' 23:59:59');
 
-        // Sync with Holded (updates local database)
+        // Sincronizar con Holded (actualiza la base de datos local)
         $syncResult = $this->holdedService->syncDocuments('estimate', [
             'starttmp' => $startTimestamp,
             'endtmp' => $endTimestamp,
         ]);
 
-        // Fetch from local database with search and pagination
+        // Obtener de la base de datos local con búsqueda y paginación
         $presupuestos = Presupuesto::whereBetween('date', [$startTimestamp, $endTimestamp])
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
@@ -63,7 +63,7 @@ class PresupuestoController extends Controller
     {
         $presupuesto = Presupuesto::where('holded_id', $id)->first();
         
-        // 1. Try to serve from Google Drive if we have the ID locally
+        // 1. Intentar servir desde Google Drive si tenemos el ID localmente
         if ($presupuesto && $presupuesto->google_drive_file_id) {
             try {
                 $adapter = Storage::disk('google_presupuestos')->getAdapter();
@@ -79,12 +79,12 @@ class PresupuestoController extends Controller
                     ->header('Content-Type', 'application/pdf')
                     ->header('Content-Disposition', $disposition . '; filename="' . $safeDocNumber . '.pdf"');
             } catch (\Exception $e) {
-                // Check if it's a 404 or other error, log it, and continue to Holded fallback
-                // \Log::warning("Failed to retrieve from Drive ID {$presupuesto->google_drive_file_id}: " . $e->getMessage());
+                // Comprobar si es un error 404 u otro, registrarlo y continuar con el fallback de Holded
+                // \Log::warning("Fallo al recuperar del ID de Drive {$presupuesto->google_drive_file_id}: " . $e->getMessage());
             }
         }
 
-        // 2. Fetch from Holded
+        // 2. Obtener de Holded
         $pdfBase64 = $this->holdedService->getDocumentPdf('estimate', $id);
 
         if (!$pdfBase64) {
@@ -93,7 +93,7 @@ class PresupuestoController extends Controller
 
         $pdfBinary = base64_decode($pdfBase64);
 
-        // 3. Save to Google Drive if we have the budget record
+        // 3. Guardar en Google Drive si tenemos el registro del presupuesto
         if ($presupuesto) {
             $year = date('Y', $presupuesto->date);
             $rootId = env('GOOGLE_DRIVE_FOLDER_ID_PRESUPUESTOS');
@@ -102,7 +102,7 @@ class PresupuestoController extends Controller
                 $adapter = Storage::disk('google_presupuestos')->getAdapter();
                 $service = $adapter->getService();
 
-                // Check for year folder
+                // Comprobar si existe la carpeta del año
                 $optParams = [
                     'q' => "'$rootId' in parents and mimeType = 'application/vnd.google-apps.folder' and name = '$year' and trashed = false",
                     'fields' => 'files(id, name)'
@@ -114,7 +114,7 @@ class PresupuestoController extends Controller
                 if (count($files) > 0) {
                     $folderId = $files[0]->getId();
                 } else {
-                    // Create folder
+                    // Crear carpeta
                     $folderMeta = new DriveFile([
                         'name' => $year,
                         'mimeType' => 'application/vnd.google-apps.folder',
@@ -129,7 +129,7 @@ class PresupuestoController extends Controller
                     $safeDocNumber = str_replace(['/', '\\'], '-', $docNumber);
                     $fileName = "{$safeDocNumber}.pdf";
 
-                    // Check if file already exists in the folder
+                    // Comprobar si el archivo ya existe en la carpeta
                     $fileOptParams = [
                         'q' => "'$folderId' in parents and name = '$fileName' and trashed = false",
                         'fields' => 'files(id)'
@@ -139,7 +139,7 @@ class PresupuestoController extends Controller
                     if (count($existingFiles) > 0) {
                         $fileId = $existingFiles[0]->getId();
                     } else {
-                        // Upload file
+                        // Subir archivo
                         $fileMeta = new DriveFile([
                             'name' => $fileName,
                             'parents' => [$folderId]
@@ -158,8 +158,8 @@ class PresupuestoController extends Controller
                     $presupuesto->update(['google_drive_file_id' => $fileId]);
                 }
             } catch (\Exception $e) {
-                // Log error but verify functionality
-                // \Log::error('Google Drive Upload Failed: ' . $e->getMessage());
+                // Registrar error pero verificar funcionalidad
+                // \Log::error('Fallo al subir a Google Drive: ' . $e->getMessage());
             }
         }
 

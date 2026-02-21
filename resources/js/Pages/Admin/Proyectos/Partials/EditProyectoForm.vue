@@ -43,7 +43,7 @@ const fetchClientData = async (clientId) => {
         ]);
         budgets.value = budgetsResponse.data;
         
-        // Filter invoices: show those with NO project OR those associated with THIS project
+        // Filtrar facturas: mostrar aquellas SIN proyecto O las asociadas a ESTE proyecto
         const currentProjectId = props.proyecto?.id;
         availableFacturas.value = facturasResponse.data.filter(f => !f.proyecto_id || f.proyecto_id === currentProjectId);
     } catch (error) {
@@ -67,7 +67,7 @@ watch(() => props.proyecto, (proyecto) => {
         editForm.facturas = proyecto.facturas ? proyecto.facturas.map(f => f.id) : [];
         editForm.clearErrors();
         
-        // Load budgets if client is present
+        // Cargar presupuestos si el cliente está presente
         if (proyecto.client_id) {
              fetchClientData(proyecto.client_id);
         }
@@ -75,9 +75,9 @@ watch(() => props.proyecto, (proyecto) => {
 }, { immediate: true });
 
 watch(() => editForm.client_id, (newClientId, oldClientId) => {
-    // Only fetch if client changed AND it's not the initial population logic (handled in first watch)
+    // Solo obtener si el cliente cambió Y no es la lógica de carga inicial (manejada en el primer watch)
     if (newClientId && newClientId !== props.proyecto?.client_id) {
-         editForm.presupuesto_id = ''; // Reset if client changes manually
+         editForm.presupuesto_id = ''; // Resetear si el cliente cambia manualmente
          editForm.facturas = [];
          fetchClientData(newClientId);
     }

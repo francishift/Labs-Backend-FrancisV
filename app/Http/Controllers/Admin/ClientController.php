@@ -130,7 +130,7 @@ class ClientController extends Controller
             'mantenimientos.extensiones:id,nombre,precio,tipo_licencia'
         ]);
 
-        // Fetch budgets and invoices from Holded associated with this client
+        // Obtener presupuestos y facturas de Holded asociados a este cliente
         $contactIds = array_filter([
             $client->contact,
             ...($client->secondary_contacts ?? [])
@@ -155,7 +155,7 @@ class ClientController extends Controller
                 ->get();
         }
 
-        // Pagination between clients
+        // Paginación entre clientes
         $allClientIds = Client::query()
             ->orderBy('name')
             ->pluck('id')
@@ -251,7 +251,7 @@ class ClientController extends Controller
                 ...($client->secondary_contacts ?? [])
             ]);
 
-            // Search by contact ID in 'contact_id' column OR 'contact' column (handling legacy syncs)
+            // Buscar por ID de contacto en la columna 'contact_id' O en la columna 'contact' (manejo de sincronizaciones heredadas)
             $presupuestos = Presupuesto::where(function($q) use ($contactIds) {
                     $q->whereIn('contact_id', $contactIds)
                       ->orWhereIn('contact', $contactIds);

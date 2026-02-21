@@ -218,9 +218,9 @@ class ProyectoController extends Controller
                 $proyecto->syncExtensionSnapshots($request->extensiones);
             }
 
-            // Disassociate all current invoices
+            // Desvincular todas las facturas actuales
             $proyecto->facturas()->update(['proyecto_id' => null]);
-            // Associate selected invoices
+            // Vincular las facturas seleccionadas
             if ($request->has('facturas')) {
                 \App\Models\Factura::whereIn('id', $request->facturas)->update(['proyecto_id' => $proyecto->id]);
             }

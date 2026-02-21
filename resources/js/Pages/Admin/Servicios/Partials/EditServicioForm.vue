@@ -31,7 +31,7 @@ const form = useForm({
   precio: '',
 })
 
-// Initialize form and update when servicio prop changes
+// Inicializar el formulario y actualizar cuando cambia la prop servicio
 watch(() => props.servicio, (servicio) => {
   if (servicio) {
     form.servicio = servicio.servicio
@@ -41,7 +41,7 @@ watch(() => props.servicio, (servicio) => {
     form.duracion_minutos = servicio.duracion_minutos
     form.precio = servicio.precio || ''
     
-    // Initialize hours/minutes for the UI
+    // Inicializar horas/minutos para la interfaz
     hours.value = Math.floor(servicio.duracion_minutos / 60)
     minutes.value = servicio.duracion_minutos % 60
     
@@ -49,7 +49,7 @@ watch(() => props.servicio, (servicio) => {
   }
 }, { immediate: true })
 
-// Update duracion_minutos when hours or minutes change
+// Actualizar duracion_minutos cuando cambian las horas o los minutos
 watch([hours, minutes], ([h, m]) => {
   form.duracion_minutos = (parseInt(h) || 0) * 60 + (parseInt(m) || 0)
 })

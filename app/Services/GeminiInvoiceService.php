@@ -22,7 +22,7 @@ class GeminiInvoiceService
     }
 
     /**
-     * Extract data from a PDF file using Google Gemini 1.5 Flash.
+     * Extraer datos de un archivo PDF usando Google Gemini 1.5 Flash.
      */
     public function extractInvoiceData(string $fileBinary): array
     {
@@ -68,7 +68,7 @@ EOT;
 
             $jsonText = $response->text();
             
-            // Clean markdown if the model hallucinated it despite instructions
+            // Limpiar markdown si el modelo lo alucinó a pesar de las instrucciones
             $jsonText = str_replace(['```json', '```'], '', $jsonText);
             $jsonText = trim($jsonText);
 
@@ -79,7 +79,7 @@ EOT;
                 return [];
             }
 
-            // Defaults map based on previous Document AI logic structure
+            // Mapa de valores por defecto basado en la estructura previa de Document AI
             $data = [
                 'total_amount' => $extracted['total_amount'] ?? 0,
                 'net_amount' => $extracted['net_amount'] ?? 0,
@@ -88,10 +88,10 @@ EOT;
                 'invoice_date' => $extracted['invoice_date'] ?? null,
                 'supplier_name' => $extracted['supplier_name'] ?? 'Proveedor desconocido',
                 'invoice_id' => $extracted['invoice_id'] ?? null,
-                'raw' => $extracted, // Store all extracted fields as raw
+                'raw' => $extracted, // Almacenar todos los campos extraídos en bruto
             ];
 
-            // --- Supplier Validation Heuristic (Same as old Document AI) ---
+            // --- Heurística de Validación de Proveedores (Igual que en el antiguo Document AI) ---
             $myNames = [
                 'FRANCISCO VALENZUELA NOGALES',
                 'FRANCISCO VALENZUELA',

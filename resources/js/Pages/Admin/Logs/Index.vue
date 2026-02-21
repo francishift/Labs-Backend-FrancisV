@@ -10,7 +10,7 @@ const isRefreshing = ref(false);
 const refreshLogs = () => {
     isRefreshing.value = true;
     
-    // Get the ID of the newest log currently loaded, or 0 if empty
+    // Obtener el ID del log más nuevo cargado actualmente, o 0 si está vacío
     const lastLogId = props.logs?.data?.length > 0 ? props.logs.data[0].id : 0;
 
     router.get(route('admin.logs.index'), { last_log_id: lastLogId }, {

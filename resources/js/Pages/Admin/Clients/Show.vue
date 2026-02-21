@@ -35,12 +35,12 @@ const props = defineProps({
 
 const currentUrl = typeof window !== 'undefined' ? window.location.href : ''
 
-// Edit Modal state
+// Estado del Modal de Edición
 const isEditModalOpen = ref(false)
 const openEditModal = () => isEditModalOpen.value = true
 const closeEditModal = () => isEditModalOpen.value = false
 
-// All unique extensions used by this client (from projects and maintenance)
+// Todas las extensiones únicas utilizadas por este cliente (de proyectos y mantenimiento)
 const clientExtensions = computed(() => {
     const extensionsMap = new Map()
     

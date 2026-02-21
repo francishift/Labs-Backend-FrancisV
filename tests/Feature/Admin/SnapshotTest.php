@@ -42,11 +42,11 @@ class SnapshotTest extends TestCase
         $this->assertEquals(54, $mantenimiento->precio_hora);
         $this->assertEquals(50, $mantenimiento->extensiones->first()->pivot->precio_aplicado);
 
-        // Change global prices
+        // Cambiar precios globales
         Configuracion::set('precio_hora', 100);
         $extension->update(['precio' => 200]);
 
-        // Snapshots should remain the same
+        // Los snapshots deben permanecer iguales
         $mantenimiento->refresh();
         $this->assertEquals(54, $mantenimiento->precio_hora);
         $this->assertEquals(50, $mantenimiento->extensiones->first()->pivot->precio_aplicado);

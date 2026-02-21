@@ -39,7 +39,7 @@ onMounted(() => {
     windowWidth.value = window.innerWidth
     window.addEventListener('resize', handleResize)
     
-    // Observer for dark mode changes
+    // Observador para cambios en el modo oscuro
     const observer = new MutationObserver(() => {
         isDark.value = document.documentElement.classList.contains('dark')
     })

@@ -20,7 +20,7 @@ onMounted(() => {
 })
 
 const downloadPdf = () => {
-    // Append download=1 to the URL to force download
+    // Añadir download=1 a la URL para forzar la descarga
     const separator = props.pdfUrl.includes('?') ? '&' : '?'
     window.location.href = `${props.pdfUrl}${separator}download=1`
 }

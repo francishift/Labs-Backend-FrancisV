@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('facturas', function (Blueprint $table) {
             $table->id();
             $table->string('holded_id')->unique();
-            $table->string('contact_id')->nullable(); // Local DB ID
+            $table->string('contact_id')->nullable(); // ID de la DB local
             $table->string('contact_name')->nullable();
-            $table->string('contact')->nullable(); // Holded Contact ID
-            $table->integer('date')->index(); // Timestamp
+            $table->string('contact')->nullable(); // ID de Contacto de Holded
+            $table->integer('date')->index(); // Marca de tiempo
             $table->decimal('total', 15, 2)->default(0);
             $table->integer('status')->default(0);
             $table->json('raw_data')->nullable();

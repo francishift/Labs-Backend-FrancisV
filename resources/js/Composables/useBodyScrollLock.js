@@ -9,7 +9,7 @@ export function useBodyScrollLock() {
         document.body.style.overflow = ''
     }
 
-    // Ensure we unlock when the component using this composable is unmounted
+    // Asegurar que desbloqueamos cuando el componente que usa este composable se desmonte
     onUnmounted(() => {
         unlock()
     })

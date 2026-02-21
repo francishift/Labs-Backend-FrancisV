@@ -39,16 +39,16 @@ const selectedOption = computed(() => {
     return (props.options || []).find(option => option[props.valueKey] === props.modelValue);
 });
 
-// Update query when selectedOption changes (handles modelValue changes AND async options loading)
+// Actualizar query cuando cambia selectedOption (maneja cambios en modelValue y carga asíncrona)
 watch(selectedOption, (newOption) => {
-    // Only update query if we have a match, or if we want to clear it (and not currently searching/typing potentially)
-    // Since this is a select behavior, if the modelValue matches an option, the input should show that option's label.
+    // Solo actualizar query si hay coincidencia, o si queremos limpiarlo (y no estamos buscando/tecleando potencialmente)
+    // Como es un comportamiento de selector, si el modelValue coincide con una opción, el input debe mostrar la etiqueta de esa opción.
     if (newOption) {
         query.value = newOption[props.labelKey];
     } else {
-        // If no match found (e.g. cleared selection or option not in list), clear query
-        // But respect if user is typing? No, because typing updates query but NOT modelValue.
-        // modelValue only updates on select. So if selectedOption is null, it means modelValue is null (or invalid).
+        // Si no se encuentra coincidencia (ej. selección limpiada o opción no en lista), limpiar query
+        // ¿Pero respetar si el usuario está escribiendo? No, porque escribir actualiza la consulta pero NO el modelValue.
+        // modelValue solo se actualiza al seleccionar. Así que si selectedOption es nulo, significa que modelValue es nulo (o inválido).
         query.value = '';
     }
 }, { immediate: true });
@@ -86,7 +86,7 @@ const select = (option) => {
 };
 
 const onBlur = () => {
-    // Small delay to allow click events on the list to fire
+    // Pequeño retardo para permitir que se disparen los eventos de clic en la lista
     setTimeout(() => {
         isOpen.value = false;
         // Restore label if no valid selection was made or input was cleared

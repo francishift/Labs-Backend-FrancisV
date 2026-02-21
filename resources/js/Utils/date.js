@@ -10,14 +10,14 @@
 export function formatDateForInput(dateString) {
     if (!dateString) return '';
 
-    // Create a date object.
+    // Crear un objeto de fecha.
     const date = new Date(dateString);
 
-    // Check if valid date
+    // Comprobar si es una fecha válida
     if (isNaN(date.getTime())) return '';
 
     // By using local getters (getFullYear, etc.), we get the date as the user sees it in their zone,
-    // which undoes the shift introduced by server-side UTC serialization of midnight dates.
+    // lo que deshace el desplazamiento introducido por la serialización UTC del lado del servidor de las fechas de medianoche.
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');

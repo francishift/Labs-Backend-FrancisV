@@ -17,11 +17,11 @@ class HoldedDriveSyncFacturas extends Command
     protected $signature = 'holded:drive-sync-facturas {year? : The year to sync (default: current year)}';
 
     /**
-     * The console command description.
+     * Descripción del comando de consola.
      *
      * @var string
      */
-    protected $description = 'Syncs invoices from Holded and uploads them to Google Drive if missing';
+    protected $description = 'Sincroniza facturas de Holded y las sube a Google Drive si faltan';
 
     /**
      * Execute the console command.
@@ -31,7 +31,7 @@ class HoldedDriveSyncFacturas extends Command
         $year = $this->argument('year') ?? date('Y');
         $this->info("Starting invoice sync for year: {$year}");
 
-        // 1. Sync DB from Holded
+        // 1. Sincronizar DB desde Holded
         $start = strtotime("{$year}-01-01 00:00:00");
         $end = strtotime("{$year}-12-31 23:59:59");
         
@@ -47,9 +47,9 @@ class HoldedDriveSyncFacturas extends Command
         }
 
         $count = count($syncResult['data']);
-        $this->info("Synced {$count} invoices to local database.");
+        $this->info("Se han sincronizado {$count} facturas con la base de datos local.");
 
-        // 2. Upload to Drive
+        // 2. Subir a Drive
         $facturas = Factura::whereBetween('date', [$start, $end])->get();
         $total = $facturas->count();
         $bar = $this->output->createProgressBar($total);
@@ -60,14 +60,14 @@ class HoldedDriveSyncFacturas extends Command
         $errors = 0;
 
         foreach ($facturas as $factura) {
-            // Idempotency: skip if already has Drive ID
+            // Idempotencia: omitir si ya tiene ID de Drive
             if ($factura->google_drive_file_id) {
                 $skipped++;
                 $bar->advance();
                 continue;
             }
 
-            // Upload
+            // Subida
             try {
                 $facturaController->ensureInDrive($factura, $factura->holded_id);
                 $uploaded++;
@@ -84,10 +84,10 @@ class HoldedDriveSyncFacturas extends Command
         $this->info("Drive sync completed.");
         
         $stats = [
-            'synced' => $count, // Invoices from Holded
-            'processed' => $total, // Invoices in DB for the period
+            'synced' => $count, // Facturas de Holded
+            'processed' => $total, // Facturas en DB para el periodo
             'uploaded' => $uploaded,
-            'skipped' => $skipped, // Already in Drive
+            'skipped' => $skipped, // Ya en Drive
             'errors' => $errors,
         ];
 

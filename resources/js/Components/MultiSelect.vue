@@ -16,7 +16,7 @@ const props = defineProps({
     options: {
         type: Array,
         required: true,
-        // Expected: [{ id: 1, name: 'Option 1' }]
+        // Formato esperado: [{ id: 1, name: 'Option 1' }]
     },
     placeholder: {
         type: String,
@@ -24,7 +24,7 @@ const props = defineProps({
     },
     labelKey: {
         type: String,
-        default: 'nombre', // Using 'nombre' by default for extensions
+        default: 'nombre', // Usando 'nombre' por defecto para las extensiones
     },
     valueKey: {
         type: String,

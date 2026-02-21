@@ -9,10 +9,10 @@ export function usePaginationWindow(linksProp, windowSize = 1) {
         const next = links[links.length - 1];
         const pages = links.slice(1, -1);
 
-        // Find active page index
+        // Encontrar el índice de la página activa
         let activeIndex = pages.findIndex(link => link.active);
 
-        // If no active page (e.g. out of bounds), default to first page
+        // Si no hay página activa (ej. fuera de límites), por defecto a la primera página
         if (activeIndex === -1) activeIndex = 0;
 
         const lastPageIndex = pages.length - 1;
@@ -20,10 +20,10 @@ export function usePaginationWindow(linksProp, windowSize = 1) {
         const startWindow = Math.max(0, activeIndex - windowSize);
         const endWindow = Math.min(lastPageIndex, activeIndex + windowSize);
 
-        // Always include First(0) and Last(lastPageIndex)
+        // Incluir siempre Primera(0) y Última(lastPageIndex)
         const indicesToShow = new Set([0, lastPageIndex]);
 
-        // Add window neighbors
+        // Añadir páginas contiguas a la ventana
         for (let i = startWindow; i <= endWindow; i++) {
             indicesToShow.add(i);
         }
@@ -34,7 +34,7 @@ export function usePaginationWindow(linksProp, windowSize = 1) {
 
         let lastI = -1;
         for (const i of sortedIndices) {
-            // If gap > 1, add ellipsis
+            // Si el salto es > 1, añadir elipsis (...)
             if (lastI !== -1 && i - lastI > 1) {
                 out.push({ url: null, label: '...', active: false });
             }

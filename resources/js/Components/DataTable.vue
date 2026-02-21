@@ -3,7 +3,7 @@ defineProps({
   columns: {
     type: Array,
     required: true,
-    // Expected format: [{ key: 'name', label: 'Nombre', sortable: true, align: 'left/right' }]
+    // Formato esperado: [{ key: 'name', label: 'Nombre', sortable: true, align: 'left/right' }]
   },
   items: {
     type: Array,

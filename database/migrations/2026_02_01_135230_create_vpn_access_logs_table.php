@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('vpn_access_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete(); // Admin who performed action
-            $table->foreignId('target_device_id')->nullable(); // Can be null if device is deleted
-            $table->string('action'); // CREATED, DELETED, REVOKED, etc.
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete(); // Administrador que realizó la acción
+            $table->foreignId('target_device_id')->nullable(); // Puede ser nulo si el dispositivo se elimina
+            $table->string('action'); // CREADO, ELIMINADO, REVOCADO, etc.
             $table->string('ip_address')->nullable();
-            $table->text('details')->nullable(); // JSON or text for extra info (errors, etc)
+            $table->text('details')->nullable(); // JSON o texto para información extra (errores, etc)
             $table->timestamps();
         });
     }

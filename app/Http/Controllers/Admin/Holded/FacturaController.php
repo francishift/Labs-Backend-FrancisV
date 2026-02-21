@@ -31,17 +31,17 @@ class FacturaController extends Controller
         $start = $request->input('start', $defaultStart);
         $end = $request->input('end', $defaultEnd);
 
-        // Convert dates to timestamps for Holded API
+        // Convertir fechas a timestamps para la API de Holded
         $startTimestamp = strtotime($start . ' 00:00:00');
         $endTimestamp = strtotime($end . ' 23:59:59');
 
-        // Sync with Holded (updates local database)
+        // Sincronizar con Holded (actualiza la base de datos local)
         $syncResult = $this->holdedService->syncDocuments('invoice', [
             'starttmp' => $startTimestamp,
             'endtmp' => $endTimestamp,
         ]);
 
-        // Fetch from local database with search and pagination
+        // Obtener de la base de datos local con búsqueda y paginación
         $facturas = Factura::whereBetween('date', [$startTimestamp, $endTimestamp])
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
@@ -80,7 +80,7 @@ class FacturaController extends Controller
     {
         $factura = Factura::where('holded_id', $id)->first();
         
-        // Ensure file is in Drive and get content
+        // Asegurar que el archivo está en Drive y obtener el contenido
         $fileContent = $this->ensureInDrive($factura, $id);
 
         if (!$fileContent) {
@@ -89,7 +89,7 @@ class FacturaController extends Controller
 
         $docNumber = $factura->raw_data['docNumber'] ?? $id;
         $clientName = $factura->contact_name ?? 'Cliente';
-        // Sanitize filename
+        // Sanear el nombre del archivo
         $safeDocNumber = str_replace(['/', '\\'], '-', $docNumber);
         $safeClientName = preg_replace('/[^a-zA-Z0-9\s\-_]/', '', $clientName);
         $fileName = "{$safeDocNumber} - {$safeClientName}.pdf";
@@ -103,7 +103,7 @@ class FacturaController extends Controller
 
     public function ensureInDrive(?Factura $factura, string $holdedId)
     {
-        // 1. Try to serve from Google Drive if we have the ID locally
+        // 1. Intentar servir desde Google Drive si tenemos el ID localmente
         if ($factura && $factura->google_drive_file_id) {
             try {
                 $adapter = Storage::disk('google_facturas')->getAdapter();
@@ -111,12 +111,12 @@ class FacturaController extends Controller
                 $response = $service->files->get($factura->google_drive_file_id, ['alt' => 'media']);
                 return $response->getBody()->getContents();
             } catch (\Exception $e) {
-                // Return null to trigger fallback, or maybe log
-                // If 404, we should try to re-upload
+                // Devolver null para activar el fallback, o tal vez registrar en log
+                // Si es 404, deberíamos intentar re-subir
             }
         }
 
-        // 2. Fetch from Holded
+        // 2. Obtener de Holded
         $pdfBase64 = $this->holdedService->getDocumentPdf('invoice', $holdedId);
 
         if (!$pdfBase64) {
@@ -125,29 +125,29 @@ class FacturaController extends Controller
 
         $pdfBinary = base64_decode($pdfBase64);
 
-        // 3. Save to Google Drive if we have the record
+        // 3. Guardar en Google Drive si tenemos el registro
         if ($factura) {
             try {
                 $adapter = Storage::disk('google_facturas')->getAdapter();
                 $service = $adapter->getService();
                 $rootDriveId = env('GOOGLE_DRIVE_FOLDER_ID_FACTURAS');
 
-                // Structure: {Year}/VENTAS/{Quarter}tri/{docNumber}.pdf
+                // Estructura: {Año}/VENTAS/{Trimestre}tri/{docNumber}.pdf
                 
-                // Step 1: Find or Create Year Folder
+                // Paso 1: Buscar o Crear Carpeta del Año
                 $year = date('Y', $factura->date);
                 $yearFolderId = $this->findOrCreateFolder($service, $year, $rootDriveId);
 
-                // Step 2: Find or Create 'VENTAS' Folder
+                // Paso 2: Buscar o Crear Carpeta 'VENTAS'
                 $ventasFolderId = $this->findOrCreateFolder($service, 'VENTAS', $yearFolderId);
 
-                // Step 3: Find or Create Quarter Folder (1tri, 2tri...)
+                // Paso 3: Buscar o Crear Carpeta del Trimestre (1tri, 2tri...)
                 $month = date('n', $factura->date);
                 $quarter = ceil($month / 3);
                 $quarterFolderName = "{$quarter}tri";
                 $quarterFolderId = $this->findOrCreateFolder($service, $quarterFolderName, $ventasFolderId);
 
-                // Step 4: Save File
+                // Paso 4: Guardar Archivo
                 if ($quarterFolderId) {
                     $docNumber = $factura->raw_data['docNumber'] ?? $holdedId;
                     $clientName = $factura->contact_name ?? 'Cliente';
@@ -156,7 +156,7 @@ class FacturaController extends Controller
                     $safeClientName = preg_replace('/[^a-zA-Z0-9\s\-_]/', '', $clientName);
                     $fileName = "{$safeDocNumber} - {$safeClientName}.pdf";
 
-                    // Check if file already exists
+                    // Comprobar si el archivo ya existe
                     $fileOptParams = [
                         'q' => "'$quarterFolderId' in parents and name = '$fileName' and trashed = false",
                         'fields' => 'files(id)'
@@ -166,7 +166,7 @@ class FacturaController extends Controller
                     if (count($existingFiles) > 0) {
                         $fileId = $existingFiles[0]->getId();
                     } else {
-                        // Upload file
+                        // Subir archivo
                         $fileMeta = new DriveFile([
                             'name' => $fileName,
                             'parents' => [$quarterFolderId]
@@ -186,7 +186,7 @@ class FacturaController extends Controller
                 }
 
             } catch (\Exception $e) {
-                 \Log::error('Google Drive Upload Failed: ' . $e->getMessage());
+                 \Log::error('Fallo al subir a Google Drive: ' . $e->getMessage());
             }
         }
 
@@ -196,23 +196,23 @@ class FacturaController extends Controller
     public function syncDrive(Request $request)
     {
         try {
-            // Increase time limit for this request
+            // Aumentar el límite de tiempo para esta petición
             set_time_limit(300);
 
             $year = date('Y');
             
-            // We can call the command, but since we want fine-grained feedback 
-            // and the command is designed for CLI, we'll replicate the core loop here 
-            // or better, Refactor the command to use a service.
-            // For now, to avoid "spaghetti" and N+1 in controller, let's call the command 
-            // and capture output if possible, OR just run the logic cleanly.
-            // Since I previously said "no spaghetti", let's be clean.
+            // Podemos llamar al comando, pero como queremos feedback detallado
+            // y el comando está diseñado para CLI, replicaremos el bucle principal aquí
+            // o mejor, refactorizar el comando para usar un servicio.
+            // Por ahora, para evitar "espagueti" y N+1 en el controlador, llamemos al comando
+            // y capturemos la salida si es posible, O simplemente ejecutemos la lógica limpiamente.
+            // Como dije anteriormente "nada de espagueti", seamos limpios.
             
-            // Re-using the logic from the command is best done by extracting it to a service.
-            // However, for this task, I will implement the loop here using the same methods,
-            // effectively "Controller as Service" for this action, or keep it in the command.
+            // Reutilizar la lógica del comando se hace mejor extrayéndola a un servicio.
+            // Sin embargo, para esta tarea, implementaré el bucle aquí usando los mismos métodos,
+            // efectivamente "Controlador como Servicio" para esta acción, o mantenerlo en el comando.
             
-            // Let's use Artisan::call for simplicity and robustness (it runs the same tested logic).
+            // Usemos Artisan::call por simplicidad y robustez (ejecuta la misma lógica probada).
             $exitCode = \Artisan::call('holded:drive-sync-facturas', ['year' => $year]);
             $output = \Artisan::output();
 
@@ -247,8 +247,8 @@ class FacturaController extends Controller
     private function findOrCreateFolder($service, $folderName, $parentId)
     {
         if (!$parentId) {
-             // Fallback if no root ID, though it should be configured
-             throw new \Exception("Parent ID missing for folder creation");
+             // Fallback si no hay ID raíz, aunque debería estar configurado
+             throw new \Exception("Falta el ID del padre para la creación de la carpeta");
         }
 
         $optParams = [
@@ -262,7 +262,7 @@ class FacturaController extends Controller
             return $files[0]->getId();
         }
 
-        // Create folder
+        // Crear carpeta
         $folderMeta = new DriveFile([
             'name' => $folderName,
             'mimeType' => 'application/vnd.google-apps.folder',

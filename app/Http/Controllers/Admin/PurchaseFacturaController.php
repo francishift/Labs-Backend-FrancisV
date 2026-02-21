@@ -20,7 +20,7 @@ class PurchaseFacturaController extends Controller
     {
         $query = PurchaseFactura::query();
 
-        // Search
+        // Búsqueda
         if ($request->has('search')) {
             $search = $request->get('search');
             $query->where(function($q) use ($search) {
@@ -29,12 +29,12 @@ class PurchaseFacturaController extends Controller
             });
         }
 
-        // Provider Filter
+        // Filtro de Proveedor
         if ($request->has('provider') && !empty($request->get('provider'))) {
             $query->where('provider_name', $request->get('provider'));
         }
 
-        // Date Filters
+        // Filtros de Fecha
         if ($request->has('date_from') && !empty($request->get('date_from'))) {
             $query->whereDate('date', '>=', $request->get('date_from'));
         }
@@ -42,7 +42,7 @@ class PurchaseFacturaController extends Controller
             $query->whereDate('date', '<=', $request->get('date_to'));
         }
 
-        // 4. Sorting
+        // 4. Ordenación
         $sort = $request->input('sort', 'date');
         $direction = $request->input('direction', 'desc');
         $allowedSorts = ['number', 'provider_name', 'date', 'net_amount', 'tax_amount', 'total', 'status'];
@@ -84,7 +84,7 @@ class PurchaseFacturaController extends Controller
             $fileName = $file->getClientOriginalName();
             $pdfBinary = file_get_contents($file->getRealPath());
 
-            // 1. Create initial record
+            // 1. Crear registro inicial
             $factura = PurchaseFactura::create([
                 'number' => 'PENDING-' . time() . '-' . uniqid(),
                 'provider_name' => 'Pendiente de procesar',
@@ -93,12 +93,12 @@ class PurchaseFacturaController extends Controller
                 'status' => 'procesando',
             ]);
 
-            // 2. Drive Upload
+            // 2. Subida a Drive
             $driveFileId = $this->uploadToDrive($factura, $pdfBinary, $fileName, now());
             if (!$driveFileId) throw new \Exception("Error al subir el archivo a Google Drive.");
             $factura->update(['google_drive_file_id' => $driveFileId]);
             
-            // 3. Data Extraction
+            // 3. Extracción de Datos
             $geminiService = new \App\Services\GeminiInvoiceService();
             $extractedData = $geminiService->extractInvoiceData($pdfBinary);
 
@@ -107,13 +107,13 @@ class PurchaseFacturaController extends Controller
                 return response()->json(['success' => true, 'factura' => $factura, 'message' => 'IA falló al extraer datos.']);
             }
 
-            // 4. Handle duplicates and update
+            // 4. Manejar duplicados y actualizar
             return $this->handleExtractedData($factura, $extractedData);
 
         } catch (\Exception $e) {
             \Log::error('Purchase Invoice Error: ' . $e->getMessage());
             if (isset($factura)) {
-                // Use DB directly to avoid dirty model issues with unique constraints
+                // Usar DB directamente para evitar problemas de modelo sucio con restricciones de unicidad
                 \DB::table('purchase_facturas')
                     ->where('id', $factura->id)
                     ->update([
@@ -139,7 +139,7 @@ class PurchaseFacturaController extends Controller
             if ($existing->trashed()) {
                 $existing->forceDelete();
             } else {
-                // Duplicate found: mark and stop
+                // Duplicado encontrado: marcar y detener
                 $factura->update([
                     'number' => 'DUP-' . time() . '-' . $newNumber,
                     'provider_name' => $data['supplier_name'] ?? $factura->provider_name,
@@ -188,7 +188,7 @@ class PurchaseFacturaController extends Controller
         $quarter = ceil($date->format('n') / 3);
         $quarterFolderId = $this->findOrCreateFolder($service, "{$quarter}tri", $comprasFolderId);
 
-        // Overwrite if exists
+        // Sobrescribir si existe
         $optParams = ['q' => "'$quarterFolderId' in parents and name = '$originalName' and trashed = false", 'fields' => 'files(id)'];
         $existingFiles = $service->files->listFiles($optParams)->getFiles();
 

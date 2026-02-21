@@ -40,7 +40,7 @@ class VpnLogsController extends Controller
     {
         VpnAccessLog::truncate();
 
-        // Optional: Log that the admin cleared the logs
+        // Opcional: Registrar que el administrador vació los logs
         VpnAccessLog::create([
             'user_id' => auth()->id(),
             'target_device_id' => null,

@@ -28,7 +28,7 @@ const form = useForm({
   precio: '',
 })
 
-// Update duracion_minutos when hours or minutes change
+// Actualizar duracion_minutos cuando cambian las horas o los minutos
 watch([hours, minutes], ([h, m]) => {
   form.duracion_minutos = (parseInt(h) || 0) * 60 + (parseInt(m) || 0)
 }, { immediate: true })

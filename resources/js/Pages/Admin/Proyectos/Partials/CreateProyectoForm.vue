@@ -47,7 +47,7 @@ watch(() => createForm.client_id, async (newClientId) => {
                 axios.get(route('admin.clientes.facturas', newClientId))
             ]);
             budgets.value = budgetsResponse.data;
-            // Filter invoices: show those with NO project OR those associated with THIS project (none in create mode)
+            // Filtrar facturas: mostrar aquellas SIN proyecto O las asociadas a ESTE proyecto (ninguna en modo creación)
             availableFacturas.value = facturasResponse.data.filter(f => !f.proyecto_id);
         } catch (error) {
             console.error('Error fetching client data:', error);

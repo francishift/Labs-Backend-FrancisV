@@ -106,7 +106,7 @@ const isDragging = ref(false)
 
 const selectedFiles = ref([])
 const form = useForm({
-    // any other fields if needed
+    // cualquier otro campo si es necesario
 })
 
 const confirmingFacturaDeletion = ref(false)
@@ -221,7 +221,7 @@ const submitUpload = async () => {
     }
 
     isUploading.value = false
-    selectedFiles.value = [] // Clear list after completion
+    selectedFiles.value = [] // Limpiar lista al finalizar
     router.reload({ only: ['facturas'] })
 }
 

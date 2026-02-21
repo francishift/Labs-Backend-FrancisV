@@ -27,7 +27,7 @@ const editForm = useForm({
     excel_created_at: '',
 });
 
-// Initialize form with client data when client prop changes
+// Inicializar el formulario con los datos del cliente cuando cambia la prop client
 watch(() => props.client, (client) => {
     if (client) {
         editForm.name = client.name;
