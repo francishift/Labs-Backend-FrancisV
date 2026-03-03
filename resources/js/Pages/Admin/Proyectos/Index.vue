@@ -90,7 +90,7 @@ const navigateToShow = (item) => {
 
     <div class="py-6 space-y-6">
         <!-- Stats Cards Area -->
-        <div class="grid grid-cols-1 md:grid-cols-2 min-[1530px]:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-4">
           <StatCard
             title="Total Presupuesto"
             :value="stats.total_presupuesto"

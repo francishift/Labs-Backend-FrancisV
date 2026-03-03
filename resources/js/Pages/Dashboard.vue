@@ -372,7 +372,7 @@ const isAdmin = computed(() => userRoles.value.includes('admin'))
 
     <div class="py-6 space-y-8">
         <!-- Dashboard Stats Cards (Solo Admin) -->
-        <div v-if="isAdmin" class="grid grid-cols-1 md:grid-cols-2 min-[1530px]:grid-cols-4 gap-6">
+        <div v-if="isAdmin" class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-6">
             <StatCard 
                 title="Proyectos en Proceso"
                 :value="stats.proyectos_en_proceso"
