@@ -23,7 +23,7 @@ const formatMinutesToHours = (minutes) => {
 const columns = [
     { key: 'fecha', label: 'Fecha' },
     { key: 'descripcion', label: 'Descripción' },
-    { key: 'aplicacion', label: 'Cliente' },
+    { key: 'aplicacion', label: 'Mantenimiento' },
     { key: 'duracion_minutos', label: 'Duración', align: 'center' },
     { key: 'actions', label: '', align: 'right' },
 ]
