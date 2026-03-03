@@ -25,3 +25,9 @@ A raíz de la implantación de la "Base Calendárica" y la "Inyección de Cuota 
 Para los Tests en CI/CD o locales, en `ResumenHoraTest.php` se forza la simulación temporal de un año y mes congelado utilizando el facade del Framework: 
 `\Carbon\Carbon::setTestNow(\Carbon\Carbon::create(2024, 6, 15));`
 Con esto, nos aseguraremos estructuralmente de testear que para el mes 6 de un Mantenimiento Activo de 200€, el render devuelva matemáticamente $1.200 (200€ x 6 meses).
+
+## Layout UI Responsivo (StatCards)
+Todos los módulos de analítica superior (Resumen Horas, Proyectos y Mantenimientos) comparten una directriz estandarizada estéticamente para unificar toda la interfaz visual de Laravel admin:
+- Tipografía estricta unificada (`small-value="true"` en todos los `<StatCard>`).
+- Rejilla adaptativa personalizada que salta al formato escritorio/4 columnas **únicamente cuando la pantalla excede los `1530px` de ancho** (`grid-cols-1 md:grid-cols-2 min-[1530px]:grid-cols-X`) para salvaguardar el diseño del dashboard en resoluciones intermedias de laptops y tablets grandes, previniendo el desbordamiento u "aplastamiento" del flexbox.
+- El módulo Resumen mantiene scroll lateral seguro `overflow-x-auto` en dispositivos móviles.
