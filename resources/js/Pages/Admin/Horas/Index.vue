@@ -169,6 +169,7 @@ const tableColumns = [
                         :icon="CalendarDaysIcon"
                         variant="emerald"
                         :is-currency="true"
+                        :small-value="true"
                     />
                     <StatCard 
                         title="Costo (Horas)"
@@ -176,6 +177,7 @@ const tableColumns = [
                         :icon="ClockIcon"
                         variant="zinc"
                         :is-currency="true"
+                        :small-value="true"
                     />
                     <StatCard 
                         title="Total Horas"
@@ -183,6 +185,7 @@ const tableColumns = [
                         :icon="ClockIcon"
                         variant="zinc"
                         suffix="h"
+                        :small-value="true"
                     />
                 </div>
 
