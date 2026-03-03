@@ -10,6 +10,10 @@ const props = defineProps({
     type: Boolean,
     default: true
   },
+  smallValue: {
+    type: Boolean,
+    default: false
+  },
   isCurrency: {
     type: Boolean,
     default: true
@@ -41,13 +45,14 @@ const variantClasses = {
       <div class="ml-5">
         <p class="text-sm font-medium text-gray-500 dark:text-zinc-400">{{ title }}</p>
         <div class="flex items-baseline gap-2">
-          <p class="text-2xl font-black text-gray-900 dark:text-white">
+          <p class="font-black text-gray-900 dark:text-white" :class="smallValue ? 'text-lg' : 'text-2xl'">
             {{ isCurrency ? formatCurrency(value) : value }}
           </p>
           <p v-if="secondaryValue !== undefined" class="text-xs font-bold text-gray-500 dark:text-zinc-400">
             {{ secondaryIsCurrency ? formatCurrency(secondaryValue) : secondaryValue }}
           </p>
         </div>
+        <slot />
       </div>
     </div>
     <div class="absolute -right-4 -bottom-4 h-24 w-24 opacity-5 transform rotate-12 transition-transform group-hover:scale-110">

@@ -15,6 +15,7 @@ class MantenimientoTest extends TestCase
     public function test_calculate_period_income_mensual()
     {
         $mantenimiento = Mantenimiento::factory()->create([
+            'fecha_inicio' => Carbon::create(date('Y'), 1, 1),
             'tipo_pago' => 'mensual',
             'importe' => 100
         ]);

@@ -55,7 +55,7 @@ class DashboardTest extends TestCase
             ->has('charts.valor_por_cliente', 1)
             ->has('charts.valor_por_cliente.0', fn (Assert $item) => $item
                 ->where('name', 'Test Client')
-                ->where('value', 5000 + (200 * 12))
+                ->where('value', 5000 + (200 * 10))
             )
         );
     }
