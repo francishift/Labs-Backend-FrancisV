@@ -372,13 +372,14 @@ const isAdmin = computed(() => userRoles.value.includes('admin'))
 
     <div class="py-6 space-y-8">
         <!-- Dashboard Stats Cards (Solo Admin) -->
-        <div v-if="isAdmin" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        <div v-if="isAdmin" class="grid grid-cols-1 md:grid-cols-2 min-[1530px]:grid-cols-4 gap-6">
             <StatCard 
                 title="Proyectos en Proceso"
                 :value="stats.proyectos_en_proceso"
                 :is-currency="false"
                 :icon="BriefcaseIcon"
                 variant="emerald"
+                :small-value="true"
             />
 
             <StatCard 
@@ -386,6 +387,7 @@ const isAdmin = computed(() => userRoles.value.includes('admin'))
                 :value="stats.presupuesto_total_activo"
                 :icon="CurrencyEuroIcon"
                 variant="emerald"
+                :small-value="true"
             />
 
             <StatCard 
@@ -393,6 +395,7 @@ const isAdmin = computed(() => userRoles.value.includes('admin'))
                 :value="stats.total_mantenimiento_mes"
                 :icon="CurrencyEuroIcon"
                 variant="emerald"
+                :small-value="true"
             />
 
             <StatCard 
@@ -402,6 +405,7 @@ const isAdmin = computed(() => userRoles.value.includes('admin'))
                 :is-currency="false"
                 :icon="CheckCircleIcon"
                 variant="emerald"
+                :small-value="true"
             />
         </div>
 
