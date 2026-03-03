@@ -91,7 +91,7 @@ EOT;
                 'raw' => $extracted, // Almacenar todos los campos extraídos en bruto
             ];
 
-            // --- Heurística de Validación de Proveedores (Igual que en el antiguo Document AI) ---
+            // --- Heurística de Validación de Proveedores ---
             $myNames = [
                 'FRANCISCO VALENZUELA NOGALES',
                 'FRANCISCO VALENZUELA',

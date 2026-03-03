@@ -45,7 +45,7 @@ return [
     ],
 
     'vpn' => [
-        'endpoint' => env('VPN_ENDPOINT', '213.165.65.4:51892'),
+        'endpoint' => env('VPN_ENDPOINT'),
     ],
 
 ];
