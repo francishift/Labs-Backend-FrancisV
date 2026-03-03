@@ -143,7 +143,7 @@ const tableColumns = [
                 </Card>
                 
                 <!-- Stats Grid using StatCard component -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
                     <StatCard 
                         title="Importe Proy + Mant"
                         :value="stats.total_facturado"
@@ -199,10 +199,10 @@ const tableColumns = [
                             <div v-for="mes in resumenMensual" :key="mes.mes" class="border rounded-lg border-zinc-200 dark:border-zinc-800">
                                 <button 
                                     @click="toggleMonth(mes.mes)"
-                                    class="w-full flex items-center justify-between p-4 bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors rounded-t-lg"
+                                    class="w-full flex flex-col lg:flex-row lg:items-center justify-between p-4 gap-4 bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors rounded-t-lg"
                                     :class="{ 'rounded-b-lg': expandedMonth !== mes.mes }"
                                 >
-                                    <div class="flex items-center space-x-4">
+                                    <div class="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 text-left w-full lg:w-auto">
                                         <span class="text-lg font-bold min-w-[100px]">{{ mes.nombre }}</span>
                                         <div class="flex flex-col">
                                             <span class="bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 px-2.5 py-1 rounded-full text-xs font-semibold w-max mb-1">
@@ -220,26 +220,28 @@ const tableColumns = [
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="mt-2 sm:mt-0 flex items-center gap-x-6">
-                                        <div class="flex flex-col text-right text-sm">
+                                    <div class="flex flex-wrap items-center gap-4 w-full lg:w-auto justify-between lg:justify-end border-t border-gray-200 dark:border-zinc-700/50 lg:border-none pt-3 lg:pt-0 mt-2 lg:mt-0">
+                                        <div class="flex flex-col text-left lg:text-right text-sm">
                                             <span class="font-medium text-gray-400 dark:text-zinc-500 text-xs">Coste interno</span>
                                             <span class="text-zinc-500 dark:text-zinc-400 font-mono">{{ formatCurrency(mes.total_importe_horas) }}</span>
                                         </div>
-                                        <div class="flex items-center justify-center bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 px-3 py-1.5 rounded-lg border border-blue-100 dark:border-blue-800/30">
-                                            <ClockIcon class="w-4 h-4 mr-1.5 opacity-70" />
-                                            <span class="font-bold text-sm tracking-tight">{{ formatHours(mes.total_minutos) }}</span>
+                                        <div class="flex items-center gap-2">
+                                            <div class="flex items-center justify-center bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 px-3 py-1.5 rounded-lg border border-blue-100 dark:border-blue-800/30">
+                                                <ClockIcon class="w-4 h-4 mr-1.5 opacity-70" />
+                                                <span class="font-bold text-sm tracking-tight">{{ formatHours(mes.total_minutos) }}</span>
+                                            </div>
+                                            <svg 
+                                                class="w-6 h-6 transition-transform duration-200 text-gray-400" 
+                                                :class="{ 'rotate-180': expandedMonth === mes.mes }"
+                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                                            >
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                            </svg>
                                         </div>
-                                        <svg 
-                                            class="w-5 h-5 transition-transform duration-200" 
-                                            :class="{ 'rotate-180': expandedMonth === mes.mes }"
-                                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                        >
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                        </svg>
                                     </div>
                                 </button>
 
-                                <div v-if="expandedMonth === mes.mes" class="p-4 border-t border-zinc-200 dark:border-zinc-800">
+                                <div v-if="expandedMonth === mes.mes" class="p-3 sm:p-4 border-t border-zinc-200 dark:border-zinc-800 overflow-x-auto w-full max-w-full">
                                     <DataTable :columns="tableColumns" :items="mes.detalle" :hoverable="true">
                                         <template #cell-fecha="{ item }">
                                             <span class="text-gray-600 dark:text-zinc-400 whitespace-nowrap">{{ item.fecha }}</span>
