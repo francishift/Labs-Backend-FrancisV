@@ -98,6 +98,7 @@ const navigateToShow = (item) => {
             icon-color="text-emerald-500"
             icon-bg="bg-emerald-100 dark:bg-emerald-900/30"
             :is-currency="true"
+            :small-value="true"
           />
           <StatCard
             title="Extensiones + Software"
@@ -106,6 +107,7 @@ const navigateToShow = (item) => {
             icon-color="text-indigo-500"
             icon-bg="bg-indigo-100 dark:bg-indigo-900/30"
             :is-currency="true"
+            :small-value="true"
           />
           <StatCard
             title="Suma servicios por horas"
@@ -115,6 +117,7 @@ const navigateToShow = (item) => {
             :icon="ClockIcon"
             variant="indigo"
             :is-currency="true"
+            :small-value="true"
           />
           <StatCard
             title="Horas + Extensiones + Software"
@@ -122,6 +125,7 @@ const navigateToShow = (item) => {
             :icon="ChartBarIcon"
             variant="amber"
             :is-currency="true"
+            :small-value="true"
           />
         </div>
 

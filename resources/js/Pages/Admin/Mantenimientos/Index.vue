@@ -89,13 +89,14 @@ const navigateToShow = (item) => {
 
     <div class="py-6 space-y-6">
         <!-- Stats Cards Area -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <StatCard
             title="Ingreso Mantenimientos (Anual)"
             :value="stats.total_ingresos"
             :icon="CurrencyEuroIcon"
             variant="emerald"
             :is-currency="true"
+            :small-value="true"
           />
           <StatCard
             title="Extensiones + Software (Anual)"
@@ -103,6 +104,7 @@ const navigateToShow = (item) => {
             :icon="WrenchScrewdriverIcon"
             variant="indigo"
             :is-currency="true"
+            :small-value="true"
           />
           <StatCard
             title="Horas realizadas (Anual)"
@@ -110,6 +112,7 @@ const navigateToShow = (item) => {
             :icon="ClockIcon"
             variant="rose"
             :is-currency="false"
+            :small-value="true"
           />
         </div>
 
