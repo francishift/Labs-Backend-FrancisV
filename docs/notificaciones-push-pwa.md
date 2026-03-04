@@ -8,6 +8,11 @@ El sistema se basa en el estándar WebPush, utilizando:
 - **Backend (Laravel):** Paquete `laravel-notification-channels/webpush` para gestionar las suscripciones y encriptar los payloads enviados a los servidores de notificaciones de los navegadores (Google FCM, Mozilla, Apple Push, etc).
 - **Frontend (Vue/Inertia):** La API nativa del navegador `ServiceWorkerRegistration.showNotification()` para recibir y mostrar la alerta al usuario.
 
+### 1.1 Dependencias Externas y VAPID Keys
+- **¿Qué son las VAPID Keys?** VAPID (Voluntary Application Server Identification) es un estándar de encriptación y autenticación. El par de claves (`VAPID_PUBLIC_KEY` y `VAPID_PRIVATE_KEY` en tu archivo `.env`) es básicamente tu "Carnet de Identidad" como servidor que envía notificaciones. 
+- **¿Para qué sirven?** Cuando Labs Backend quiere mandar un aviso a un iPhone, en realidad no se lo manda directamente al iPhone. Laravel se lo envía a los grandísimos servidores globales de Apple (APNs), o a los de Google (FCM) si es Android, quienes a su vez retransmiten el mensaje a los teléfonos de tus clientes. Las claves VAPID permiten a Apple/Google/Mozilla verificar matemáticamente que ese mensaje Push proviene legítimamente de tu servidor (`TU_DOMINIO`) y no de un hacker malicioso intentando spamear a tus usuarios.
+- **Dependencias:** Tu sistema ahora depende de estos servidores puente globales. El estándar WebPush es gratuito e integrado en los navegadores, no pagas por él, pero debes saber que si los servidores de notificaciones de Apple o Google fallan masivamente a nivel mundial, tus notificaciones Push también se retrasarían, ya que la arquitectura nativa del navegador depende de sus nubes para despertar a los terminales.
+
 ## 2. Funcionamiento Backend
 
 ### 2.1 Modelo y Rutas
