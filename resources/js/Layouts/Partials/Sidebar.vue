@@ -50,7 +50,8 @@ const navigationGroups = computed(() => [
             { name: 'Software / Hosting', href: route('admin.softwares.index'), icon: ComputerDesktopIcon, active: route().current('admin.softwares.*'), role: 'admin' },
             { name: 'Tareas de Mantenimiento', href: route('admin.mantenimiento-servicios.index'), icon: ClipboardDocumentCheckIcon, active: route().current('admin.mantenimiento-servicios.*'), role: 'admin' },
             { name: 'Servicios', href: route('admin.servicios.index'), icon: WrenchScrewdriverIcon, active: route().current('admin.servicios.*'), role: 'coordinador' },
-            { name: 'Resumen horas', href: route('admin.resumen-horas.index'), icon: ClockIcon, active: route().current('admin.resumen-horas.*'), role: 'admin' }
+            { name: 'Resumen horas', href: route('admin.resumen-horas.index'), icon: ClockIcon, active: route().current('admin.resumen-horas.*'), role: 'admin' },
+            { name: 'Notas', href: route('admin.notas.index'), icon: DocumentTextIcon, active: route().current('admin.notas.*'), role: 'coordinador' }
         ]
     },
     {

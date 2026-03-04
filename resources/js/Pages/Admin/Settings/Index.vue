@@ -8,6 +8,7 @@ import TextInput from '@/Components/TextInput.vue'
 import CurrencyInput from '@/Components/CurrencyInput.vue'
 import InputError from '@/Components/InputError.vue'
 import PageHeader from '@/Components/PageHeader.vue'
+import PushToggleButton from '@/Components/PushToggleButton.vue'
 
 const props = defineProps({
     config: Object,
@@ -98,6 +99,14 @@ const submit = () => {
                             </transition>
                         </div>
                     </form>
+                </Card>
+
+                <Card class="p-4 sm:p-6 max-w-2xl">
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Notificaciones Push</h3>
+                    <p class="text-sm text-gray-600 dark:text-zinc-400 mb-4">
+                        Habilita o deshabilita las notificaciones push en este navegador para recibir alertas sobre las notas y recordatorios.
+                    </p>
+                    <PushToggleButton />
                 </Card>
         </div>
     </AuthenticatedLayout>

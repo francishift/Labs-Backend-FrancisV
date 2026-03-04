@@ -5,12 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use NotificationChannels\WebPush\HasPushSubscriptions;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasFactory, Notifiable, HasRoles, HasPushSubscriptions;
 
     protected static function booted(): void
     {
@@ -63,5 +64,10 @@ class User extends Authenticatable
     public function vpnDevices()
     {
         return $this->hasMany(VpnDevice::class);
+    }
+
+    public function notas()
+    {
+        return $this->hasMany(Nota::class);
     }
 }

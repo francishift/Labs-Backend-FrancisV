@@ -14,3 +14,4 @@ Schedule::command('backup:run')->dailyAt('01:00')->then(fn () => Artisan::call('
 
 Schedule::command('vpn:sync-handshakes')->everyMinute();
 Schedule::command('vpn:sync-peers')->everyFiveMinutes();
+Schedule::command('notas:send-reminders')->everyMinute();

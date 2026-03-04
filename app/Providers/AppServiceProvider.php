@@ -20,6 +20,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Ignorar los E_USER_NOTICE del paquete de minishlink/web-push sobre GMP y BCMath
+        set_error_handler(function ($severity, $message, $file, $line) {
+            if (!(error_reporting() & $severity)) {
+                return false;
+            }
+            if (strpos($message, 'It is highly recommended to install the GMP or BCMath extension') !== false) {
+                return true; // Ignorar error
+            }
+            throw new \ErrorException($message, 0, $severity, $file, $line);
+        }, E_USER_NOTICE | E_USER_WARNING);
+
         try {
             \Illuminate\Support\Facades\Storage::extend('google', function ($app, $config) {
                 if (empty($config['clientId']) || empty($config['clientSecret']) || empty($config['refreshToken'])) {

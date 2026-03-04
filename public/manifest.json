@@ -1,6 +1,6 @@
 {
     "name": "Labs Backend FrancisV",
-    "short_name": "LabsBackend",
+    "short_name": "Labs Backend",
     "description": "Labs Backend Application",
     "start_url": "/",
     "display": "standalone",

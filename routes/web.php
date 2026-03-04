@@ -15,6 +15,8 @@ use App\Http\Controllers\Admin\MantenimientoServicioController;
 use App\Http\Controllers\Admin\SoftwareController;
 use App\Http\Controllers\Admin\PdfViewerController;
 use App\Http\Controllers\Admin\ResumenHoraController;
+use App\Http\Controllers\Admin\NotaController;
+use App\Http\Controllers\Admin\PushSubscriptionController;
 
 
 
@@ -117,6 +119,21 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/admin/software-hosting', [SoftwareController::class, 'store'])->name('admin.softwares.store');
         Route::patch('/admin/software-hosting/{software}', [SoftwareController::class, 'update'])->name('admin.softwares.update');
         Route::delete('/admin/software-hosting/{software}', [SoftwareController::class, 'destroy'])->name('admin.softwares.destroy');
+
+        Route::get('/admin/notas', [NotaController::class, 'index'])->name('admin.notas.index');
+        Route::post('/admin/notas', [NotaController::class, 'store'])->name('admin.notas.store');
+        Route::get('/admin/notas/{nota}/edit', [NotaController::class, 'edit'])->name('admin.notas.edit');
+        Route::patch('/admin/notas/{nota}', [NotaController::class, 'update'])->name('admin.notas.update');
+        Route::delete('/admin/notas/{nota}', [NotaController::class, 'destroy'])->name('admin.notas.destroy');
+
+        Route::post('/admin/push-subscriptions', [PushSubscriptionController::class, 'store'])
+            ->name('admin.push-subscriptions.store')
+            ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+
+        Route::post('/admin/push-subscriptions/delete', [PushSubscriptionController::class, 'destroy'])
+            ->name('admin.push-subscriptions.destroy')
+            ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+
     });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
