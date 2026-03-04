@@ -8,9 +8,10 @@ import SearchableSelect from '@/Components/SearchableSelect.vue';
 import Badge from '@/Components/Badge.vue';
 import Card from '@/Components/Card.vue';
 import InputLabel from '@/Components/InputLabel.vue';
+import SelectInput from '@/Components/SelectInput.vue';
 import { ClockIcon, BanknotesIcon, CalendarDaysIcon, BriefcaseIcon, WrenchScrewdriverIcon } from '@heroicons/vue/24/outline';
 import pickBy from 'lodash/pickBy';
-import throttle from 'lodash/throttle';
+import debounce from 'lodash/debounce';
 
 const props = defineProps({
     resumenMensual: Array,
@@ -21,7 +22,10 @@ const props = defineProps({
 
 // Calculate array of years (from 2026 to current + 1 or at least 2026-2027)
 const currentYear = new Date().getFullYear();
-const years = Array.from({length: Math.max(2, (currentYear + 2) - 2026)}, (_, i) => 2026 + i);
+const yearsOptions = Array.from({length: Math.max(2, (currentYear + 2) - 2026)}, (_, i) => {
+    const y = 2026 + i;
+    return { label: y.toString(), value: y };
+});
 
 const filterForm = ref({
     year: props.filters?.year || currentYear,
@@ -32,13 +36,13 @@ const filterForm = ref({
 // Reactive Filtering
 watch(
     filterForm,
-    throttle(function () {
+    debounce(function () {
         router.get(
             route('admin.resumen-horas.index'),
             pickBy(filterForm.value),
             { preserveState: true, replace: true }
         )
-    }, 300),
+    }, 500),
     { deep: true }
 );
 
@@ -97,18 +101,17 @@ const tableColumns = [
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
                 
                 <!-- Filters Section -->
-                <Card class="p-4 !overflow-visible relative z-20">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card class="p-4 sm:p-6 !overflow-visible relative z-20">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <!-- Select: Año -->
                         <div class="space-y-1">
                             <InputLabel for="filter_year" value="Año" />
-                            <select 
+                            <SelectInput 
                                 id="filter_year"
                                 v-model="filterForm.year"
-                                class="w-full bg-white dark:bg-zinc-950 border-gray-300 dark:border-zinc-800 text-gray-900 dark:text-zinc-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm"
-                            >
-                                <option v-for="y in years" :key="y" :value="y">{{ y }}</option>
-                            </select>
+                                :options="yearsOptions"
+                                class="w-full"
+                            />
                         </div>
 
                         <!-- Select: Cliente -->
@@ -119,7 +122,7 @@ const tableColumns = [
                                 v-model="filterForm.client_id"
                                 :options="[{id: '', name: 'Todos los clientes'}, ...clientes]"
                                 placeholder="Buscar cliente..."
-                                class="w-full bg-white dark:bg-zinc-950 text-gray-900 dark:text-zinc-300"
+                                class="w-full"
                             />
                         </div>
 
@@ -129,15 +132,16 @@ const tableColumns = [
                                 <InputLabel for="filter_tipo" value="Tipo de Servicio" />
                                 <button @click="resetFilters" class="text-xs text-gray-400 hover:text-emerald-500 transition-colors">Limpiar Filtros</button>
                             </div>
-                            <select 
+                            <SelectInput 
                                 id="filter_tipo"
                                 v-model="filterForm.tipo_servicio"
-                                class="w-full bg-white dark:bg-zinc-950 border-gray-300 dark:border-zinc-800 text-gray-900 dark:text-zinc-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm"
-                            >
-                                <option value="">Todos (Proyectos y Mantenimientos)</option>
-                                <option value="proyectos">Sólo Proyectos</option>
-                                <option value="mantenimientos">Sólo Mantenimientos</option>
-                            </select>
+                                :options="[
+                                    { label: 'Todos (Proyectos y Mantenimientos)', value: '' },
+                                    { label: 'Sólo Proyectos', value: 'proyectos' },
+                                    { label: 'Sólo Mantenimientos', value: 'mantenimientos' }
+                                ]"
+                                class="w-full"
+                            />
                         </div>
                     </div>
                 </Card>

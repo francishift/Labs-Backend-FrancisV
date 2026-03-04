@@ -24,8 +24,8 @@ class PurchaseFacturaController extends Controller
         if ($request->has('search')) {
             $search = $request->get('search');
             $query->where(function($q) use ($search) {
-                $q->where('supplier_name', 'like', "%{$search}%")
-                  ->orWhere('invoice_id', 'like', "%{$search}%");
+                $q->where('provider_name', 'like', "%{$search}%")
+                  ->orWhere('number', 'like', "%{$search}%");
             });
         }
 

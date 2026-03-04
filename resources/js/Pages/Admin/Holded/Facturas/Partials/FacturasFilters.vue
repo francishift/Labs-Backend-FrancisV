@@ -4,11 +4,16 @@ import InputLabel from '@/Components/InputLabel.vue'
 import TextInput from '@/Components/TextInput.vue'
 import SelectInput from '@/Components/SelectInput.vue'
 import SearchInput from '@/Components/SearchInput.vue'
+import SearchableSelect from '@/Components/SearchableSelect.vue'
 import debounce from 'lodash/debounce'
 
 const props = defineProps({
     modelValue: Object,
-    search: String
+    search: String,
+    clients: {
+        type: Array,
+        default: () => []
+    }
 })
 
 const emit = defineEmits(['update:modelValue', 'update:search', 'change'])
@@ -20,6 +25,12 @@ const statusOptions = [
     { value: 'pendiente', label: 'Pendiente' },
     { value: 'parcial', label: 'Parcial' },
 ]
+
+import { computed } from 'vue'
+const clientsOptions = computed(() => [
+    { id: '', name: 'Todos los clientes' },
+    ...props.clients.map(client => ({ id: client, name: client }))
+])
 
 watch(() => props.modelValue, (newVal) => {
     Object.assign(filters, newVal)
@@ -64,6 +75,16 @@ const onSearchUpdate = (val) => {
                     class="mt-1 block w-full"
                     v-model="filters.status"
                     :options="statusOptions"
+                />
+            </div>
+            <div class="w-full sm:w-48 z-50">
+                <InputLabel for="client" value="Cliente" />
+                <SearchableSelect
+                    id="client"
+                    class="mt-1 block w-full"
+                    v-model="filters.client"
+                    :options="clientsOptions"
+                    placeholder="Todos los clientes"
                 />
             </div>
             <div class="w-full sm:w-64">

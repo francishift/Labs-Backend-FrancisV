@@ -60,18 +60,30 @@ class FacturaController extends Controller
                           ->where('raw_data->paymentsTotal', '>', 0);
                 }
             })
+            ->when(request('client'), function ($query, $client) {
+                $query->where('contact_name', $client);
+            })
             ->orderBy('date', 'desc')
             ->paginate(10)
             ->withQueryString();
 
+        $clients = Factura::select('contact_name')
+            ->distinct()
+            ->whereNotNull('contact_name')
+            ->where('contact_name', '!=', '')
+            ->orderBy('contact_name')
+            ->pluck('contact_name');
+
         return Inertia::render('Admin/Holded/Facturas/Index', [
             'facturas' => $facturas,
+            'clients' => $clients,
             'errorMessage' => $syncResult['error'] ?? null,
             'filters' => [
                 'start' => $start,
                 'end' => $end,
                 'search' => $request->input('search'),
                 'status' => $request->input('status'),
+                'client' => $request->input('client'),
             ],
         ]);
     }

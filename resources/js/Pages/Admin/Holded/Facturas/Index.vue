@@ -16,6 +16,7 @@ import FacturasTable from './Partials/FacturasTable.vue'
 const props = defineProps({
   facturas: Object,
   filters: Object,
+  clients: Array,
   errorMessage: String,
 })
 
@@ -24,6 +25,7 @@ const filters = reactive({
   start: props.filters.start,
   end: props.filters.end,
   status: props.filters.status,
+  client: props.filters.client || '',
 })
 
 import { watch } from 'vue'
@@ -31,6 +33,7 @@ watch(() => props.filters, (newFilters) => {
     filters.start = newFilters.start
     filters.end = newFilters.end
     filters.status = newFilters.status
+    filters.client = newFilters.client || ''
     search.value = newFilters.search || ''
 }, { deep: true })
 
@@ -106,6 +109,7 @@ const syncDrive = () => {
         <FacturasFilters 
             v-model="filters" 
             v-model:search="search"
+            :clients="clients"
             @change="onFilterChange"
         />
         

@@ -3,7 +3,7 @@ import { ref, watch } from 'vue'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Head, useForm, Link, router } from '@inertiajs/vue3'
 import pickBy from 'lodash/pickBy'
-import throttle from 'lodash/throttle'
+import debounce from 'lodash/debounce'
 import axios from 'axios'
 import Card from '@/Components/Card.vue'
 import PageHeader from '@/Components/PageHeader.vue'
@@ -14,6 +14,9 @@ import DangerButton from '@/Components/DangerButton.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import InputError from '@/Components/InputError.vue'
 import Pagination from '@/Components/Pagination.vue'
+import SearchInput from '@/Components/SearchInput.vue'
+import TextInput from '@/Components/TextInput.vue'
+import SearchableSelect from '@/Components/SearchableSelect.vue'
 import { PlusIcon, ArrowUpTrayIcon, DocumentTextIcon, EyeIcon, XMarkIcon, TrashIcon, ExclamationTriangleIcon, ChevronUpIcon, ChevronDownIcon, PencilSquareIcon } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
@@ -31,15 +34,21 @@ const filterForm = ref({
     direction: props.filters.direction || 'desc'
 })
 
+import { computed } from 'vue'
+const providersOptions = computed(() => [
+    { id: '', name: 'Todos los proveedores' },
+    ...props.providers.map(provider => ({ id: provider, name: provider }))
+])
+
 watch(
     filterForm,
-    throttle(function () {
+    debounce(function () {
         router.get(
             route('admin.purchase-facturas.index'),
             pickBy(filterForm.value),
-            { preserveState: true, replace: true }
+            { preserveState: true, preserveScroll: true, replace: true }
         )
-    }, 300),
+    }, 500),
     { deep: true }
 )
 
@@ -262,16 +271,14 @@ const viewPdf = (item) => {
     </template>
 
     <div class="py-6 space-y-6">
-      <Card class="p-4">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <Card class="p-4 sm:p-6 overflow-hidden">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <!-- Search -->
           <div class="space-y-1">
             <InputLabel for="search" value="Buscar (Nº o Proveedor)" />
-            <input 
+            <SearchInput
               id="search"
               v-model="filterForm.search"
-              type="text"
-              class="w-full bg-white dark:bg-zinc-950 border-gray-300 dark:border-zinc-800 text-gray-900 dark:text-zinc-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm"
               placeholder="Ej: 5477... o Google"
             />
           </div>
@@ -279,24 +286,23 @@ const viewPdf = (item) => {
           <!-- Provider Filter -->
           <div class="space-y-1">
             <InputLabel for="filter_provider" value="Proveedor" />
-            <input 
+            <SearchableSelect 
               id="filter_provider"
               v-model="filterForm.provider"
-              type="text"
-              list="providers_list"
+              :options="providersOptions"
               placeholder="Todos los proveedores"
-              class="w-full bg-white dark:bg-zinc-950 border-gray-300 dark:border-zinc-800 text-gray-900 dark:text-zinc-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+              class="w-full z-50"
             />
           </div>
 
           <!-- Date From -->
           <div class="space-y-1">
             <InputLabel for="date_from" value="Desde" />
-            <input 
+            <TextInput 
               id="date_from"
               v-model="filterForm.date_from"
               type="date"
-              class="w-full bg-white dark:bg-zinc-950 border-gray-300 dark:border-zinc-800 text-gray-900 dark:text-zinc-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm dark:[color-scheme:dark]"
+              class="w-full"
             />
           </div>
 
@@ -306,17 +312,15 @@ const viewPdf = (item) => {
                 <InputLabel for="date_to" value="Hasta" />
                 <button @click="resetFilters" class="text-xs text-gray-400 hover:text-emerald-500 transition-colors">Limpiar todos</button>
             </div>
-            <input 
+            <TextInput 
               id="date_to"
               v-model="filterForm.date_to"
               type="date"
-              class="w-full bg-white dark:bg-zinc-950 border-gray-300 dark:border-zinc-800 text-gray-900 dark:text-zinc-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm dark:[color-scheme:dark]"
+              class="w-full"
             />
           </div>
         </div>
-      </Card>
 
-      <Card class="overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-sm text-left border-collapse">
             <thead>
@@ -747,10 +751,5 @@ const viewPdf = (item) => {
         </PrimaryButton>
       </template>
     </DialogModal>
-
-    <!-- Global Provider Datalist for Sugesstions -->
-    <datalist id="providers_list">
-      <option v-for="provider in providers" :key="provider" :value="provider" />
-    </datalist>
   </AuthenticatedLayout>
 </template>
