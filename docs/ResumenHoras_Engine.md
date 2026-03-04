@@ -26,8 +26,9 @@ Para los Tests en CI/CD o locales, en `ResumenHoraTest.php` se forza la simulaci
 `\Carbon\Carbon::setTestNow(\Carbon\Carbon::create(2024, 6, 15));`
 Con esto, nos aseguraremos estructuralmente de testear que para el mes 6 de un Mantenimiento Activo de 200€, el render devuelva matemáticamente $1.200 (200€ x 6 meses).
 
-## Layout UI Responsivo (StatCards)
+## Layout UI Responsivo (StatCards y Filtros)
 Todos los módulos de analítica superior (Resumen Horas, Proyectos y Mantenimientos) comparten una directriz estandarizada estéticamente para unificar toda la interfaz visual de Laravel admin:
 - Tipografía estricta unificada (`small-value="true"` en todos los `<StatCard>`).
 - Rejilla adaptativa personalizada que salta al formato escritorio/4 columnas **únicamente en pantallas amplias (Tailwind `2xl` > 1536px)** (`grid-cols-1 md:grid-cols-2 2xl:grid-cols-X`) para salvaguardar el diseño del dashboard en resoluciones intermedias de laptops y tablets grandes, previniendo el desbordamiento u "aplastamiento" del flexbox.
+- **Filtros Unificados**: Las cabeceras de filtros de `Resumen Horas` respetan matemáticamente la misma jerarquía y proporciones base de los bloques de `Facturas` (`<Card class="p-4 sm:p-6 !overflow-visible relative z-20">` con un Grid interno de `gap-4`). No existen fondos de color quemados directamente en las vistas, se delegan a los componentes Vue `SelectInput` y `SearchInput` para respetar el tema centralizado.
 - El módulo Resumen mantiene scroll lateral seguro `overflow-x-auto` en dispositivos móviles.

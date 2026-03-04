@@ -124,7 +124,9 @@ Para garantizar que el panel web y los PDFs exportados muestren datos idénticos
 - **Compatibilidad**: Optimizado para móviles y Safari.
 
 ### 7.2 Componentes Reutilizables
-- **Debounced Search**: Búsqueda global con 300ms de espera.
+- **Buscadores (SearchInput)**: Diseño estandarizado globalmente con icono de lupa insertado a la izquierda.
+- **Debounced Search**: Búsqueda global obligatoriamente controlada por `debounce` con 500ms de espera. **Estrictamente prohibido asignar `throttle` a los inputs**, ya que interrumpe e interfiere con el tecleo del usuario al lanzar refrescos antes de terminar de escribir.
+- **Selects y Filtros**: Las tarjetas `<Card>` de filtros deben fusionarse con el layout usando el espaciado predeterminado y sin forzar fondos negros duros, heredando el estilo del componente base (`SearchableSelect` y `SelectInput`).
 - **DataTable**: Componente agnóstico para listados.
 - **Flash Messages**: Notificaciones con soporte para HTML.
 
@@ -139,4 +141,4 @@ Para garantizar que el panel web y los PDFs exportados muestren datos idénticos
 - Política estricta de carga ansiosa en todos los controladores para eliminar consultas N+1. Uso de `->with([...])` en listados y analíticas.
 
 ---
-*Documentación actualizada el 16/02/2026*
+*Documentación actualizada el 04/03/2026*
