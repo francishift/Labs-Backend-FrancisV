@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Head, useForm, router } from '@inertiajs/vue3'
 import PrimaryButton from '@/Components/PrimaryButton.vue'
@@ -22,6 +22,7 @@ import { PencilIcon, TrashIcon, PlusIcon, ClockIcon } from '@heroicons/vue/24/ou
 
 import { useFormatters } from '@/Composables/useFormatters'
 import { useCRUDModals } from '@/Composables/useCRUDModals'
+import { formatDateForInput, getTodayDate } from '@/Utils/date'
 
 const props = defineProps({
   notas: Object,
@@ -55,7 +56,7 @@ const form = useForm({
     fecha: '',
     hora: '',
     comentario: '',
-    notificacion_minutos_antes: -1,
+    notificacion_minutos_antes: 0,
 })
 
 const formOptions = [
@@ -67,6 +68,38 @@ const formOptions = [
     { value: 60, label: '1 Hora antes' },
     { value: 1440, label: '1 Día antes' },
 ]
+
+const minDate = computed(() => {
+    if (form.notificacion_minutos_antes != -1) {
+        return getTodayDate();
+    }
+    return undefined;
+});
+
+const minTime = computed(() => {
+    if (form.notificacion_minutos_antes != -1 && form.fecha === getTodayDate()) {
+        const now = new Date();
+        return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    }
+    return undefined;
+});
+
+// Watch para limpiar fecha/hora si se selecciona notificación y los valores son del pasado
+watch(() => form.notificacion_minutos_antes, (newVal) => {
+    if (newVal != -1) {
+        const today = getTodayDate();
+        if (form.fecha && form.fecha < today) {
+            form.fecha = today; // restablecer a la fecha mínima válida
+        }
+        if (form.fecha === today && form.hora) {
+            const now = new Date();
+            const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            if (form.hora < currentTime) {
+                form.hora = currentTime;
+            }
+        }
+    }
+});
 
 const columns = [
   { key: 'comentario', label: 'Comentario' },
@@ -81,7 +114,7 @@ const openCreate = () => {
     form.fecha = ''
     form.hora = ''
     form.comentario = ''
-    form.notificacion_minutos_antes = -1
+    form.notificacion_minutos_antes = 0
     openCreateModal()
 }
 
@@ -198,6 +231,7 @@ const performDelete = () => {
                         type="date"
                         class="mt-1 block w-full"
                         v-model="form.fecha"
+                        :min="minDate"
                     />
                     <InputError class="mt-2" :message="form.errors.fecha" />
                 </div>
@@ -208,6 +242,7 @@ const performDelete = () => {
                         type="time"
                         class="mt-1 block w-full"
                         v-model="form.hora"
+                        :min="minTime"
                     />
                     <InputError class="mt-2" :message="form.errors.hora" />
                 </div>

@@ -30,6 +30,7 @@ class VpnDevice extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'last_connected_at' => 'datetime',
+        'last_handshake_at' => 'datetime',
     ];
 
     public function user()

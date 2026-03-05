@@ -18,7 +18,9 @@ El sistema se basa en el estándar WebPush, utilizando:
 ### 2.1 Modelo y Rutas
 - El modelo `User` incluye el trait `HasPushSubscriptions`.
 - Las suscripciones se generan en el frontend y se envían a `/admin/push-subscriptions` (gestionado por `PushSubscriptionController@store`).
-- Las notas se guardan con una `fecha`, `hora`, y una opción configurable de `notificacion_minutos_antes` (-1, 0, 1, 5, 15, 60, 1440). Si es `-1` significa "Sin notificación".
+- Las notas se guardan con una `fecha`, `hora`, y una opción configurable de `notificacion_minutos_antes` (-1, 0, 1, 5, 15, 60, 1440). 
+- Si un usuario programa una notificación distinta a `-1` (Sin notificación), el `StoreNotaRequest` en el backend rechaza explícitamente cualquier combinación de fecha/hora que pertenezca al pasado.
+- Por defecto al crear una nota nueva, el sistema preselecciona la opción "A la hora indicada" (`0`), priorizando el uso de las notificaciones como herramienta estándar de recordatorio.
 
 ### 2.2 Tarea Programada (CRON)
 El comando `php artisan notas:send-reminders` (`app/Console/Commands/SendNotaRecordatorios.php`) se ejecuta cada minuto mediante `routes/console.php`.

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Nota;
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreNotaRequest;
 use Inertia\Inertia;
 
 class NotaController extends Controller
@@ -17,18 +18,9 @@ class NotaController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreNotaRequest $request)
     {
-        if ($request->has('hora') && strlen($request->hora) > 5) {
-            $request->merge(['hora' => substr($request->hora, 0, 5)]);
-        }
-
-        $validated = $request->validate([
-            'fecha' => 'required|date',
-            'hora' => 'required|date_format:H:i',
-            'comentario' => 'required|string',
-            'notificacion_minutos_antes' => 'required|integer|min:-1',
-        ]);
+        $validated = $request->validated();
 
         auth()->user()->notas()->create($validated);
 
@@ -46,22 +38,13 @@ class NotaController extends Controller
         ]);
     }
 
-    public function update(Request $request, Nota $nota)
+    public function update(StoreNotaRequest $request, Nota $nota)
     {
         if ($nota->user_id !== auth()->id()) {
             abort(403);
         }
 
-        if ($request->has('hora') && strlen($request->hora) > 5) {
-            $request->merge(['hora' => substr($request->hora, 0, 5)]);
-        }
-
-        $validated = $request->validate([
-            'fecha' => 'required|date',
-            'hora' => 'required|date_format:H:i',
-            'comentario' => 'required|string',
-            'notificacion_minutos_antes' => 'required|integer|min:-1',
-        ]);
+        $validated = $request->validated();
 
         // Resetear notificado si cambian la hora u opciones de notificación
         if ($nota->fecha != $validated['fecha'] || 
