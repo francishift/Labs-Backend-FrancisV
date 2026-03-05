@@ -68,12 +68,18 @@ class Client extends Model
     /**
      * Obtiene los datos del Top 10 clientes por valor anualizado (Proyectos + Mantenimientos).
      */
-    public static function getAnnualValueDataForChart()
+    public static function getAnnualValueDataForChart($year = null)
     {
+        $year = $year ?: date('Y');
         $clientesData = [];
 
-        // Proyectos activos
+        // Proyectos activos o finalizados este año
         Proyecto::where('estado', 'En proceso')
+            ->orWhere(function ($q) use ($year) {
+                // Se consideran solo los finalizados en este año
+                $q->where('estado', 'Finalizado')
+                  ->whereYear('fecha_fin', $year);
+            })
             ->with(['client:id,name', 'extensiones:id,nombre']) // Cargar relaciones necesarias
             ->get()
             ->each(function ($p) use (&$clientesData) {

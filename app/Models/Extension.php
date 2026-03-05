@@ -25,6 +25,7 @@ class Extension extends Model
         'descripcion',
         'precio',
         'tipo_licencia',
+        'estado',
     ];
 
     protected $casts = [
@@ -42,53 +43,48 @@ class Extension extends Model
     }
 
     /**
-     * Obtiene estadísticas financieras (repercutido) de extensiones y software para el dashboard.
+     * Obtiene estadísticas de uso de las extensiones para el dashboard.
+     * 
+     * Calcula en cuántos proyectos y mantenimientos activos (o finalizados en el año en curso) 
+     * se está utilizando cada extensión, evitando problemas de N+1 mediante el uso de withCount().
+     *
+     * @param string|null $year Año para el filtrado, por defecto el actual.
+     * @return array
      */
-    public static function getFinancialStatsForChart($year = null)
+    public static function getUsageStatsForChart($year = null)
     {
         $year = $year ?: date('Y');
-        
-        $proyectos = Proyecto::active()
-            ->orWhere(fn($q) => $q->finishedThisYear($year))
-            ->with('extensiones')
-            ->get();
-            
-        $mantenimientos = Mantenimiento::active()
-            ->orWhere(fn($q) => $q->finishedThisYear($year))
-            ->with(['extensiones', 'precios'])
-            ->get();
-            
-        $results = [];
-        $totalSoftware = 0;
-        
-        foreach ($proyectos as $p) {
-            foreach ($p->extensiones as $ext) {
-                $valor = (float) ($ext->pivot->precio_aplicado ?? $ext->precio);
-                $results[$ext->nombre] = ($results[$ext->nombre] ?? 0) + $valor;
+
+        // Contamos las relaciones en la propia consulta de BD. 
+        // Condicionamos el conteo a proyectos y mantenimientos bajo los mismos criterios
+        // que antes: que estén activos o que hayan finalizado en el año provisto.
+        $extensiones = self::withCount([
+            'proyectos' => function ($query) use ($year) {
+                $query->active()->orWhere(fn($q) => $q->finishedThisYear($year));
+            },
+            'mantenimientos' => function ($query) use ($year) {
+                $query->active()->orWhere(fn($q) => $q->finishedThisYear($year));
             }
-            $totalSoftware += ($p->coste_software_anual * $p->porcentaje_software) / 100;
-        }
-        
-        foreach ($mantenimientos as $m) {
-            foreach ($m->extensiones as $ext) {
-                $valor = (float) ($ext->pivot->precio_aplicado ?? $ext->precio);
-                $results[$ext->nombre] = ($results[$ext->nombre] ?? 0) + $valor;
+        ])->get();
+
+        $results = $extensiones->map(function ($ext) {
+            $totalUsos = $ext->proyectos_count + $ext->mantenimientos_count;
+
+            // Solo incluimos la extensión si tiene al menos 1 uso
+            if ($totalUsos > 0) {
+                return [
+                    'name' => $ext->nombre,
+                    'value' => $totalUsos,
+                ];
             }
-            $totalSoftware += ($m->coste_software_anual * $m->porcentaje_software) / 100;
-        }
-        
-        if ($totalSoftware > 0) {
-            $results['Software/Hosting'] = $totalSoftware;
-        }
-        
-        return collect($results)
-            ->map(fn($val, $key) => [
-                'name' => $key,
-                'value' => round($val, 2)
-            ])
-            ->sortByDesc('value')
-            ->values()
-            ->all();
+            return null;
+        })
+        ->filter()
+        ->sortByDesc('value')
+        ->values()
+        ->all();
+
+        return $results;
     }
 
     /**

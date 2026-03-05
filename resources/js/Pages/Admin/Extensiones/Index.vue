@@ -41,6 +41,7 @@ const columns = [
   { key: 'nombre', label: 'Nombre' },
   { key: 'url', label: 'URL', align: 'center' },
   { key: 'tipo_licencia', label: 'Licencia' },
+  { key: 'estado', label: 'Estado', align: 'center' },
   { key: 'descripcion', label: 'Descripción' },
   { key: 'precio', label: 'Precio' },
   { key: 'actions', label: 'Acciones', align: 'right' },
@@ -125,6 +126,9 @@ const destroyExtension = () => {
               </template>
               <template #cell-tipo_licencia="{ item }">
                 <Badge variant="zinc">{{ item.tipo_licencia }}</Badge>
+              </template>
+              <template #cell-estado="{ item }">
+                <Badge :variant="item.estado === 'Activada' ? 'green' : 'red'">{{ item.estado }}</Badge>
               </template>
               <template #cell-descripcion="{ item }">
                 <span class="text-sm text-gray-500 dark:text-zinc-400 line-clamp-1" :title="item.descripcion">

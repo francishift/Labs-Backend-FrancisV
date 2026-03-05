@@ -33,6 +33,7 @@ El sistema utiliza un modelo de **Costo Compartido** para repercutir los gastos 
 ### 2.2 Extensiones y Herramientas
 - **Repositorio**: Inventario de plugins, temas o herramientas específicas.
 - **Precio Aplicado**: Al vincular una extensión, el sistema copia su precio actual a la relación (`pivot`). Esto permite subir el precio global de una extensión sin afectar a lo ya facturado a clientes antiguos.
+- **Documentación Completa**: Lee la [Gestión de Extensiones](gestion-extensiones.md) para más detalles técnicos sobre el uso y las analíticas de Dashboard.
 
 ---
 

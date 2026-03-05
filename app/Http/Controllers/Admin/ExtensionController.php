@@ -11,10 +11,17 @@ use Inertia\Inertia;
 
 class ExtensionController extends Controller
 {
+    /**
+     * Muestra el listado paginado de extensiones.
+     * Incluye buscador global y estadísticas agregadas.
+     *
+     * @param Request $request
+     * @return \Inertia\Response
+     */
     public function index(Request $request)
     {
         $extensiones = Extension::query()
-            ->select(['id', 'nombre', 'descripcion', 'url', 'precio', 'tipo_licencia'])
+            ->select(['id', 'nombre', 'descripcion', 'url', 'precio', 'tipo_licencia', 'estado'])
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('nombre', 'like', "%{$search}%")
@@ -35,6 +42,12 @@ class ExtensionController extends Controller
         ]);
     }
 
+    /**
+     * Almacena una nueva extensión en la base de datos.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -43,6 +56,7 @@ class ExtensionController extends Controller
             'descripcion' => 'nullable|string',
             'precio' => 'required|numeric|min:0',
             'tipo_licencia' => 'required|in:Anual,Mensual,Pago único',
+            'estado' => 'required|in:Activada,Cancelada',
         ]);
 
         Extension::create($data);
@@ -50,6 +64,13 @@ class ExtensionController extends Controller
         return back()->with('success', 'Extensión creada correctamente.');
     }
 
+    /**
+     * Actualiza los datos de una extensión existente.
+     *
+     * @param Request $request
+     * @param Extension $extensione
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function update(Request $request, Extension $extensione)
     {
         $data = $request->validate([
@@ -57,6 +78,8 @@ class ExtensionController extends Controller
             'url' => 'nullable|url|max:255',
             'descripcion' => 'nullable|string',
             'precio' => 'required|numeric|min:0',
+            'tipo_licencia' => 'required|in:Anual,Mensual,Pago único',
+            'estado' => 'required|in:Activada,Cancelada',
         ]);
 
         $extensione->update($data);
@@ -64,6 +87,12 @@ class ExtensionController extends Controller
         return back()->with('success', 'Extensión actualizada correctamente.');
     }
 
+    /**
+     * Elimina una extensión específica (Soft Delete).
+     *
+     * @param Extension $extensione
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function destroy(Extension $extensione)
     {
         $extensione->delete();

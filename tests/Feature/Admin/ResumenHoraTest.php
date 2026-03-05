@@ -64,22 +64,22 @@ class ResumenHoraTest extends TestCase
             'precio_hora' => null,
         ]);
 
-        // En este punto, el motor pasivo genera 6 meses obligatorios (Enero a Junio) para el mantenimiento
-        // Mantenimiento de 200€ x 6 meses = 1200€. Proyecto único = 1000€. Total = 2200€.
+        // En este punto, el motor pasivo genera 12 meses obligatorios para el mantenimiento
+        // Mantenimiento de 200€ x 12 meses = 2400€. Proyecto único = 1000€. Total = 3400€.
 
         $response = $this->actingAs($user)->get(route('admin.resumen-horas.index', ['year' => 2024]));
 
         $response->assertStatus(200);
         $response->assertInertia(fn (Assert $page) => $page
             ->component('Admin/Horas/Index')
-            ->has('resumenMensual', 6) // Debe haber 6 meses instanciados por el mantenimiento pasivo
+            ->has('resumenMensual', 12) // Debe haber 12 meses instanciados por el mantenimiento pasivo (proyección)
             ->has('stats', fn (Assert $stats) => $stats
                 ->where('total_horas', 3) // 120m + 60m = 3 horas generadas en el mes 6
                 ->where('total_importe_horas', 145) // (2h * €50) + (1h * €45) = 145
                 ->where('total_proyectos', 1000)
-                ->where('total_mantenimientos', 1200) // 200€ al mes x 6 meses
-                ->where('total_facturado', 2200) 
-                ->where('promedio_mensual_facturado', round(2200 / 6, 2))
+                ->where('total_mantenimientos', 2400) // 200€ al mes x 12 meses
+                ->where('total_facturado', 3400) 
+                ->where('promedio_mensual_facturado', round(3400 / 12, 2))
             )
         );
 
@@ -104,8 +104,8 @@ class ResumenHoraTest extends TestCase
                 ->where('total_horas', 1) 
                 ->where('total_importe_horas', 45)
                 ->where('total_proyectos', 0)
-                ->where('total_mantenimientos', 1200) // 200€ al mes x 6 meses
-                ->where('total_facturado', 1200)
+                ->where('total_mantenimientos', 2400) // 200€ al mes x 12 meses
+                ->where('total_facturado', 2400)
                 ->etc()
             )
         );
@@ -117,8 +117,8 @@ class ResumenHoraTest extends TestCase
                 ->where('total_horas', 3) 
                 ->where('total_importe_horas', 145)
                 ->where('total_proyectos', 1000)
-                ->where('total_mantenimientos', 1200)
-                ->where('total_facturado', 2200)
+                ->where('total_mantenimientos', 2400)
+                ->where('total_facturado', 3400)
                 ->etc()
             )
         );

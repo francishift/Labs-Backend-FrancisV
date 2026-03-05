@@ -99,6 +99,18 @@ class ResumenHoraController extends Controller
                 
             // Obtener contratos activos para calcular los ingresos fijos pasivos mes a mes
             $mantenimientosContratos = \App\Models\Mantenimiento::with('precios')
+                ->where(function ($q) use ($year) {
+                    $startOfYear = "$year-01-01";
+                    $endOfYear = "$year-12-31";
+                     
+                    $q->where(function($sub) use ($endOfYear) {
+                        $sub->whereNull('fecha_inicio')
+                            ->orWhere('fecha_inicio', '<=', $endOfYear);
+                    })->where(function($sub) use ($startOfYear) {
+                        $sub->whereNull('fecha_fin')
+                            ->orWhere('fecha_fin', '>=', $startOfYear);
+                    });
+                })
                 ->when($clientId, function ($query, $clientId) {
                     $query->where('client_id', $clientId);
                 })->get();
@@ -109,9 +121,7 @@ class ResumenHoraController extends Controller
         // Combinar y preparar iteración de meses
         $todos = $serviciosProyecto->concat($serviciosMantenimiento);
         
-        $currentYear = now()->year;
-        $maxMonth = ($year === $currentYear) ? now()->month : 12;
-        if ($year > $currentYear) $maxMonth = 12;
+        $maxMonth = 12; // Siempre mostrar los 12 meses para proyecciones y consultar el histórico completo
 
         $resumenMensual = collect();
 
@@ -148,7 +158,7 @@ class ResumenHoraController extends Controller
             }
         }
         
-        $resumenMensual = $resumenMensual->sortByDesc('mes')->values();
+        $resumenMensual = $resumenMensual->sortBy('mes')->values();
 
         // Estadísticas anuales
         $totalFacturadoAnual = $resumenMensual->sum('total_facturado');

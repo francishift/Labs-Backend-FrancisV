@@ -20,7 +20,7 @@ const props = defineProps({
     filters: Object
 });
 
-// Calculate array of years (from 2026 to current + 1 or at least 2026-2027)
+// Calcular arreglo de años (desde 2026 al año actual + 1, o al menos 2026-2027)
 const currentYear = new Date().getFullYear();
 const yearsOptions = Array.from({length: Math.max(2, (currentYear + 2) - 2026)}, (_, i) => {
     const y = 2026 + i;
@@ -33,7 +33,7 @@ const filterForm = ref({
     tipo_servicio: props.filters?.tipo_servicio || ''
 });
 
-// Reactive Filtering
+// Filtrado Reactivo
 watch(
     filterForm,
     debounce(function () {
@@ -100,7 +100,7 @@ const tableColumns = [
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
                 
-                <!-- Filters Section -->
+                <!-- Sección de Filtros -->
                 <Card class="p-4 sm:p-6 !overflow-visible relative z-20">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <!-- Select: Año -->
@@ -146,10 +146,10 @@ const tableColumns = [
                     </div>
                 </Card>
                 
-                <!-- Stats Grid using StatCard component -->
+                <!-- Cuadrícula de Estadísticas usando el componente StatCard -->
                 <div class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-6">
                     <StatCard 
-                        title="Importe Proy + Mant"
+                        title="Proyectos + Previsto Mant."
                         :value="stats.total_facturado"
                         :icon="BanknotesIcon"
                         variant="emerald"
@@ -176,7 +176,7 @@ const tableColumns = [
                         :small-value="true"
                     />
                     <StatCard 
-                        title="Costo (Horas)"
+                        title=" Horas (€) Proy. y Mant."
                         :value="stats.total_importe_horas"
                         :icon="ClockIcon"
                         variant="zinc"
@@ -193,7 +193,7 @@ const tableColumns = [
                     />
                 </div>
 
-                <!-- Monthly Accordion List -->
+                <!-- Lista de Acordeón Mensual -->
                 <div class="bg-white dark:bg-zinc-900 overflow-hidden shadow-sm sm:rounded-lg border border-zinc-200 dark:border-zinc-800">
                     <div class="p-6 text-zinc-900 dark:text-zinc-100">
                         <h3 class="text-lg font-medium mb-4">Desglose Mensual</h3>
@@ -254,7 +254,7 @@ const tableColumns = [
                                             <span class="text-gray-600 dark:text-zinc-400 whitespace-nowrap">{{ item.fecha }}</span>
                                         </template>
                                         <template #cell-tipo="{ item }">
-                                            <Badge :variant="item.tipo === 'Proyecto' ? 'blue' : 'indigo'">
+                                            <Badge :variant="item.tipo === 'Proyecto' ? 'blue' : 'amber'">
                                                 {{ item.tipo }}
                                             </Badge>
                                         </template>

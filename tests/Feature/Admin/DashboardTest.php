@@ -40,6 +40,15 @@ class DashboardTest extends TestCase
             'estado' => 'en curso'
         ]);
 
+        // Create a finished project for the current year
+        Proyecto::factory()->create([
+            'client_id' => $client->id,
+            'proyecto' => 'Finished Project',
+            'presupuesto' => 3000,
+            'estado' => 'Finalizado',
+            'fecha_fin' => now()->format('Y-m-d')
+        ]);
+
         $response = $this->actingAs($user)->get('/dashboard');
 
         $response->assertStatus(200);
@@ -55,7 +64,8 @@ class DashboardTest extends TestCase
             ->has('charts.valor_por_cliente', 1)
             ->has('charts.valor_por_cliente.0', fn (Assert $item) => $item
                 ->where('name', 'Test Client')
-                ->where('value', 5000 + (200 * 10))
+                // 5000 (En proceso) + 3000 (Finalizado este año) + (200 * 10) (Mantenimiento anualizado desde el mes actual - marzo=10 meses)
+                ->where('value', fn ($val) => $val === 5000 + 3000 + (200 * 10)) 
             )
         );
     }

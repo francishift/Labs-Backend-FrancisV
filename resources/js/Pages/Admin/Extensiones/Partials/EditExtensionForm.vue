@@ -19,12 +19,18 @@ const form = useForm({
   descripcion: '',
   precio: 0,
   tipo_licencia: '',
+  estado: 'Activada',
 })
 
 const licenciaOptions = [
   { value: 'Anual', label: 'Anual' },
   { value: 'Mensual', label: 'Mensual' },
   { value: 'Pago único', label: 'Pago único' },
+]
+
+const estadoOptions = [
+  { value: 'Activada', label: 'Activada' },
+  { value: 'Cancelada', label: 'Cancelada' },
 ]
 
 watch(
@@ -36,6 +42,7 @@ watch(
       form.descripcion = ext.descripcion || ''
       form.precio = ext.precio
       form.tipo_licencia = ext.tipo_licencia || ''
+      form.estado = ext.estado || 'Activada'
     }
   },
   { immediate: true }
@@ -88,17 +95,32 @@ const submit = () => {
       <InputError :message="form.errors.descripcion" class="mt-2" />
     </div>
 
-    <div>
-      <InputLabel for="tipo_licencia_edit" value="Tipo de licencia" />
-      <SelectInput
-        id="tipo_licencia_edit"
-        v-model="form.tipo_licencia"
-        :options="licenciaOptions"
-        placeholder="Selecciona un tipo..."
-        class="mt-1 block w-full"
-        required
-      />
-      <InputError :message="form.errors.tipo_licencia" class="mt-2" />
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <InputLabel for="tipo_licencia_edit" value="Tipo de licencia" />
+        <SelectInput
+          id="tipo_licencia_edit"
+          v-model="form.tipo_licencia"
+          :options="licenciaOptions"
+          placeholder="Selecciona un tipo..."
+          class="mt-1 block w-full"
+          required
+        />
+        <InputError :message="form.errors.tipo_licencia" class="mt-2" />
+      </div>
+
+      <div>
+        <InputLabel for="estado_edit" value="Estado" />
+        <SelectInput
+          id="estado_edit"
+          v-model="form.estado"
+          :options="estadoOptions"
+          placeholder="Selecciona un estado..."
+          class="mt-1 block w-full"
+          required
+        />
+        <InputError :message="form.errors.estado" class="mt-2" />
+      </div>
     </div>
 
     <div>
