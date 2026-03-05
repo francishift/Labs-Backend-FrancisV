@@ -118,11 +118,11 @@ graph TD
 
 ## 📄 Documentación Adicional
 
-- [Sistema de Gestión de Facturas de Compra](docu/gestion-facturas-compras.md)
-- [Sistema Resiliente de Facturas de Ventas (Drive & BD Local)](docu/gestion-facturas-ventas.md)
-- [Gestión de VPN WireGuard](docu/VPN_DOCUMENTATION.md)
-- [Lógica de Negocio](docu/logic_negocio.md)
-- [Configuración de Backups en Google Drive](docu/setup-google-backups.md)
+- [Sistema de Gestión de Facturas de Compra](docs/gestion-facturas-compras.md)
+- [Sistema Resiliente de Facturas de Ventas (Drive & BD Local)](docs/gestion-facturas-ventas.md)
+- [Gestión de VPN WireGuard](docs/VPN_DOCUMENTATION.md)
+- [Lógica de Negocio](docs/logic_negocio.md)
+- [Configuración de Backups en Google Drive](docs/setup-google-backups.md)
 
 ---
 
@@ -201,11 +201,11 @@ graph TD
 
 ## 📄 Additional Documentation
 
-- [Purchase Invoices Management System](docu/gestion-facturas-compras.md)
-- [Resilient Sales Invoices Management (Drive & Local DB)](docu/gestion-facturas-ventas.md)
-- [WireGuard VPN Management](docu/VPN_DOCUMENTATION.md)
-- [Business Logic (Spanish)](docu/logic_negocio.md)
-- [Google Drive Backup Setup](docu/setup-google-backups.md)
+- [Purchase Invoices Management System](docs/gestion-facturas-compras.md)
+- [Resilient Sales Invoices Management (Drive & Local DB)](docs/gestion-facturas-ventas.md)
+- [WireGuard VPN Management](docs/VPN_DOCUMENTATION.md)
+- [Business Logic (Spanish)](docs/logic_negocio.md)
+- [Google Drive Backup Setup](docs/setup-google-backups.md)
 
 ---
 
