@@ -17,7 +17,11 @@ import Pagination from '@/Components/Pagination.vue'
 import SearchInput from '@/Components/SearchInput.vue'
 import TextInput from '@/Components/TextInput.vue'
 import SearchableSelect from '@/Components/SearchableSelect.vue'
-import { PlusIcon, ArrowUpTrayIcon, DocumentTextIcon, EyeIcon, XMarkIcon, TrashIcon, ExclamationTriangleIcon, ChevronUpIcon, ChevronDownIcon, PencilSquareIcon } from '@heroicons/vue/24/outline'
+import UploadFacturaModal from './Components/UploadFacturaModal.vue'
+import EditFacturaModal from './Components/EditFacturaModal.vue'
+import DeleteFacturaModal from './Components/DeleteFacturaModal.vue'
+import OverwriteFacturaModal from './Components/OverwriteFacturaModal.vue'
+import { PlusIcon, ArrowUpTrayIcon, EyeIcon, TrashIcon, ExclamationTriangleIcon, ChevronUpIcon, ChevronDownIcon, PencilSquareIcon } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
     facturas: Object,
@@ -75,163 +79,54 @@ const resetFilters = () => {
 }
 
 const showEditModal = ref(false)
-const editForm = useForm({
-    id: null,
-    number: '',
-    provider_name: '',
-    date: '',
-    total: 0,
-    net_amount: 0,
-    tax_amount: 0,
-    status: '',
-    notes: ''
-})
+const facturaToEdit = ref(null)
 
 const editFactura = (factura) => {
-    editForm.id = factura.id
-    editForm.number = factura.number
-    editForm.provider_name = factura.provider_name
-    editForm.date = factura.date ? new Date(factura.date).toISOString().split('T')[0] : ''
-    editForm.total = factura.total
-    editForm.net_amount = factura.net_amount
-    editForm.tax_amount = factura.tax_amount
-    editForm.status = factura.status
-    editForm.notes = factura.notes || ''
+    facturaToEdit.value = factura
     showEditModal.value = true
 }
 
-const submitEdit = () => {
-    editForm.put(route('admin.purchase-facturas.update', editForm.id), {
-        onSuccess: () => {
-            showEditModal.value = false
-            editForm.reset()
-        }
-    })
+const handleFacturaSaved = () => {
+    showEditModal.value = false
+    facturaToEdit.value = null
+    router.reload({ only: ['facturas'] })
 }
 
 const showUploadModal = ref(false)
-const fileInput = ref(null)
-const isDragging = ref(false)
 
-const selectedFiles = ref([])
-const form = useForm({
-    // cualquier otro campo si es necesario
-})
+const handleFacturasUploaded = () => {
+    showUploadModal.value = false
+    router.reload({ only: ['facturas'] })
+}
 
 const confirmingFacturaDeletion = ref(false)
 const facturaIdBeingDeleted = ref(null)
-const deleteForm = useForm({})
 
 const confirmFacturaDeletion = (id) => {
     facturaIdBeingDeleted.value = id
     confirmingFacturaDeletion.value = true
 }
 
+const handleFacturaDeleted = () => {
+    confirmingFacturaDeletion.value = false
+    facturaIdBeingDeleted.value = null
+}
+
 const confirmingOverwrite = ref(false)
 const facturaToOverwrite = ref(null)
-const overwriteForm = useForm({})
 
 const confirmOverwrite = (factura) => {
     facturaToOverwrite.value = factura
     confirmingOverwrite.value = true
 }
 
-const submitOverwrite = () => {
-    overwriteForm.post(route('admin.purchase-facturas.overwrite', facturaToOverwrite.value.id), {
-        onSuccess: () => {
-            confirmingOverwrite.value = false
-            facturaToOverwrite.value = null
-        }
-    })
-}
-
-const deleteFactura = () => {
-    deleteForm.delete(route('admin.purchase-facturas.destroy', facturaIdBeingDeleted.value), {
-        onSuccess: () => {
-             confirmingFacturaDeletion.value = false
-             facturaIdBeingDeleted.value = null
-        },
-        onError: () => {
-             confirmingFacturaDeletion.value = false
-             facturaIdBeingDeleted.value = null
-        }
-    })
+const handleFacturaOverwritten = () => {
+    confirmingOverwrite.value = false
+    facturaToOverwrite.value = null
 }
 
 const openUploadModal = () => {
     showUploadModal.value = true
-}
-
-const closeUploadModal = () => {
-    showUploadModal.value = false
-    selectedFiles.value = []
-    form.clearErrors()
-}
-
-const handleFileSelect = (e) => {
-    const files = Array.from(e.target.files).filter(file => file.type === 'application/pdf')
-    selectedFiles.value = [...selectedFiles.value, ...files]
-}
-
-const handleDrop = (e) => {
-    isDragging.value = false
-    const droppedFiles = Array.from(e.dataTransfer.files).filter(file => file.type === 'application/pdf')
-    selectedFiles.value = [...selectedFiles.value, ...droppedFiles]
-}
-
-const removeFile = (index) => {
-    selectedFiles.value.splice(index, 1)
-}
-
-const uploadProgress = ref([])
-const totalFiles = ref(0)
-const processedFiles = ref(0)
-const isUploading = ref(false)
-
-const submitUpload = async () => {
-    if (selectedFiles.value.length === 0) return
-    
-    isUploading.value = true
-    totalFiles.value = selectedFiles.value.length
-    processedFiles.value = 0
-    uploadProgress.value = selectedFiles.value.map(f => ({ name: f.name, status: 'pending', percentage: 0 }))
-
-    for (let i = 0; i < selectedFiles.value.length; i++) {
-        const file = selectedFiles.value[i]
-        uploadProgress.value[i].status = 'uploading'
-        
-        const formData = new FormData()
-        formData.append('file', file)
-
-        try {
-            const response = await axios.post(route('admin.purchase-facturas.store'), formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                },
-                onUploadProgress: (progressEvent) => {
-                    const percentage = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-                    uploadProgress.value[i].percentage = percentage
-                }
-            })
-
-            if (response.data.success) {
-                uploadProgress.value[i].status = 'done'
-                uploadProgress.value[i].percentage = 100
-                processedFiles.value++
-            } else {
-                uploadProgress.value[i].status = 'error'
-                uploadProgress.value[i].message = response.data.message || 'Error desconocido'
-            }
-        } catch (error) {
-            console.error('Upload error:', error)
-            uploadProgress.value[i].status = 'error'
-            uploadProgress.value[i].message = error.response?.data?.message || 'Error de servidor'
-        }
-    }
-
-    isUploading.value = false
-    selectedFiles.value = [] // Limpiar lista al finalizar
-    router.reload({ only: ['facturas'] })
 }
 
 const formatDate = (dateString) => {
@@ -446,310 +341,34 @@ const viewPdf = (item) => {
     </div>
 
     <!-- Modal de Subida -->
-    <DialogModal :show="showUploadModal" @close="closeUploadModal">
-      <template #title>
-        Subir factura de compra
-      </template>
+    <UploadFacturaModal
+      :show="showUploadModal"
+      @close="showUploadModal = false"
+      @uploaded="handleFacturasUploaded"
+    />
 
-      <template #content>
-        <div class="mt-4">
-          <p class="text-sm text-gray-500 dark:text-zinc-400 mb-4">
-            Arrastra una o varias facturas en formato PDF para que el sistema las procese y las guarde en Google Drive.
-          </p>
-          
-          <div class="mt-4 space-y-4">
-            <div>
-              <InputLabel for="file" value="Facturas (PDF)" />
-              <div 
-                class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors"
-                :class="[
-                  isDragging ? 'border-emerald-500 bg-emerald-500/5' : 'border-gray-300 dark:border-zinc-700 hover:border-emerald-500',
-                  form.errors.files ? 'border-red-500' : ''
-                ]"
-                @dragover.prevent="isDragging = true"
-                @dragleave.prevent="isDragging = false"
-                @drop.prevent="handleDrop"
-                @click="$refs.fileInput.click()"
-              >
-                <div class="space-y-1 text-center">
-                  <DocumentTextIcon class="mx-auto h-12 w-12" :class="isDragging ? 'text-emerald-500' : 'text-gray-400 dark:text-zinc-500'" />
-                  <div class="flex text-sm text-gray-500 dark:text-zinc-400">
-                    <span class="relative bg-transparent rounded-md font-medium text-emerald-600 dark:text-emerald-500 hover:text-emerald-500 dark:hover:text-emerald-400 focus-within:outline-none">
-                      Selecciona archivos o arrástralos aquí
-                    </span>
-                  </div>
-                  <p class="text-xs text-gray-500 dark:text-zinc-500">Solo archivos PDF hasta 10MB c/u</p>
-                </div>
-              </div>
-              <input 
-                ref="fileInput"
-                type="file"
-                class="hidden"
-                accept="application/pdf"
-                multiple
-                @change="handleFileSelect"
-              />
-              <InputError :message="form.errors.files" class="mt-2" />
-            </div>
-
-            <!-- Lista de archivos seleccionados -->
-            <div v-if="selectedFiles.length > 0" class="mt-4 border border-gray-200 dark:border-zinc-800 rounded-lg overflow-hidden">
-              <div class="bg-gray-50 dark:bg-zinc-800/50 px-4 py-2 text-xs font-semibold text-gray-600 dark:text-zinc-400 uppercase tracking-wider flex justify-between items-center border-b border-gray-200 dark:border-zinc-800">
-                <span>Archivos seleccionados ({{ selectedFiles.length }})</span>
-                <span v-if="isUploading" class="text-emerald-600 dark:text-emerald-400">{{ processedFiles }} / {{ totalFiles }} completados</span>
-              </div>
-              <ul class="divide-y divide-gray-200 dark:divide-zinc-800 max-h-64 overflow-y-auto custom-scrollbar">
-                <li v-for="(file, index) in selectedFiles" :key="index" class="px-4 py-3 flex flex-col space-y-2 text-sm">
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center text-gray-700 dark:text-zinc-300 truncate mr-4">
-                      <DocumentTextIcon class="h-4 w-4 mr-2 text-gray-400 dark:text-zinc-500 flex-shrink-0" />
-                      <span class="truncate" :title="file.name">{{ file.name }}</span>
-                      <span v-if="!isUploading" class="ml-2 text-xs text-gray-400 dark:text-zinc-500 flex-shrink-0">({{ (file.size / 1024 / 1024).toFixed(2) }} MB)</span>
-                    </div>
-                    
-                    <div class="flex items-center gap-2">
-                        <!-- Status indicators -->
-                        <span v-if="uploadProgress[index]?.status === 'done'" class="text-emerald-600 dark:text-emerald-500 text-xs font-bold uppercase">Listo</span>
-                        <span v-if="uploadProgress[index]?.status === 'error'" class="text-red-500 text-xs font-bold uppercase" :title="uploadProgress[index].message">Error</span>
-                        <span v-if="uploadProgress[index]?.status === 'uploading'" class="text-emerald-600 dark:text-emerald-400 text-xs animate-pulse">Procesando...</span>
-
-                        <button 
-                         v-if="!isUploading"
-                         @click.stop="removeFile(index)"
-                         class="text-gray-400 dark:text-zinc-500 hover:text-red-500 transition-colors"
-                       >
-                         <XMarkIcon class="h-4 w-4" />
-                       </button>
-                    </div>
-                  </div>
-
-                  <!-- Individual Progress Bar -->
-                  <div v-if="isUploading && uploadProgress[index]?.status === 'uploading'" class="w-full bg-gray-200 dark:bg-zinc-800 rounded-full h-1 overflow-hidden">
-                    <div 
-                      class="bg-emerald-600 dark:bg-emerald-500 h-full transition-all duration-300"
-                      :style="{ width: uploadProgress[index].percentage + '%' }"
-                    ></div>
-                  </div>
-                </li>
-              </ul>
-            </div>
-
-            <!-- Global Feedback -->
-            <div v-if="isUploading" class="mt-4 p-4 border border-emerald-100 dark:border-zinc-800 rounded-xl bg-emerald-50/30 dark:bg-zinc-900/50">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-xs font-medium text-gray-600 dark:text-zinc-400">Progreso total: {{ Math.round((processedFiles / totalFiles) * 100) }}%</span>
-                    <span class="text-xs text-emerald-600 dark:text-emerald-400 font-bold animate-pulse uppercase tracking-tighter">No cierres esta ventana</span>
-                </div>
-                <div class="w-full bg-gray-200 dark:bg-zinc-800 rounded-full h-2 overflow-hidden">
-                  <div 
-                    class="bg-emerald-600 dark:bg-emerald-500 h-full transition-all duration-500"
-                    :style="{ width: (processedFiles / totalFiles) * 100 + '%' }"
-                  ></div>
-                </div>
-            </div>
-          </div>
-        </div>
-      </template>
-
-      <template #footer>
-        <SecondaryButton @click="closeUploadModal" v-if="!isUploading">
-          Cerrar
-        </SecondaryButton>
-
-        <PrimaryButton 
-          class="ml-3" 
-          :class="{ 'opacity-25': isUploading }" 
-          :disabled="isUploading || selectedFiles.length === 0"
-          @click="submitUpload"
-        >
-          {{ isUploading ? 'Procesando cola...' : 'Subir facturas' }}
-        </PrimaryButton>
-      </template>
-    </DialogModal>
     <!-- Delete Confirmation Modal -->
-    <DialogModal :show="confirmingFacturaDeletion" @close="confirmingFacturaDeletion = false">
-      <template #title>
-        Eliminar Factura
-      </template>
-
-      <template #content>
-        <div class="text-gray-700 dark:text-zinc-300">
-          ¿Estás seguro de que quieres eliminar esta factura? Esta acción eliminará el registro de la base de datos y el archivo correspondiente en Google Drive de forma permanente.
-        </div>
-      </template>
-
-      <template #footer>
-        <SecondaryButton @click="confirmingFacturaDeletion = false">
-          Cancelar
-        </SecondaryButton>
-
-        <DangerButton
-          class="ml-3"
-          :class="{ 'opacity-25': deleteForm.processing }"
-          :disabled="deleteForm.processing"
-          @click="deleteFactura"
-        >
-          {{ deleteForm.processing ? 'Eliminando...' : 'Eliminar' }}
-        </DangerButton>
-      </template>
-    </DialogModal>
+    <DeleteFacturaModal
+      :show="confirmingFacturaDeletion"
+      :facturaId="facturaIdBeingDeleted"
+      @close="confirmingFacturaDeletion = false"
+      @deleted="handleFacturaDeleted"
+    />
 
     <!-- Overwrite Confirmation Modal -->
-    <DialogModal :show="confirmingOverwrite" @close="confirmingOverwrite = false">
-      <template #title>
-        Sustituir Factura Existente
-      </template>
-      <template #content>
-        <div class="flex items-start gap-4">
-          <div class="p-2 bg-amber-500/10 rounded-full">
-            <ExclamationTriangleIcon class="h-6 w-6 text-amber-500" />
-          </div>
-          <div>
-            <p class="text-sm text-gray-800 dark:text-zinc-300">
-              La factura <strong>{{ facturaToOverwrite?.raw_data?.intended_number || facturaToOverwrite?.number.replace('DUP-', '') }}</strong> ya está registrada en el sistema.
-            </p>
-            <p class="mt-2 text-sm text-gray-500 dark:text-zinc-400">
-              ¿Quieres sobreescribirla? Esta acción eliminará la versión anterior y conservará esta nueva subida.
-            </p>
-          </div>
-        </div>
-      </template>
-      <template #footer>
-        <SecondaryButton @click="confirmingOverwrite = false">
-          Cancelar
-        </SecondaryButton>
-        <PrimaryButton
-          class="ml-3 !bg-amber-600 hover:!bg-amber-700"
-          :class="{ 'opacity-25': overwriteForm.processing }"
-          :disabled="overwriteForm.processing"
-          @click="submitOverwrite"
-        >
-          {{ overwriteForm.processing ? 'Sustituyendo...' : 'Sí, sobreescribir' }}
-        </PrimaryButton>
-      </template>
-    </DialogModal>
+    <OverwriteFacturaModal
+      :show="confirmingOverwrite"
+      :factura="facturaToOverwrite"
+      @close="confirmingOverwrite = false"
+      @overwritten="handleFacturaOverwritten"
+    />
 
     <!-- Edit / Manual Review Modal -->
-    <DialogModal :show="showEditModal" @close="showEditModal = false">
-      <template #title>
-        Editar Factura / Revisión Manual
-      </template>
-
-      <template #content>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <div class="md:col-span-2">
-            <InputLabel for="edit_provider" value="Proveedor" />
-            <input 
-              id="edit_provider"
-              v-model="editForm.provider_name"
-              type="text"
-              list="providers_list"
-              class="w-full mt-1 bg-white dark:bg-zinc-950 border-gray-300 dark:border-zinc-800 text-gray-900 dark:text-zinc-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm"
-            />
-            <InputError :message="editForm.errors.provider_name" class="mt-2" />
-          </div>
-
-          <div>
-            <InputLabel for="edit_number" value="Número de Factura" />
-            <input 
-              id="edit_number"
-              v-model="editForm.number"
-              type="text"
-              class="w-full mt-1 bg-white dark:bg-zinc-950 border-gray-300 dark:border-zinc-800 text-gray-900 dark:text-zinc-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm"
-            />
-            <InputError :message="editForm.errors.number" class="mt-2" />
-          </div>
-
-          <div>
-            <InputLabel for="edit_date" value="Fecha" />
-            <input 
-              id="edit_date"
-              v-model="editForm.date"
-              type="date"
-              class="w-full mt-1 bg-white dark:bg-zinc-950 border-gray-300 dark:border-zinc-800 text-gray-900 dark:text-zinc-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm dark:[color-scheme:dark]"
-            />
-            <InputError :message="editForm.errors.date" class="mt-2" />
-          </div>
-
-          <div>
-            <InputLabel for="edit_net" value="Base Imponible (€)" />
-            <input 
-              id="edit_net"
-              v-model="editForm.net_amount"
-              type="number"
-              step="0.01"
-              class="w-full mt-1 bg-white dark:bg-zinc-950 border-gray-300 dark:border-zinc-800 text-gray-900 dark:text-zinc-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm"
-            />
-            <InputError :message="editForm.errors.net_amount" class="mt-2" />
-          </div>
-
-          <div>
-            <InputLabel for="edit_tax" value="IVA (€)" />
-            <input 
-              id="edit_tax"
-              v-model="editForm.tax_amount"
-              type="number"
-              step="0.01"
-              class="w-full mt-1 bg-white dark:bg-zinc-950 border-gray-300 dark:border-zinc-800 text-gray-900 dark:text-zinc-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm"
-            />
-            <InputError :message="editForm.errors.tax_amount" class="mt-2" />
-          </div>
-
-          <div>
-            <InputLabel for="edit_total" value="Total Factura (€)" />
-            <input 
-              id="edit_total"
-              v-model="editForm.total"
-              type="number"
-              step="0.01"
-              class="w-full mt-1 bg-white dark:bg-zinc-950 border-gray-300 dark:border-zinc-800 text-gray-900 dark:text-zinc-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm"
-            />
-            <InputError :message="editForm.errors.total" class="mt-2" />
-          </div>
-
-          <div>
-            <InputLabel for="edit_status" value="Estado" />
-            <select 
-              id="edit_status"
-              v-model="editForm.status"
-              class="w-full mt-1 bg-white dark:bg-zinc-950 border-gray-300 dark:border-zinc-800 text-gray-900 dark:text-zinc-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm"
-            >
-              <option value="recibida">Recibida</option>
-              <option value="pagado">Pagado</option>
-              <option value="procesando">Procesando</option>
-              <option value="duplicada">Duplicada</option>
-              <option value="error_ia">Error IA</option>
-            </select>
-            <InputError :message="editForm.errors.status" class="mt-2" />
-          </div>
-
-          <div class="md:col-span-2">
-            <InputLabel for="edit_notes" value="Notas / Observaciones" />
-            <textarea 
-              id="edit_notes"
-              v-model="editForm.notes"
-              rows="2"
-              class="w-full mt-1 bg-white dark:bg-zinc-950 border-gray-300 dark:border-zinc-800 text-gray-900 dark:text-zinc-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm"
-            ></textarea>
-            <InputError :message="editForm.errors.notes" class="mt-2" />
-          </div>
-        </div>
-      </template>
-
-      <template #footer>
-        <SecondaryButton @click="showEditModal = false">
-          Cancelar
-        </SecondaryButton>
-
-        <PrimaryButton
-          class="ml-3"
-          :class="{ 'opacity-25': editForm.processing }"
-          :disabled="editForm.processing"
-          @click="submitEdit"
-        >
-          {{ editForm.processing ? 'Guardando...' : 'Guardar Cambios' }}
-        </PrimaryButton>
-      </template>
-    </DialogModal>
+    <EditFacturaModal
+      :show="showEditModal"
+      :factura="facturaToEdit"
+      @close="showEditModal = false"
+      @saved="handleFacturaSaved"
+    />
   </AuthenticatedLayout>
 </template>

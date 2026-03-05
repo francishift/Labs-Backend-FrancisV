@@ -119,6 +119,7 @@ graph TD
 ## 📄 Documentación Adicional
 
 - [Sistema de Gestión de Facturas de Compra](docu/gestion-facturas-compras.md)
+- [Sistema de Facturas de Ventas (Holded)](docu/gestion-facturas-ventas.md)
 - [Gestión de VPN WireGuard](docu/VPN_DOCUMENTATION.md)
 - [Lógica de Negocio](docu/logic_negocio.md)
 - [Configuración de Backups en Google Drive](docu/setup-google-backups.md)
@@ -201,6 +202,7 @@ graph TD
 ## 📄 Additional Documentation
 
 - [Purchase Invoices Management System](docu/gestion-facturas-compras.md)
+- [Sales Invoices Management (Holded)](docu/gestion-facturas-ventas.md)
 - [WireGuard VPN Management](docu/VPN_DOCUMENTATION.md)
 - [Business Logic (Spanish)](docu/logic_negocio.md)
 - [Google Drive Backup Setup](docu/setup-google-backups.md)

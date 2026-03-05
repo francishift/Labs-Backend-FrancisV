@@ -35,11 +35,14 @@ class PurchaseFacturaController extends Controller
         }
 
         // Filtros de Fecha
-        if ($request->has('date_from') && !empty($request->get('date_from'))) {
-            $query->whereDate('date', '>=', $request->get('date_from'));
+        $dateFrom = $request->has('date_from') ? $request->get('date_from') : now()->startOfYear()->toDateString();
+        $dateTo = $request->has('date_to') ? $request->get('date_to') : now()->endOfYear()->toDateString();
+
+        if (!empty($dateFrom)) {
+            $query->whereDate('date', '>=', $dateFrom);
         }
-        if ($request->has('date_to') && !empty($request->get('date_to'))) {
-            $query->whereDate('date', '<=', $request->get('date_to'));
+        if (!empty($dateTo)) {
+            $query->whereDate('date', '<=', $dateTo);
         }
 
         // 4. Ordenación
@@ -67,8 +70,8 @@ class PurchaseFacturaController extends Controller
             'facturas' => $facturas,
             'providers' => $providers,
             'filters' => array_merge($request->only(['search', 'provider', 'sort', 'direction']), [
-                'date_from' => $request->input('date_from'),
-                'date_to' => $request->input('date_to'),
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
             ]),
         ]);
     }

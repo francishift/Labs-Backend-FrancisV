@@ -75,7 +75,7 @@ const destroySoftware = () => {
         <template #actions>
           <PrimaryButton type="button" @click="openCreateModal" class="flex items-center gap-2 w-full sm:w-auto">
             <PlusIcon class="h-4 w-4" />
-            Nuevo registro
+            Añadir nuevo
           </PrimaryButton>
         </template>
       </PageHeader>
