@@ -1,26 +1,24 @@
 # Gestión de Facturas de Ventas
 
-A diferencia de las **Facturas de Compras** (las cuales se suben en PDF y son procesadas localmente por Google Gemini AI), en *Labs Backend*, las **Facturas de Ventas** se manejan íntegramente de manera automática a través de la integración con el ERP externo **Holded**.
+A diferencia de las **Facturas de Compras** (las cuales se suben en PDF manualmente y son procesadas localmente por Google Gemini AI), en *Labs Backend*, las **Facturas de Ventas** operan mediante un sistema híbrido que prioriza la **independencia y resiliencia de los datos del negocio**.
 
-## 🔄 Flujo de Integración (Holded -> Labs Backend)
+## 🔄 Flujo de Integración y Sincronización Local
 
-La aplicación no emite facturas directamente ni mantiene un CRUD manual para ventas. El ciclo de vida de la facturación de ingresos está directamente vinculado a los **Proyectos** y **Mantenimientos**.
+El ciclo de vida de la facturación de ingresos inicia de manera asociada a los **Proyectos** y **Mantenimientos**, integrándose inicialmente con **Holded**, pero persistiendo localmente para evitar la dependencia a largo plazo.
 
-### 1. Proyectos
-Cuando se crea o gestiona un proyecto en Labs Backend, el sistema se sincroniza en tiempo real con Holded utilizando la API oficial (`HoldedApiService.php`).
+### 1. Sincronización a Base de Datos
+La aplicación cuenta con una tabla local de `facturas` (representada por el modelo `Factura.php`). A través de comandos y sincronizaciones mediante `HoldedApiService.php`, la información de las facturas emitidas (proveedor, fechas, importes, estado de pago) se guarda de manera persistente en la **base de datos de Labs Backend**.
+- **Independencia Analítica:** Los datos de ingresos de Proyectos y rentabilidad de Mantenimientos *recurrentes* pueden calcularse consultando las tablas locales, incluso si la conexión a Holded falla.
 
-- **Presupuestos y Facturas Profesionales:** La facturación se inicia en Holded generando un presupuesto.
-- **Vinculación:** En la interfaz del proyecto de Labs Backend, el usuario puede vincular directamente uno o varios presupuestos de Holded.
-- **Sincronización:** Una vez vinculado, el importe y el estado de dicho presupuesto influyen en la analítica financiera del proyecto (MRR y rentabilidad).
-- **Proactive Export:** A través de la vinculación, Labs Backend tiene la capacidad de acceder a la descarga de esos documentos PDF de Holded automáticamente sin salir de la plataforma.
+### 2. Respaldo Inmutable en Google Drive
+Uno de los componentes principales del área de facturación es la función `ensureInDrive` en el `FacturaController`.
+- **Descarga Mágica:** Cuando se visualiza o se sincroniza una factura, el backend descarga el PDF original provisto por Holded en formato base64.
+- **Upload Estructurado:** El sistema sube de manera automatizada este documento a la estructura de carpetas de Google Drive de la empresa (**.../{Año}/VENTAS/{Trimestre}tri/...**).
+- **Fallback Directo (El verdadero origen):** Cada vez que un usuario intenta leer o descargar el documento asociado a una factura en Labs Backend, **el sistema busca PRIMERO el archivo en Google Drive**. Si el enlace está vinculado, se sirve el archivo persistente desde Drive y no desde Holded.
 
-### 2. Mantenimientos
-Los servicios recurrentes (mensuales, semestrales, anuales) facturados a clientes funcionan como un reloj automático.
-- Cada contrato de mantenimiento está vinculado contablemente a los contactos sincronizados de Holded.
-- El sistema es capaz de generar informes proactivos en PDF de la rentabilidad anual, incluyendo historial de precios inmutables, pero la emisión oficial de la factura recurrente se delega en Holded.
+### Ventajas de esta Arquitectura
 
-## 🚀 Almacenamiento Resiliente (Google Drive)
+1. **Supervivencia "Day-After":** Si el día de mañana la empresa decide migrar de Holded o el servicio de Holded deja de estar activo, **Labs Backend seguirá funcionando sin interrupciones**. Todas las facturas de ventas estarán a salvo, estructuradas trimestre a trimestre en Drive y listadas operativamente en la base de datos MySQL local.
+2. **Eficiencia en Búsquedas:** No es necesario solicitar documentos por API cada vez que un usuario pide ver el PDF, agilizando los tiempos de carga en las pantallas de proyectos al proveer el Stream directamente desde Google Drive local.
 
-Aunque la emisión se realiza en Holded, Labs Backend incorpora un sistema de resiliencia documental. Si se configura, los documentos PDF relacionados con facturación de ventas (por ejemplo, aquellos asociados a presupuestos de proyectos ganados) pueden ser respaldados automáticamente en la estructura de carpetas de Google Drive de la empresa (**.../VENTAS/1tri/...**).
-
-Para más información, revisar la lógica de negocio en `docu/logic_negocio.md` y `docu/setup-google-backups.md`.
+Para más detalles técnicos, véase la implementación en `app/Http/Controllers/Admin/Holded/FacturaController.php`.
