@@ -23,6 +23,41 @@ const toggleDarkMode = () => {
 onMounted(() => {
     isDark.value = localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
     document.documentElement.classList.toggle('dark', isDark.value);
+
+    // Sistema Robusto de Enrutamiento para iOS PWA (V9: Cache + Visibility Event)
+    const checkPendingNavigation = async () => {
+        try {
+            const cache = await caches.open('pwa-routing');
+            const response = await cache.match('/pending-route');
+            if (response) {
+                const targetUrl = await response.text();
+                await cache.delete('/pending-route'); // Consumir y borrar
+                
+                if (targetUrl) {
+                    const currentPath = window.location.pathname;
+                    const targetPath = new URL(targetUrl, window.location.origin).pathname;
+                    
+                    if (currentPath !== targetPath) {
+                        router.visit(targetUrl);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("PWA Routing error: ", error);
+        }
+    };
+
+    // Disparador al volver la app al primer plano (iOS Unfreeze)
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+            // Un pequeño retraso crítico para asegurar que Vue/Inertia
+            // está completamente listo para enrutar tras el descongelamiento de iOS
+            setTimeout(checkPendingNavigation, 150);
+        }
+    });
+
+    // Disparador inicial al montar (por si la app estaba "killed")
+    checkPendingNavigation();
 });
 
 watch(showingNavigationDropdown, (value) => {

@@ -35,18 +35,20 @@ Hacer funcionar el enrutamiento al hacer clic en una notificación Push dentro d
 
 Cuando la app está cerrada completamente, `clients.openWindow(url)` funciona bien. Sin embargo, **cuando la app está en segundo plano (minimizada), iOS congela el hilo de ejecución de Javascript**. Al tocar la notificación e invocar `client.focus()`, la app se maximiza visualmente al instante, pero el framework (Vue/Inertia) tarda varios milisegundos en reaccionar. Las órdenes de navegación convencionales en ese lapso de tiempo son ignoradas por el sistema operativo, manteniendo al usuario en la pantalla en la que estaba originalmente.
 
-### 3.1 El Protocolo V6 (PostMessage Asíncrono de Recuperación)
-Para sortear la restricción de iOS, se ha implementado la siguiente arquitectura de dos partes:
+### 3.1 El Protocolo V9 (Cache Storage + Native Visibility Event)
+Para sortear la restricción de iOS, se ha implementado la siguiente arquitectura de dos partes basadas puramente en eventos nativos y persistencia pasiva:
 
 **Parte A: `public/sw.js` (El Service Worker)**
 1. Captura el evento `notificationclick` y **ejecuta compulsivamente `event.preventDefault()`**. Esto es crítico para detener la intención por defecto inactiva de Safari.
-2. Identifica si hay alguna instancia abierta de la aplicación (`clients.matchAll()`).
-3. Si existe, la trae al frente con `client.focus()`. Inmediatamente después, sabiendo que la ejecución del cliente está temporalmente petrificada por el SO, **inicia un bucle `setInterval` que dispara un `postMessage` con la URL objetivo destino cada 250ms durante 2.5 segundos** apuntando al cliente recién despertado.
+2. Escribe de forma pasiva la URL de destino (`/admin/notas/123/edit`) en un contenedor del `Cache API` del navegador nativo (`caches.open('pwa-routing')`).
+3. Identifica si hay alguna instancia abierta de la aplicación (`clients.matchAll()`).
+4. Si existe, la trae al frente con `client.focus()`. Si no existe, abre la app desde la raíz (`clients.openWindow('/')`). Como Vue se encarga del enrutamiento real desde la caché, evitamos el bug de `clients.openWindow(url_especifica)` del iPhone.
 
 **Parte B: `AuthenticatedLayout.vue` (El Cliente)**
-1. El archivo principal que envuelve a toda la aplicación incluye un Auto-Listener global `navigator.serviceWorker.addEventListener('message')`.
-2. En la fracción de segundo en que el hilo de ejecución JS se "descongela" al volver al primer plano, caza uno de los mensajes emitidos por el Service Worker.
-3. Extrae la URL objetivo (ej. `/admin/notas/123/edit`) y evalúa si es distinta a la ruta actual. Si lo es, ejecuta incondicionalmente un `router.visit()` forzando a la Single Page Application a renderizar el nuevo estado sin recargar la página. Puesto que el layout no se desmonta, esta escucha permanece viva en todas las vistas de la aplicación.
+1. El archivo principal que envuelve a toda la aplicación inicializa una función asíncrona que consume y purga la ruta almacenada en el caché (`checkPendingNavigation()`).
+2. Se inscribe un *listener* global al evento nativo del DOM `visibilitychange`. 
+3. Cuando el SO maximiza la aplicación o la saca de su estado dormido, el estado salta a `visible`. Vue dispara un temporizador de 150 milisegundos (`setTimeout`) para darle a WebKit un margen de aire para restaurar la memoria por completo, y luego invoca al lector de Caché.
+4. Si extrae una URL, ejecuta un `router.visit()` forzando a la Single Page Application a renderizar el nuevo estado.
 
 ### 3.2 Registro Obligatorio del Service Worker
 El front incluye el comando `await navigator.serviceWorker.register('/sw.js');`  dentro del componente responsable de suscribir (ej. `PushToggleButton.vue`) para asegurar que todo nuevo dispositivo que inicie sesión y solicite permisos pase obligatoriamente por el proceso de bajada e instalación técnica del demonio, previniendo cuelgues de estado en nuevos iPhones.

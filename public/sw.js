@@ -1,4 +1,4 @@
-// VERSION: 8.0 (Blind openWindow Strategy for iOS PWA)
+// VERSION: 9.0 (Cache Storage + Native Visibility Event Strategy)
 
 self.addEventListener('install', (event) => {
     self.skipWaiting();
@@ -51,8 +51,28 @@ self.addEventListener('notificationclick', function (event) {
 
     const targetUrl = (event.notification.data && event.notification.data.url) ? event.notification.data.url : '/admin/notas';
 
-    // Estrategia V8: Open Window Ciego
+    // Estrategia V9: Cache Storage + Visibility
+    // 1. Escribimos la intención de navegación en el Cache API nativo.
+    // 2. Traemos la PWA al frente.
+    // 3. El cliente (Vue) interceptará el evento nativo de JS `visibilitychange`
+    //    y leerá este caché para auto-enrutarse.
     event.waitUntil(
-        clients.openWindow(targetUrl)
+        caches.open('pwa-routing').then(cache => {
+            return cache.put('/pending-route', new Response(targetUrl));
+        }).then(() => {
+            return clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
+                if (clientList.length > 0) {
+                    // Si ya hay una ventana, simplemente la enfocamos.
+                    // Será responsabilidad de la SPA leer la caché al despertar.
+                    return clientList[0].focus();
+                }
+
+                // Si no hay ventana, abrimos la PWA en la raíz. 
+                // Al montar, la PWA leerá la caché y navegará.
+                if (clients.openWindow) {
+                    return clients.openWindow('/');
+                }
+            });
+        })
     );
 });
