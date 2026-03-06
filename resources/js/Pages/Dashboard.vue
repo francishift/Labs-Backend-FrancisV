@@ -247,7 +247,7 @@ const modules = computed(() => {
             roles: ['admin', 'coordinador'],
         },
         {
-            name: 'Resumen Horas',
+            name: 'Informe general',
             icon: ClockIcon,
             route: 'admin.resumen-horas.index',
             roles: ['admin', 'coordinador'],

@@ -83,12 +83,12 @@ const tableColumns = [
 </script>
 
 <template>
-    <Head title="Resumen de Horas" />
+    <Head title="Informe General" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex flex-col">
-                <span class="text-xs text-gray-500 dark:text-zinc-500 font-medium uppercase tracking-wider mb-1">Resumen de Horas</span>
+                <span class="text-xs text-gray-500 dark:text-zinc-500 font-medium uppercase tracking-wider mb-1">Informe General</span>
                 <div class="flex justify-between items-center">
                     <h2 class="font-semibold text-xl text-gray-800 dark:text-zinc-200 leading-tight">
                         Año {{ filterForm.year }}
