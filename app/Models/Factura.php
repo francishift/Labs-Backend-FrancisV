@@ -15,6 +15,9 @@ class Factura extends Model
         'contact',
         'date',
         'total',
+        'subtotal',
+        'tax_amount',
+        'irpf_amount',
         'status',
         'raw_data',
         'google_drive_file_id',
@@ -25,6 +28,9 @@ class Factura extends Model
         'raw_data' => 'array',
         'date' => 'integer',
         'total' => 'decimal:2',
+        'subtotal' => 'decimal:2',
+        'tax_amount' => 'decimal:2',
+        'irpf_amount' => 'decimal:2',
     ];
     public function proyecto()
     {

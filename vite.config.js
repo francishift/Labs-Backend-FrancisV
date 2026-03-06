@@ -22,11 +22,8 @@ export default defineConfig({
             output: {
                 manualChunks(id) {
                     if (id.includes('node_modules')) {
-                        if (id.includes('echarts')) {
+                        if (id.includes('echarts') || id.includes('zrender')) {
                             return 'vendor-echarts';
-                        }
-                        if (id.includes('@heroicons') || id.includes('lodash')) {
-                            return 'vendor-utils';
                         }
                         return 'vendor';
                     }

@@ -18,6 +18,9 @@ const columns = [
   { key: 'num', label: 'Nº Factura' },
   { key: 'contact_name', label: 'Contacto' },
   { key: 'date', label: 'Fecha' },
+  { key: 'subtotal', label: 'Base', align: 'right' },
+  { key: 'tax_amount', label: 'IVA', align: 'right' },
+  { key: 'irpf_amount', label: 'IRPF', align: 'right' },
   { key: 'total', label: 'Total', align: 'right' },
   { key: 'status', label: 'Estado' },
   { key: 'actions', label: 'Acciones', align: 'right' },
@@ -70,9 +73,30 @@ const getStatusClass = (item) => {
             {{ formatDate(item.date) }}
         </template>
 
+        <template #cell-subtotal="{ item }">
+            <span class="whitespace-nowrap text-nowrap text-zinc-500 dark:text-zinc-400">
+            {{ formatCurrency(item.subtotal || 0) }}
+            </span>
+        </template>
+
+        <template #cell-tax_amount="{ item }">
+            <span class="whitespace-nowrap text-nowrap text-zinc-500 dark:text-zinc-400">
+            {{ formatCurrency(item.tax_amount || 0) }}
+            </span>
+        </template>
+
+        <template #cell-irpf_amount="{ item }">
+            <span class="whitespace-nowrap text-nowrap text-red-500/80 dark:text-red-400/80" v-if="item.irpf_amount > 0">
+            -{{ formatCurrency(item.irpf_amount) }}
+            </span>
+            <span class="whitespace-nowrap text-nowrap text-zinc-300 dark:text-zinc-600" v-else>
+            -
+            </span>
+        </template>
+
         <template #cell-total="{ item }">
-            <span class="whitespace-nowrap text-nowrap">
-            {{ formatCurrency(item.total) }}
+            <span class="whitespace-nowrap text-nowrap font-medium text-emerald-600 dark:text-emerald-400">
+            {{ formatCurrency(item.total || 0) }}
             </span>
         </template>
 

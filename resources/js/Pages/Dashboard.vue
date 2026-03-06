@@ -4,6 +4,7 @@ import { Head, Link } from '@inertiajs/vue3'
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useFormatters } from '@/Composables/useFormatters'
 import Card from '@/Components/Card.vue'
+import FinancialSummaryBox from '@/Components/FinancialSummaryBox.vue'
 import { 
     UserGroupIcon, 
     CheckCircleIcon,
@@ -15,7 +16,9 @@ import {
     DocumentTextIcon,
     BanknotesIcon,
     CreditCardIcon,
-    PuzzlePieceIcon
+    PuzzlePieceIcon,
+    ArrowTrendingUpIcon,
+    ArrowTrendingDownIcon
 } from '@heroicons/vue/24/outline'
 import StatCard from '@/Components/StatCard.vue'
 
@@ -23,6 +26,7 @@ const props = defineProps({
     auth: Object,
     stats: Object,
     charts: Object,
+    finances: Object,
 })
 
 const { formatCurrency, truncate } = useFormatters()
@@ -408,6 +412,61 @@ const isAdmin = computed(() => userRoles.value.includes('admin'))
                 </div>
             </Card>
         </div>
+
+        <!-- Resúmenes Financieros (Solo Admin) -->
+        <div v-if="isAdmin && finances" class="mt-8">
+            <div class="flex items-center gap-2 mb-4">
+                <BanknotesIcon class="h-5 w-5 text-gray-400" />
+                <h3 class="text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-zinc-500">Resumen Financiero</h3>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Columna Ventas -->
+                <div class="space-y-4">
+                    <h4 class="font-bold text-gray-800 dark:text-zinc-200 flex items-center gap-2">
+                        <ArrowTrendingUpIcon class="h-4 w-4 text-emerald-500" />
+                        Ventas Facturadas
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FinancialSummaryBox 
+                            title="Acumulado Anual"
+                            :data="finances.ventas.anual"
+                            :icon="BanknotesIcon"
+                            variant="emerald"
+                        />
+                        <FinancialSummaryBox 
+                            title="Trimestre Actual"
+                            :data="finances.ventas.trimestral"
+                            :icon="ChartBarIcon"
+                            variant="emerald"
+                        />
+                    </div>
+                </div>
+
+                <!-- Columna Compras -->
+                <div class="space-y-4">
+                    <h4 class="font-bold text-gray-800 dark:text-zinc-200 flex items-center gap-2">
+                        <ArrowTrendingDownIcon class="h-4 w-4 text-rose-500" />
+                        Compras y Gastos
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FinancialSummaryBox 
+                            title="Acumulado Anual"
+                            :data="finances.compras.anual"
+                            :icon="CreditCardIcon"
+                            variant="rose"
+                        />
+                        <FinancialSummaryBox 
+                            title="Trimestre Actual"
+                            :data="finances.compras.trimestral"
+                            :icon="ChartBarIcon"
+                            variant="rose"
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
   </AuthenticatedLayout>
 </template>

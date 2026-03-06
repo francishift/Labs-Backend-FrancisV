@@ -37,6 +37,7 @@ Devuelve la información estrictamente como un objeto JSON válido que coincida 
   "total_amount": 0.0,
   "net_amount": 0.0,
   "tax_amount": 0.0,
+  "irpf_amount": 0.0,
   "currency": "EUR",
   "invoice_date": "YYYY-MM-DD",
   "supplier_name": "Nombre de la empresa o persona que emite la factura",
@@ -46,7 +47,7 @@ Devuelve la información estrictamente como un objeto JSON válido que coincida 
 
 Reglas:
 - CRÍTICO: Nunca alucines ni inventes datos. Si falta un valor, usa 0.0 para números y null para cadenas de texto.
-- La factura suele estar en español. Busca "Total Factura", "Base Imponible", "Importe Neto" (net_amount), "IVA" o "Cuota" (tax_amount).
+- La factura suele estar en español. Busca "Total Factura", "Base Imponible", "Importe Neto" (net_amount), "IVA" o "Cuota" (tax_amount) y "IRPF" o "Retención" (irpf_amount). Si es IRPF, devuelve su valor absoluto y positivo.
 - Los montos deben ser números de punto flotante.
 - `currency` debe ser el código ISO de 3 letras si se conoce, de lo contrario EUR.
 - `invoice_date`: Busca SIEMPRE específicamente "Fecha factura", "Fecha de factura" o "Invoice date". Ignora otras fechas como "Fecha de vencimiento", "Periodo de facturación" o fechas de generación del documento. Formatea estrictamente como AAAA-MM-DD (ej., "10 de febrero de 2026" se convierte en "2026-02-10"). Si no se encuentra la fecha real de la factura, usa null.
@@ -84,6 +85,7 @@ EOT;
                 'total_amount' => $extracted['total_amount'] ?? 0,
                 'net_amount' => $extracted['net_amount'] ?? 0,
                 'tax_amount' => $extracted['tax_amount'] ?? 0,
+                'irpf_amount' => $extracted['irpf_amount'] ?? 0,
                 'currency' => $extracted['currency'] ?? 'EUR',
                 'invoice_date' => $extracted['invoice_date'] ?? null,
                 'supplier_name' => $extracted['supplier_name'] ?? 'Proveedor desconocido',

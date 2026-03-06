@@ -52,6 +52,10 @@ const onFilterChange = () => {
     updateResults()
 }
 
+const resetFilters = () => {
+    router.get(route('admin.holded.facturas.index'))
+}
+
 const currentUrl = typeof window !== 'undefined' ? window.location.href : ''
 
 const viewPdf = (item) => {
@@ -107,10 +111,12 @@ const syncDrive = () => {
 
         <!-- Filters Partial -->
         <FacturasFilters 
-            v-model="filters" 
+            :model-value="filters"
+            @update:model-value="Object.assign(filters, $event)"
             v-model:search="search"
             :clients="clients"
             @change="onFilterChange"
+            @reset="resetFilters"
         />
         
         <!-- Table Partial -->

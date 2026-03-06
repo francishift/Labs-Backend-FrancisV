@@ -149,6 +149,7 @@ class PurchaseFacturaController extends Controller
                     'total' => $data['total_amount'] ?? 0,
                     'net_amount' => $data['net_amount'] ?? 0,
                     'tax_amount' => $data['tax_amount'] ?? 0,
+                    'irpf_amount' => $data['irpf_amount'] ?? 0,
                     'raw_data' => array_merge($data['raw'] ?? [], ['duplicate_of' => $existing->id, 'intended_number' => $newNumber]),
                     'status' => 'duplicada',
                 ]);
@@ -162,6 +163,7 @@ class PurchaseFacturaController extends Controller
             'total' => $data['total_amount'] ?? 0,
             'net_amount' => $data['net_amount'] ?? 0,
             'tax_amount' => $data['tax_amount'] ?? 0,
+            'irpf_amount' => $data['irpf_amount'] ?? 0,
             'raw_data' => $data['raw'] ?? [],
             'status' => 'recibida',
         ];
@@ -259,6 +261,7 @@ class PurchaseFacturaController extends Controller
             'total' => 'required|numeric',
             'net_amount' => 'nullable|numeric',
             'tax_amount' => 'nullable|numeric',
+            'irpf_amount' => 'nullable|numeric',
             'status' => 'required|string',
             'notes' => 'nullable|string',
         ]);

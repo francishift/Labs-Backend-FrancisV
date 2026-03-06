@@ -22,16 +22,17 @@ const editForm = useForm({
     total: 0,
     net_amount: 0,
     tax_amount: 0,
+    irpf_amount: 0,
     status: '',
     notes: ''
 })
 
 /**
- * Observa los cambios en el prop `factura`. Cuando se selecciona una nueva factura,
- * llena el formulario local `editForm` con sus datos para evitar la mutación de props directos.
+ * Observa la apertura del modal y la factura. Al abrir,
+ * llena el formulario local `editForm` con los datos para evitar la mutación de props directos.
  */
-watch(() => props.factura, (newFactura) => {
-    if (newFactura) {
+watch([() => props.show, () => props.factura], ([show, newFactura]) => {
+    if (show && newFactura) {
         editForm.id = newFactura.id
         editForm.number = newFactura.number
         editForm.provider_name = newFactura.provider_name
@@ -53,10 +54,14 @@ watch(() => props.factura, (newFactura) => {
         editForm.total = newFactura.total
         editForm.net_amount = newFactura.net_amount
         editForm.tax_amount = newFactura.tax_amount
+        editForm.irpf_amount = newFactura.irpf_amount || 0
         editForm.status = newFactura.status
         editForm.notes = newFactura.notes || ''
-    } else {
+        
+        editForm.clearErrors()
+    } else if (!show) {
         editForm.reset()
+        editForm.clearErrors()
     }
 }, { deep: true, immediate: true })
 
@@ -147,6 +152,18 @@ const submitEdit = () => {
               class="w-full mt-1 bg-white dark:bg-zinc-950 border-gray-300 dark:border-zinc-800 text-gray-900 dark:text-zinc-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm"
             />
             <InputError :message="editForm.errors.tax_amount" class="mt-2" />
+          </div>
+
+          <div>
+            <InputLabel for="edit_irpf" value="IRPF (€)" />
+            <input 
+              id="edit_irpf"
+              v-model="editForm.irpf_amount"
+              type="number"
+              step="0.01"
+              class="w-full mt-1 bg-white dark:bg-zinc-950 border-gray-300 dark:border-zinc-800 text-gray-900 dark:text-zinc-300 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+            />
+            <InputError :message="editForm.errors.irpf_amount" class="mt-2" />
           </div>
 
           <div>

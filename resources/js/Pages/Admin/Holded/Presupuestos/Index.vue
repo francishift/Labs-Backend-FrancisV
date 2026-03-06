@@ -21,7 +21,16 @@ const search = ref(props.filters.search || '')
 const filters = reactive({
   start: props.filters.start,
   end: props.filters.end,
+  quickFilter: props.filters.quickFilter || '',
 })
+
+import { watch } from 'vue'
+watch(() => props.filters, (newFilters) => {
+    filters.start = newFilters.start
+    filters.end = newFilters.end
+    filters.quickFilter = newFilters.quickFilter || ''
+    search.value = newFilters.search || ''
+}, { deep: true })
 
 const updateResults = debounce(() => {
   router.get(route('admin.holded.presupuestos.index'), {
@@ -36,6 +45,10 @@ const updateResults = debounce(() => {
 
 const onFilterChange = () => {
     updateResults()
+}
+
+const resetFilters = () => {
+    router.get(route('admin.holded.presupuestos.index'))
 }
 
 const currentUrl = typeof window !== 'undefined' ? window.location.href : ''
@@ -67,9 +80,11 @@ const viewPdf = (item) => {
 
         <!-- Filters Partial -->
         <PresupuestosFilters 
-            v-model="filters"
+            :model-value="filters"
+            @update:model-value="Object.assign(filters, $event)"
             v-model:search="search"
             @change="onFilterChange"
+            @reset="resetFilters"
         />
         
         <!-- Table Partial -->

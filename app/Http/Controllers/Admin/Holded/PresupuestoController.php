@@ -22,7 +22,7 @@ class PresupuestoController extends Controller
 
     public function index(Request $request)
     {
-        $start = $request->input('start', '2025-01-01');
+        $start = $request->input('start', '2026-01-01');
         $end = $request->input('end', date('Y-m-d'));
 
         // Convertir fechas a timestamps para la API de Holded
@@ -55,6 +55,7 @@ class PresupuestoController extends Controller
                 'start' => $start,
                 'end' => $end,
                 'search' => $request->input('search'),
+                'quickFilter' => $request->input('quickFilter', ''),
             ],
         ]);
     }

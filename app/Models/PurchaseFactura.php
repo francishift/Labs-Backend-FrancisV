@@ -17,6 +17,7 @@ class PurchaseFactura extends Model
         'total',
         'net_amount',
         'tax_amount',
+        'irpf_amount',
         'status',
         'notes',
         'google_drive_file_id',
@@ -28,6 +29,7 @@ class PurchaseFactura extends Model
         'total' => 'decimal:2',
         'net_amount' => 'decimal:2',
         'tax_amount' => 'decimal:2',
+        'irpf_amount' => 'decimal:2',
         'raw_data' => 'array',
     ];
 }

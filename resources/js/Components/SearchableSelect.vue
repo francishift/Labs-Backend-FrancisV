@@ -41,15 +41,15 @@ const query = ref('');
 
 const selectedOption = computed({
   get() {
-    return props.options.find(option => option[props.valueKey] === props.modelValue) || null;
+    if (props.modelValue === null || props.modelValue === '') return null;
+    return props.options.find(option => option[props.valueKey] == props.modelValue) || null;
   },
   set(option) {
     if (option) {
       emit('update:modelValue', option[props.valueKey]);
     } else {
-      emit('update:modelValue', null);
+      emit('update:modelValue', '');
     }
-    query.value = ''; // Reset query on selection
   }
 });
 

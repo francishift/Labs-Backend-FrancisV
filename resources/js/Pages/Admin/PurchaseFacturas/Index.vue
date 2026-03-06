@@ -21,7 +21,7 @@ import UploadFacturaModal from './Components/UploadFacturaModal.vue'
 import EditFacturaModal from './Components/EditFacturaModal.vue'
 import DeleteFacturaModal from './Components/DeleteFacturaModal.vue'
 import OverwriteFacturaModal from './Components/OverwriteFacturaModal.vue'
-import { PlusIcon, ArrowUpTrayIcon, EyeIcon, TrashIcon, ExclamationTriangleIcon, ChevronUpIcon, ChevronDownIcon, PencilSquareIcon } from '@heroicons/vue/24/outline'
+import { PlusIcon, ArrowUpTrayIcon, EyeIcon, TrashIcon, ExclamationTriangleIcon, ChevronUpIcon, ChevronDownIcon, PencilSquareIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
     facturas: Object,
@@ -167,9 +167,9 @@ const viewPdf = (item) => {
 
     <div class="py-6 space-y-6">
       <Card class="p-4 sm:p-6 overflow-hidden">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="flex flex-col md:flex-row gap-4 mb-6 items-end">
           <!-- Search -->
-          <div class="space-y-1">
+          <div class="space-y-1 w-full md:flex-1">
             <InputLabel for="search" value="Buscar (Nº o Proveedor)" />
             <SearchInput
               id="search"
@@ -179,7 +179,7 @@ const viewPdf = (item) => {
           </div>
 
           <!-- Provider Filter -->
-          <div class="space-y-1">
+          <div class="space-y-1 w-full md:flex-1">
             <InputLabel for="filter_provider" value="Proveedor" />
             <SearchableSelect 
               id="filter_provider"
@@ -191,7 +191,7 @@ const viewPdf = (item) => {
           </div>
 
           <!-- Date From -->
-          <div class="space-y-1">
+          <div class="space-y-1 w-full md:w-32">
             <InputLabel for="date_from" value="Desde" />
             <TextInput 
               id="date_from"
@@ -202,17 +202,25 @@ const viewPdf = (item) => {
           </div>
 
           <!-- Date To -->
-          <div class="space-y-1">
-            <div class="flex justify-between items-center">
-                <InputLabel for="date_to" value="Hasta" />
-                <button @click="resetFilters" class="text-xs text-gray-400 hover:text-emerald-500 transition-colors">Limpiar todos</button>
-            </div>
+          <div class="space-y-1 w-full md:w-32">
+            <InputLabel for="date_to" value="Hasta" />
             <TextInput 
               id="date_to"
               v-model="filterForm.date_to"
               type="date"
               class="w-full"
             />
+          </div>
+          
+          <!-- Clear Filters Button -->
+          <div class="w-full md:w-auto flex justify-end">
+              <button 
+                  @click="resetFilters" 
+                  title="Limpiar filtros"
+                  class="h-[42px] px-3 flex items-center justify-center bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-500 hover:text-emerald-600 transition-colors rounded-lg border border-gray-200 dark:border-zinc-700"
+              >
+                  <ArrowPathIcon class="w-5 h-5" />
+              </button>
           </div>
         </div>
 

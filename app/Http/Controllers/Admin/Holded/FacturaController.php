@@ -9,6 +9,7 @@ use Google\Service\Drive\DriveFile;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use App\Models\Factura;
+use App\Models\Client;
 
 class FacturaController extends Controller
 {
@@ -60,19 +61,32 @@ class FacturaController extends Controller
                           ->where('raw_data->paymentsTotal', '>', 0);
                 }
             })
-            ->when(request('client'), function ($query, $client) {
-                $query->where('contact_name', $client);
+            ->when(request('client'), function ($query, $clientId) {
+                // Find all Holded contact IDs for this local Client
+                $client = Client::find($clientId);
+                if ($client) {
+                    $contactIds = array_filter([
+                        $client->contact,
+                        ...($client->secondary_contacts ?? [])
+                    ]);
+                    
+                    if (!empty($contactIds)) {
+                        $query->whereIn('contact', $contactIds);
+                    } else {
+                        // Fallback: Si el cliente no tiene IDs vinculados
+                        $query->where('contact_name', $client->name);
+                    }
+                } else {
+                    $query->where('contact_name', $clientId);
+                }
             })
             ->orderBy('date', 'desc')
             ->paginate(10)
             ->withQueryString();
 
-        $clients = Factura::select('contact_name')
-            ->distinct()
-            ->whereNotNull('contact_name')
-            ->where('contact_name', '!=', '')
-            ->orderBy('contact_name')
-            ->pluck('contact_name');
+        $clients = Client::select('id', 'name')
+            ->orderBy('name')
+            ->get();
 
         return Inertia::render('Admin/Holded/Facturas/Index', [
             'facturas' => $facturas,

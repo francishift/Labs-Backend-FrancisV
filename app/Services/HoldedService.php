@@ -75,12 +75,51 @@ class HoldedService
 
         if ($result['success']) {
             foreach ($result['data'] as $doc) {
+                // Separación financiera: base imponible, cuota de IVA e importe de Retención.
+                $baseIndividual = $doc['subtotal'] ?? ($doc['total'] ?? 0);
+                $ivaIndividual = 0;
+                $irpfIndividual = 0;
+                
+                if (isset($doc['products']) && is_array($doc['products'])) {
+                    foreach ($doc['products'] as $product) {
+                        $price = $product['price'] ?? 0;
+                        $units = $product['units'] ?? 0;
+                        $discountPct = $product['discount'] ?? 0;
+                        $taxPct = $product['tax'] ?? 0;
+                        
+                        // La API de Holded distribuye la retención real a través del array 'taxes' (Ej: s_ret_15).
+                        $retentionPct = $product['retention'] ?? 0;
+                        if ($retentionPct == 0 && isset($product['taxes']) && is_array($product['taxes'])) {
+                            foreach ($product['taxes'] as $taxStr) {
+                                if (preg_match('/ret_([0-9.]+)/', $taxStr, $matches)) {
+                                    $retentionPct = (float) $matches[1];
+                                }
+                            }
+                        }
+                        
+                        $lineTotal = $price * $units;
+                        if ($discountPct > 0) {
+                            $lineTotal -= $lineTotal * ($discountPct / 100);
+                        }
+                        
+                        $ivaIndividual += $lineTotal * ($taxPct / 100);
+                        $irpfIndividual += $lineTotal * ($retentionPct / 100);
+                    }
+                } else {
+                    $taxNeto = $doc['tax'] ?? (($doc['total'] ?? 0) - $baseIndividual);
+                    // Imposibilidad de desglosar por falta de detalle en la línea; se asume cuota neta.
+                    $ivaIndividual = $taxNeto;
+                }
+
                 $data = [
                     'contact_id' => $doc['contactId'] ?? null,
                     'contact_name' => $doc['contactName'] ?? null,
                     'contact' => $doc['contact'] ?? null,
                     'date' => $doc['date'] ?? null,
                     'total' => $doc['total'] ?? 0,
+                    'subtotal' => $baseIndividual,
+                    'tax_amount' => $ivaIndividual,
+                    'irpf_amount' => $irpfIndividual,
                     'status' => $doc['status'] ?? 0,
                     'raw_data' => $doc,
                 ];

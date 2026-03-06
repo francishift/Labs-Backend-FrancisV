@@ -120,6 +120,7 @@ graph TD
 
 - [Sistema de Gestión de Facturas de Compra](docs/gestion-facturas-compras.md)
 - [Sistema Resiliente de Facturas de Ventas (Drive & BD Local)](docs/gestion-facturas-ventas.md)
+- [Gestión de Presupuestos](docs/gestion-presupuestos.md)
 - [Gestión de VPN WireGuard](docs/VPN_DOCUMENTATION.md)
 - [Lógica de Negocio](docs/logic_negocio.md)
 - [Configuración de Backups en Google Drive](docs/setup-google-backups.md)
@@ -203,6 +204,7 @@ graph TD
 
 - [Purchase Invoices Management System](docs/gestion-facturas-compras.md)
 - [Resilient Sales Invoices Management (Drive & Local DB)](docs/gestion-facturas-ventas.md)
+- [Budget Management](docs/gestion-presupuestos.md)
 - [WireGuard VPN Management](docs/VPN_DOCUMENTATION.md)
 - [Business Logic (Spanish)](docs/logic_negocio.md)
 - [Google Drive Backup Setup](docs/setup-google-backups.md)

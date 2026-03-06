@@ -24,6 +24,7 @@ class DashboardController extends Controller
             $proyectoStats = Proyecto::getActiveStats();
             $finishedStats = Proyecto::getFinishedStats($currentYear);
             $mantenimientoStats = Mantenimiento::getDashboardStats($currentMonth);
+            $financeMetrics = app(\App\Services\FinanceService::class)->getCurrentDashboardMetrics();
 
             return [
                 'stats' => [
@@ -41,6 +42,7 @@ class DashboardController extends Controller
                     'valor_por_cliente' => Client::getAnnualValueDataForChart(),
                     'uso_extensiones' => Extension::getUsageStatsForChart(),
                 ],
+                'finances' => $financeMetrics,
             ];
         });
 
