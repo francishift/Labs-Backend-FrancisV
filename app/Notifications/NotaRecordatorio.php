@@ -28,7 +28,7 @@ class NotaRecordatorio extends Notification
     {
         return (new WebPushMessage)
             ->title('Francis Valenzuela')
-            ->icon('/images/logo.png') 
+            ->icon('/logo-icono.png') 
             ->body($this->nota->comentario)
             ->action('Ver Nota', 'view_nota')
             ->data(['url' => route('admin.notas.edit', $this->nota->id)])

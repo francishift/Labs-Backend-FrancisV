@@ -89,7 +89,7 @@ const colorClasses = computed(() => {
 
                 <!-- IVA -->
                 <div class="flex-1 text-right">
-                    <span class="block text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 mb-1">Impuestos (IVA)</span>
+                    <span class="block text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-zinc-500 mb-1">(IVA)</span>
                     <span class="text-sm font-bold text-gray-700 dark:text-zinc-300">
                         {{ formatCurrency(data.iva) }}
                     </span>

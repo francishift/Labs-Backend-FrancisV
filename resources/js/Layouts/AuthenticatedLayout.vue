@@ -23,23 +23,6 @@ const toggleDarkMode = () => {
 onMounted(() => {
     isDark.value = localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
     document.documentElement.classList.toggle('dark', isDark.value);
-
-    // Sistema Robusto de Enrutamiento para iOS PWA (PostMessage Async Protocol)
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.addEventListener('message', (event) => {
-            if (event.data && event.data.type === 'PWA_ROUTING' && event.data.url) {
-                const targetUrl = event.data.url;
-                const currentPath = window.location.pathname;
-                const targetPath = new URL(targetUrl, window.location.origin).pathname;
-                
-                // Solo navegar si realmente es distinto al actual
-                if (currentPath !== targetPath) {
-                    router.visit(targetUrl);
-                }
-            }
-        });
-    }
-
 });
 
 watch(showingNavigationDropdown, (value) => {
