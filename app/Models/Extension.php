@@ -92,16 +92,14 @@ class Extension extends Model
      */
     public static function getAggregatedYearlyStats($year = null)
     {
-        $year = $year ?: date('Y');
-        
-        $proyectoStats = Proyecto::getAggregatedStatsForYear($year);
-        $mantenimientoStats = Mantenimiento::getAggregatedStatsForYear($year);
-
-        $totalAnual = $proyectoStats['total_fijo'] + $mantenimientoStats['total_fijo'];
+        // El verdadero coste bruto de licencias activas de extensiones para la empresa
+        $extensionesActivas = self::where('estado', 'Activada')->get();
+        $totalAnual = $extensionesActivas->sum(fn($e) => $e->calculatePeriodCost('all'));
+        $totalMensual = $extensionesActivas->sum(fn($e) => $e->calculatePeriodCost(date('m')));
         
         return [
             'total_anual' => $totalAnual,
-            'total_mensual' => $totalAnual / 12,
+            'total_mensual' => $totalMensual,
         ];
     }
 }
