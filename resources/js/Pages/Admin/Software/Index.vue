@@ -83,21 +83,7 @@ const destroySoftware = () => {
 
     <div class="py-6 space-y-6">
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard 
-                title="Gasto Mensual S/H"
-                :value="stats.cobro_mensual"
-                :icon="CurrencyEuroIcon"
-                variant="emerald"
-                :is-currency="true"
-            />
-            <StatCard 
-                title="Gasto Anual S/H"
-                :value="stats.cobro_anual"
-                :icon="CalendarIcon"
-                variant="emerald"
-                :is-currency="true"
-            />
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
             <StatCard 
                 title="Costo Mensual"
                 :value="stats.costo_mensual"

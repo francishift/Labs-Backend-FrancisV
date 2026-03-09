@@ -47,26 +47,13 @@ class Software extends Model
         return self::$totalAnualCache;
     }
 
-    /**
-     * Obtiene estadísticas agregadas de software combinando ingresos (cobros) y gastos (costos).
-     */
     public static function getAggregatedYearlyStats($year = null)
     {
-        $year = $year ?: date('Y');
-        
         $activeSoftwares = self::where('estado', 'Activa')->get();
         $costeAnual = $activeSoftwares->sum(fn($s) => $s->calculatePeriodCost('all'));
         $costeMensual = $activeSoftwares->sum(fn($s) => $s->calculatePeriodCost(date('m')));
 
-        $proyectoStats = Proyecto::getAggregatedStatsForYear($year);
-        $mantenimientoStats = Mantenimiento::getAggregatedStatsForYear($year);
-
-        $cobroAnual = $proyectoStats['total_software'] + $mantenimientoStats['total_software'];
-        $cobroMensual = $cobroAnual / 12;
-
         return [
-            'cobro_mensual' => $cobroMensual,
-            'cobro_anual' => $cobroAnual,
             'costo_mensual' => $costeMensual,
             'costo_anual' => $costeAnual,
         ];
