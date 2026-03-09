@@ -99,8 +99,8 @@ const navigateToShow = (item) => {
             :small-value="true"
           />
           <StatCard
-            title="Extensiones + Software (Anual)"
-            :value="stats.total_fijo"
+            title="Gastos Anuales Soft / Host"
+            :value="stats.gastos_anuales_soft_host"
             :icon="WrenchScrewdriverIcon"
             variant="indigo"
             :is-currency="true"

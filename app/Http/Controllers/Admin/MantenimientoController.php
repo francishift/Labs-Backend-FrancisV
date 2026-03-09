@@ -32,12 +32,18 @@ class MantenimientoController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+        // Métrica global solicitada: Gasto Anual Soft/Host (Suma de costo anual de software activo + coste anual extensiones activas)
+        $extensionesAnuales = \App\Models\Extension::where('estado', 'Activada')->get()->sum(fn($e) => $e->calculatePeriodCost('all'));
+        $softwareAnual = \App\Models\Software::getTotalAnual();
+
         return Inertia::render('Admin/Mantenimientos/Index', [
             'mantenimientos' => $mantenimientos,
             'filters' => $request->only(['search']),
             'clients' => Client::orderBy('name')->get(['id', 'name']),
             'availableExtensions' => Extension::orderBy('nombre')->get(['id', 'nombre', 'precio']),
-            'stats' => Mantenimiento::getAggregatedStatsForYear(),
+            'stats' => array_merge(Mantenimiento::getAggregatedStatsForYear(), [
+                'gastos_anuales_soft_host' => $softwareAnual + $extensionesAnuales
+            ]),
         ]);
     }
 
