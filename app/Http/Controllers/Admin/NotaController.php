@@ -10,11 +10,22 @@ use Inertia\Inertia;
 
 class NotaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $notas = auth()->user()->notas()->latest()->paginate(10);
+        $estado = $request->input('estado', 'pendientes');
+        $notificado = $estado === 'notificadas' ? 1 : 0;
+
+        $notas = auth()->user()->notas()
+            ->where('notificado', $notificado)
+            ->orderByRaw("ABS(TIMESTAMPDIFF(MINUTE, NOW(), CONCAT(fecha, ' ', COALESCE(hora, '00:00:00'))))")
+            ->paginate(12)
+            ->withQueryString();
+
         return Inertia::render('Admin/Notas/Index', [
-            'notas' => $notas
+            'notas' => $notas,
+            'filters' => [
+                'estado' => $estado
+            ]
         ]);
     }
 

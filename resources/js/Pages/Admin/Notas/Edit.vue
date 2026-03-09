@@ -22,6 +22,7 @@ const form = useForm({
     fecha: props.nota.fecha ? formatDateForInput(props.nota.fecha) : '',
     hora: props.nota.hora ? props.nota.hora.substring(0, 5) : '',
     comentario: props.nota.comentario,
+    enlace_reunion: props.nota.enlace_reunion || '',
     notificacion_minutos_antes: props.nota.notificacion_minutos_antes,
 })
 
@@ -146,11 +147,23 @@ const deleteNota = () => {
                     </div>
 
                     <div>
+                        <InputLabel for="enlace_reunion" value="Enlace Videollamada (opcional)" />
+                        <TextInput
+                            id="enlace_reunion"
+                            type="url"
+                            class="mt-1 block w-full"
+                            v-model="form.enlace_reunion"
+                            placeholder="https://meet.google.com/..."
+                        />
+                        <InputError class="mt-2" :message="form.errors.enlace_reunion" />
+                    </div>
+
+                    <div>
                         <InputLabel for="notificacion_minutos_antes" value="Avisar con antelación" />
                         <select 
                             v-model="form.notificacion_minutos_antes" 
                             id="notificacion_minutos_antes"
-                            class="mt-1 block w-full border-gray-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                            class="mt-1 block w-full border-gray-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 focus:border-emerald-500 focus:ring-emerald-500 rounded-md shadow-sm"
                         >
                             <option v-for="option in formOptions" :key="option.value" :value="option.value">
                                 {{ option.label }}

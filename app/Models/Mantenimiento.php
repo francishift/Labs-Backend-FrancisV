@@ -16,11 +16,10 @@ class Mantenimiento extends Model
 
     protected static function booted()
     {
-        static::saved(fn () => \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats'));
-        static::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats'));
-
-        // Registrar cambios de precio/pago automáticamente
         static::saved(function ($mantenimiento) {
+            \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats');
+            
+            // Registrar cambios de precio/pago automáticamente
             if ($mantenimiento->wasRecentlyCreated || $mantenimiento->wasChanged(['importe', 'tipo_pago'])) {
                 $mantenimiento->precios()->create([
                     'importe' => $mantenimiento->importe,
@@ -29,6 +28,26 @@ class Mantenimiento extends Model
                         ? ($mantenimiento->fecha_inicio ?: now()->startOfMonth()) 
                         : now()->startOfMonth(),
                 ]);
+            }
+
+            // Si cambia el estado (de en curso a finalizado o viceversa), recálculo
+            if ($mantenimiento->wasChanged('estado')) {
+                $extensionIds = $mantenimiento->extensiones()->pluck('extensiones.id')->toArray();
+                if (!empty($extensionIds)) {
+                    app(\App\Services\ExtensionPricingService::class)->recalculateForMultiple($extensionIds);
+                }
+            }
+        });
+
+        static::deleting(function ($model) {
+            $model->temporal_extension_ids = $model->extensiones()->pluck('extensiones.id')->toArray();
+        });
+
+        static::deleted(function ($model) {
+            \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats');
+
+            if (!empty($model->temporal_extension_ids)) {
+                app(\App\Services\ExtensionPricingService::class)->recalculateForMultiple($model->temporal_extension_ids);
             }
         });
     }

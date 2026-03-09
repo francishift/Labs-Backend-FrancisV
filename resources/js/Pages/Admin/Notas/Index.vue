@@ -9,7 +9,6 @@ import DialogModal from '@/Components/DialogModal.vue'
 import ConfirmModal from '@/Components/ConfirmModal.vue'
 import Pagination from '@/Components/Pagination.vue'
 import Card from '@/Components/Card.vue'
-import DataTable from '@/Components/DataTable.vue'
 import Badge from '@/Components/Badge.vue'
 import PageHeader from '@/Components/PageHeader.vue'
 import InputLabel from '@/Components/InputLabel.vue'
@@ -18,7 +17,7 @@ import InputError from '@/Components/InputError.vue'
 import PushToggleButton from '@/Components/PushToggleButton.vue'
 import TextArea from '@/Components/TextArea.vue'
 
-import { PencilIcon, TrashIcon, PlusIcon, ClockIcon } from '@heroicons/vue/24/outline'
+import { PencilIcon, TrashIcon, PlusIcon, ClockIcon, LinkIcon } from '@heroicons/vue/24/outline'
 
 import { useFormatters } from '@/Composables/useFormatters'
 import { useCRUDModals } from '@/Composables/useCRUDModals'
@@ -26,6 +25,7 @@ import { formatDateForInput, getTodayDate } from '@/Utils/date'
 
 const props = defineProps({
   notas: Object,
+  filters: Object,
 })
 
 const { formatDate } = useFormatters()
@@ -56,6 +56,7 @@ const form = useForm({
     fecha: '',
     hora: '',
     comentario: '',
+    enlace_reunion: '',
     notificacion_minutos_antes: 0,
 })
 
@@ -101,19 +102,14 @@ watch(() => form.notificacion_minutos_antes, (newVal) => {
     }
 });
 
-const columns = [
-  { key: 'comentario', label: 'Comentario' },
-  { key: 'fecha_hora', label: 'Fecha' },
-  { key: 'estado', label: 'Estado', align: 'center' },
-  { key: 'aviso', label: '', align: 'center' },
-  { key: 'actions', label: '', align: 'right' },
-]
+
 
 const openCreate = () => {
     form.clearErrors()
     form.fecha = ''
     form.hora = ''
     form.comentario = ''
+    form.enlace_reunion = ''
     form.notificacion_minutos_antes = 0
     openCreateModal()
 }
@@ -159,63 +155,107 @@ const performDelete = () => {
       </PageHeader>
     </template>
 
-    <div class="py-6 space-y-6">
-        <Card class="p-4 sm:p-6">
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Mis notas y recordatorios</h3>
-          </div>
-
-          <div class="mt-4">
-            <DataTable
-              :columns="columns"
-              :items="notas.data"
-            >
-              <template #header-aviso>
-                <div class="flex justify-center">
-                  <ClockIcon class="h-5 w-5 text-gray-400 dark:text-zinc-500" title="Aviso (Antelación)" />
-                </div>
-              </template>
-
-              <template #cell-fecha_hora="{ item }">
-                <span class="font-medium text-gray-900 dark:text-zinc-200">
-                  {{ formatDate(item.fecha) }} a las {{ item.hora ? item.hora.substring(0, 5) : '' }}
-                </span>
-              </template>
-              
-              <template #cell-comentario="{ item }">
-                {{ item.comentario }}
-              </template>
-              
-              <template #cell-aviso="{ item }">
-                {{ formOptions.find(o => o.value == item.notificacion_minutos_antes)?.label || item.notificacion_minutos_antes + ' min' }}
-              </template>
-              
-              <template #cell-estado="{ item }">
-                <Badge :variant="item.notificado ? 'green' : 'gray'">
-                  {{ item.notificado ? 'Notificado' : 'Pendiente' }}
-                </Badge>
-              </template>
-              
-              <template #cell-actions="{ item }">
-                <div class="flex justify-end gap-2 text-nowrap">
-                  <SecondaryButton @click.stop="openEdit(item)" title="Editar">
-                    <PencilIcon class="h-4 w-4" />
-                  </SecondaryButton>
-                  <DangerButton @click.stop="confirmDelete(item)" title="Eliminar">
-                    <TrashIcon class="h-4 w-4" />
-                  </DangerButton>
-                </div>
-              </template>
-            </DataTable>
-            <div v-if="notas.data && notas.data.length === 0" class="text-center py-4 text-gray-500">
-                No hay notas registradas. Crea una ahora.
+    <div class="py-6 space-y-6 max-w-7xl mx-auto px-4 sm:px-6 lg:px-0">
+        <div>
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+                {{ filters?.estado === 'notificadas' ? 'Notas notificadas' : 'Notas pendientes' }}
+            </h3>
+            
+            <!-- Filters -->
+            <div class="flex bg-gray-100 dark:bg-zinc-800 p-1 rounded-lg">
+                <button 
+                  @click="router.get(route('admin.notas.index'), { estado: 'pendientes' }, { preserveState: true })"
+                  :class="[
+                      'px-4 py-2 text-sm font-medium rounded-md transition-colors',
+                      filters?.estado !== 'notificadas' 
+                          ? 'bg-white dark:bg-zinc-700 text-emerald-600 dark:text-emerald-400 shadow-sm' 
+                          : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200'
+                  ]"
+                >
+                    Pendientes
+                </button>
+                <button 
+                  @click="router.get(route('admin.notas.index'), { estado: 'notificadas' }, { preserveState: true })"
+                  :class="[
+                      'px-4 py-2 text-sm font-medium rounded-md transition-colors',
+                      filters?.estado === 'notificadas' 
+                          ? 'bg-white dark:bg-zinc-700 text-emerald-600 dark:text-emerald-400 shadow-sm' 
+                          : 'text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-zinc-200'
+                  ]"
+                >
+                    Notificadas
+                </button>
             </div>
           </div>
 
-          <div class="mt-4" v-if="notas.links && notas.data.length > 0">
+          <div>
+            <div v-if="notas.data && notas.data.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div
+                v-for="item in notas.data"
+                :key="item.id"
+                @click="openEdit(item)"
+                class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-100 dark:border-zinc-700/50 p-5 flex flex-col justify-between hover:shadow-md hover:border-emerald-100 dark:hover:border-emerald-900/50 transition-all duration-200 cursor-pointer group"
+              >
+                <!-- Card Header -->
+                <div class="flex justify-between items-start mb-3 gap-2">
+                  <div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-medium text-sm">
+                    <ClockIcon class="h-4 w-4 flex-shrink-0" />
+                    <span class="truncate">{{ formatDate(item.fecha) }}{{ item.hora ? ' · ' + item.hora.substring(0, 5) : '' }}</span>
+                  </div>
+                  <Badge :variant="item.notificado ? 'green' : 'gray'" class="shadow-sm whitespace-nowrap">
+                    {{ item.notificado ? 'Notificado' : 'Pendiente' }}
+                  </Badge>
+                </div>
+
+                <!-- Comentario -->
+                <div class="text-gray-700 dark:text-zinc-300 text-sm mb-4 flex-grow break-words whitespace-pre-wrap line-clamp-4" :title="item.comentario">{{ item.comentario }}</div>
+
+                <!-- Enlace a Reunión (Condicional) -->
+                <div v-if="item.enlace_reunion" class="mb-4">
+                  <a 
+                    :href="item.enlace_reunion" 
+                    target="_blank" 
+                    @click.stop 
+                    class="inline-flex w-full items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800/50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 dark:focus:ring-offset-zinc-800"
+                    title="Abrir videollamada"
+                  >
+                    <LinkIcon class="h-4 w-4" />
+                    Unirse a reunión
+                  </a>
+                </div>
+
+                <!-- Footer -->
+                <div class="pt-3 mt-auto border-t border-gray-100 dark:border-zinc-700/50 flex justify-between items-center group-hover:border-emerald-50 dark:group-hover:border-emerald-900/30 transition-colors">
+                  <div class="text-xs text-gray-500 dark:text-zinc-400 flex items-center gap-1" title="Aviso (Antelación)">
+                    <ClockIcon class="h-4 w-4" />
+                    {{ formOptions.find(o => o.value == item.notificacion_minutos_antes)?.label || item.notificacion_minutos_antes + ' min' }}
+                  </div>
+                  
+                  <div class="flex gap-2">
+                    <!-- Optional explicit indicator, could be an arrow, edit is implicit -->
+                    <span class="p-1.5 text-transparent group-hover:text-emerald-600 dark:group-hover:text-emerald-400 rounded-lg transition-colors" title="Editar">
+                      <PencilIcon class="h-4 w-4 flex-shrink-0" />
+                    </span>
+                    <button @click.stop="confirmDelete(item)" class="p-1.5 text-gray-400 hover:text-red-600 dark:text-zinc-500 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors" title="Eliminar">
+                      <TrashIcon class="h-4 w-4 flex-shrink-0" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div v-else class="text-center py-12 px-4 border-2 border-dashed border-gray-200 dark:border-zinc-700 rounded-xl bg-gray-50 dark:bg-zinc-800/50">
+                <ClockIcon class="h-10 w-10 mx-auto mb-3 text-gray-400 dark:text-zinc-500" />
+                <h3 class="text-sm font-medium text-gray-900 dark:text-white">No hay notas registradas</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-zinc-400">Crea una nueva nota para empezar a organizar tus recordatorios.</p>
+            </div>
+          </div>
+
+          <div class="mt-6" v-if="notas.links && notas.data.length > 0">
               <Pagination :links="notas.links" />
           </div>
-        </Card>
+        </div>
     </div>
 
     <!-- Create Modal -->
@@ -260,11 +300,23 @@ const performDelete = () => {
             </div>
 
             <div>
+                <InputLabel for="enlace_reunion" value="Enlace Videollamada (opcional)" />
+                <TextInput
+                    id="enlace_reunion"
+                    type="url"
+                    class="mt-1 block w-full"
+                    v-model="form.enlace_reunion"
+                    placeholder="https://meet.google.com/..."
+                />
+                <InputError class="mt-2" :message="form.errors.enlace_reunion" />
+            </div>
+
+            <div>
                 <InputLabel for="notificacion_minutos_antes" value="Avisar con antelación" />
                 <select 
                     v-model="form.notificacion_minutos_antes" 
                     id="notificacion_minutos_antes"
-                    class="mt-1 block w-full border-gray-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm"
+                    class="mt-1 block w-full border-gray-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 focus:border-emerald-500 focus:ring-emerald-500 rounded-md shadow-sm"
                 >
                     <option v-for="option in formOptions" :key="option.value" :value="option.value">
                         {{ option.label }}

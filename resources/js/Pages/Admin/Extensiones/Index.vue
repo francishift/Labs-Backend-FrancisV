@@ -77,14 +77,14 @@ const destroyExtension = () => {
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <StatCard
-            title="Repercutido Mensual"
+            title="Gasto Mensual"
             :value="stats.total_mensual"
             :icon="CurrencyEuroIcon"
             variant="emerald"
             :is-currency="true"
           />
           <StatCard
-            title="Repercutido Anual"
+            title="Gasto Anual"
             :value="stats.total_anual"
             :icon="CalendarIcon"
             variant="indigo"

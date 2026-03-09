@@ -14,8 +14,30 @@ class Proyecto extends Model
 
     protected static function booted()
     {
-        static::saved(fn () => \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats'));
-        static::deleted(fn () => \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats'));
+        static::saved(function ($model) {
+            \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats');
+            
+            // Si cambia el estado entre En proceso y Finalizado, recálculo de sus extensiones para los demás
+            if ($model->wasChanged('estado')) {
+                $extensionIds = $model->extensiones()->pluck('extensiones.id')->toArray();
+                if (!empty($extensionIds)) {
+                    app(\App\Services\ExtensionPricingService::class)->recalculateForMultiple($extensionIds);
+                }
+            }
+        });
+
+        static::deleting(function ($model) {
+            // Guardamos los IDs temporalmente para poder recalcular *después* de que se borre de la DB en cascada
+            $model->temporal_extension_ids = $model->extensiones()->pluck('extensiones.id')->toArray();
+        });
+
+        static::deleted(function ($model) {
+            \Illuminate\Support\Facades\Cache::forget('admin_dashboard_stats');
+
+            if (!empty($model->temporal_extension_ids)) {
+                app(\App\Services\ExtensionPricingService::class)->recalculateForMultiple($model->temporal_extension_ids);
+            }
+        });
     }
 
     protected $fillable = [

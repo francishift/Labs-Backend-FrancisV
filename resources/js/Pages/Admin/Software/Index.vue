@@ -85,14 +85,14 @@ const destroySoftware = () => {
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard 
-                title="Repercutido Mensual S/H"
+                title="Gasto Mensual S/H"
                 :value="stats.cobro_mensual"
                 :icon="CurrencyEuroIcon"
                 variant="emerald"
                 :is-currency="true"
             />
             <StatCard 
-                title="Repercutido Anual S/H"
+                title="Gasto Anual S/H"
                 :value="stats.cobro_anual"
                 :icon="CalendarIcon"
                 variant="emerald"

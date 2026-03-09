@@ -33,9 +33,22 @@ trait HandlesExtensionSnapshots
         foreach ($extensionIds as $extId) {
             $ext = Extension::withTrashed()->find($extId);
             if ($ext) {
+                // Se asigna el precio base inicialmente. El servicio de pricing
+                // se encargará de sobreescribirlo matemáticamente en el paso siguiente 
+                // solo si el modelo padre (Proyecto/Mto) está "activo".
                 $extensionesConPrecio[$extId] = ['precio_aplicado' => $ext->precio];
             }
         }
-        return $this->extensiones()->sync($extensionesConPrecio);
+        
+        $result = $this->extensiones()->sync($extensionesConPrecio);
+
+        // Recalcular dinámicamente el precio de todas las extensiones que han entrado o salido
+        $affectedExtensionIds = array_merge($result['attached'], $result['detached'], $result['updated']);
+        
+        if (!empty($affectedExtensionIds)) {
+            app(\App\Services\ExtensionPricingService::class)->recalculateForMultiple($affectedExtensionIds);
+        }
+
+        return $result;
     }
 }

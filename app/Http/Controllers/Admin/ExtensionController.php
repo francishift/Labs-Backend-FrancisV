@@ -82,7 +82,13 @@ class ExtensionController extends Controller
             'estado' => 'required|in:Activada,Cancelada',
         ]);
 
+        $oldPrecio = $extensione->precio;
         $extensione->update($data);
+
+        // Si el precio ha cambiado, forzar recálculo masivo para proyectos activos
+        if ($oldPrecio != $extensione->precio) {
+            app(\App\Services\ExtensionPricingService::class)->recalculateForExtension($extensione);
+        }
 
         return back()->with('success', 'Extensión actualizada correctamente.');
     }
@@ -96,6 +102,9 @@ class ExtensionController extends Controller
     public function destroy(Extension $extensione)
     {
         $extensione->delete();
+        
+        // Recalcular sus precios para los proyectos activos tras eliminarse (soft-delete)
+        app(\App\Services\ExtensionPricingService::class)->recalculateForExtension($extensione);
 
         return back()->with('success', 'Extensión eliminada correctamente.');
     }

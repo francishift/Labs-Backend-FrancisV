@@ -30,8 +30,8 @@ class NotaRecordatorio extends Notification
             ->title('Francis Valenzuela')
             ->icon('/logo-icono.png') 
             ->body($this->nota->comentario)
-            ->action('Ver Nota', 'view_nota')
-            ->data(['url' => route('admin.notas.edit', $this->nota->id)])
+            ->action('Ver Notas', 'view_nota')
+            ->data(['url' => route('admin.notas.index', ['estado' => 'notificadas'])])
             ->vibrate([100, 50, 100]);
     }
 }

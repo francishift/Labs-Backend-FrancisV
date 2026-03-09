@@ -14,7 +14,8 @@ La sección de **Extensiones de terceros** permite gestionar las licencias de so
 
 2. **Relación con Proyectos y Mantenimientos**:
    - Las extensiones se asocian de base a `Proyectos` y `Mantenimientos` mediante tablas pivote (`proyecto_extension` y `mantenimiento_extension`).
-   - El precio puede ser sobrescrito en el pivote especificando el `precio_aplicado` particular a un proyecto o mantenimiento.
+   - El precio de la extensión se calcula de forma dinámica y proporcional: El coste base se divide entre la cantidad total de Proyectos ("En Proceso") y Mantenimientos ("En Curso") que la utilicen.
+   - **Retroactividad**: Este precio matemático recalculado se inyecta automáticamente (mediante el `ExtensionPricingService`) en la tabla pivote de **todos** los proyectos que la tengan asignada, incluyendo los que ya están en estado "Finalizado". De este modo, los informes financieros reflejan siempre el coste real promediado por cliente.
 
 3. **Dashboard y Analíticas (`Uso de Extensiones`)**:
    - En el Dashboard de la aplicación se presenta un gráfico vertical sobre el **Uso de Extensiones**.

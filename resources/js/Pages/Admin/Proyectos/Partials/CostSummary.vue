@@ -33,11 +33,11 @@ const { formatCurrency } = useFormatters()
                 <span class="font-medium text-emerald-900 dark:text-emerald-200 text-right">{{ formatCurrency(stats.fixedCostTotal) }}</span>
             </div>
             <div class="flex justify-between items-center text-sm">
-                <span class="text-emerald-700 dark:text-emerald-300">Repercutido por extensiones</span>
+                <span class="text-emerald-700 dark:text-emerald-300">Gasto extensiones</span>
                 <span class="font-medium text-emerald-900 dark:text-emerald-200 text-right">{{ formatCurrency(stats.extensionsTotal) }}</span>
             </div>
             <div class="flex justify-between items-center text-sm">
-                <span class="text-emerald-700 dark:text-emerald-300">Repercutido por Software / Hosting</span>
+                <span class="text-emerald-700 dark:text-emerald-300">Gasto Software / Hosting</span>
                 <span class="font-medium text-emerald-900 dark:text-emerald-200 text-right">{{ formatCurrency(stats.costeSoftware) }}</span>
             </div>
             <div class="border-t border-emerald-200 dark:border-emerald-800 pt-3 flex justify-between items-center">

@@ -308,15 +308,15 @@ const isAdmin = computed(() => userRoles.value.includes('admin'))
                 <h3 class="text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-zinc-500">Acceso Rápido</h3>
             </div>
             
-            <div v-if="modules.length > 0" class="flex flex-wrap gap-4">
+            <div v-if="modules.length > 0" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-2 md:gap-3">
               <Link
                 v-for="module in modules"
                 :key="module.name"
                 :href="route(module.route)"
-                class="flex items-center gap-3 bg-white dark:bg-zinc-800 shadow-sm rounded-xl border border-gray-100 dark:border-zinc-700 px-5 py-3 hover:shadow-md hover:-translate-y-0.5 hover:border-emerald-300 dark:hover:border-zinc-500 transition-all duration-200"
+                class="flex flex-col items-center justify-center gap-1.5 md:gap-2 bg-white dark:bg-zinc-800 shadow-sm rounded-xl border border-gray-100 dark:border-zinc-700 p-2 md:p-3 lg:p-4 hover:shadow-md hover:-translate-y-0.5 hover:border-emerald-300 dark:hover:border-zinc-500 transition-all duration-200 text-center h-full"
               >
-                <component :is="module.icon" class="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-                <span class="font-bold text-gray-900 dark:text-zinc-100">{{ module.name }}</span>
+                <component :is="module.icon" class="h-5 w-5 md:h-6 md:w-6 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span class="text-[10px] md:text-xs lg:text-sm font-bold text-gray-900 dark:text-zinc-100 leading-tight px-0.5">{{ module.name }}</span>
               </Link>
             </div>
 

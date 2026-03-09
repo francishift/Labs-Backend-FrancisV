@@ -14,6 +14,7 @@ class Nota extends Model
         'fecha',
         'hora',
         'comentario',
+        'enlace_reunion',
         'notificacion_minutos_antes',
         'notificado',
     ];

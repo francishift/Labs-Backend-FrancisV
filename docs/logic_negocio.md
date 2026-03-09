@@ -32,7 +32,8 @@ El sistema utiliza un modelo de **Costo Compartido** para repercutir los gastos 
 
 ### 2.2 Extensiones y Herramientas
 - **Repositorio**: Inventario de plugins, temas o herramientas específicas.
-- **Precio Aplicado**: Al vincular una extensión, el sistema copia su precio actual a la relación (`pivot`). Esto permite subir el precio global de una extensión sin afectar a lo ya facturado a clientes antiguos.
+- **Precio Prorrateado Dinámico**: El coste repercutido real de una extensión no es su coste base. El sistema divide el coste de la extensión entre la suma de Proyectos ("En Proceso") y Mantenimientos ("En Curso") que la están utilizando.
+- **Retroactividad**: Al calcularse un nuevo precio (por ejemplo, porque un proyecto finaliza o un cliente se da de baja), se actualiza automáticamente el `precio_aplicado` en las tablas pivote de **todos** los proyectos y mantenimientos históricos que tengan esa extensión, manteniendo el balance siempre real y actualizado. Existen comandos (`extensions:recalculate`) para forzar este update masivo.
 - **Documentación Completa**: Lee la [Gestión de Extensiones](gestion-extensiones.md) para más detalles técnicos sobre el uso y las analíticas de Dashboard.
 
 ---

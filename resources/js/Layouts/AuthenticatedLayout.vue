@@ -34,10 +34,18 @@ onMounted(() => {
                 await cache.delete('/pending-route'); // Consumir y borrar
                 
                 if (targetUrl) {
-                    const currentPath = window.location.pathname;
-                    const targetPath = new URL(targetUrl, window.location.origin).pathname;
-                    
-                    if (currentPath !== targetPath) {
+                    try {
+                        const currentFull = window.location.pathname + window.location.search;
+                        // Handle both absolute and relative URLs safely
+                        const targetUrlObj = new URL(targetUrl, window.location.origin);
+                        const targetFull = targetUrlObj.pathname + targetUrlObj.search;
+                        
+                        if (currentFull !== targetFull) {
+                            router.visit(targetFull);
+                        }
+                    } catch (urlError) {
+                        // Fallback if URL parsing fails completely (e.g. malformed relative string)
+                        console.error("Error parsing target URL:", urlError);
                         router.visit(targetUrl);
                     }
                 }
