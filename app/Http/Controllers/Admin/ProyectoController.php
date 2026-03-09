@@ -35,7 +35,7 @@ class ProyectoController extends Controller
             ->withQueryString();
 
         // Métrica solicitada: Gasto Anual Soft/Host (Suma de costo anual de software activo + coste anual extensiones activas)
-        $mantenimientosAnuales = \App\Models\Mantenimiento::active()->get()->sum(fn($m) => $m->calculatePeriodIncome('all'));
+        $extensionesAnuales = \App\Models\Extension::where('estado', 'Activada')->get()->sum(fn($e) => $e->calculatePeriodCost('all'));
         $softwareAnual = \App\Models\Software::getTotalAnual();
 
         return Inertia::render('Admin/Proyectos/Index', [
@@ -44,7 +44,7 @@ class ProyectoController extends Controller
             'clients' => Client::orderBy('name')->get(['id', 'name']),
             'availableExtensions' => Extension::orderBy('nombre')->get(['id', 'nombre', 'precio']),
             'stats' => array_merge(Proyecto::getAggregatedStatsForYear(), [
-                'gastos_anuales_soft_host' => $softwareAnual + $mantenimientosAnuales
+                'gastos_anuales_soft_host' => $softwareAnual + $extensionesAnuales
             ]),
         ]);
     }
