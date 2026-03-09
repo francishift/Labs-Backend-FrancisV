@@ -120,11 +120,11 @@ const navigateToShow = (item) => {
             :small-value="true"
           />
           <StatCard
-            title="Horas + Extensiones + Software"
-            :value="stats.total_gastos"
-            :icon="ChartBarIcon"
+            title="Nº de horas"
+            :value="formatDuration(stats.total_minutos)"
+            :icon="ClockIcon"
             variant="amber"
-            :is-currency="true"
+            :is-currency="false"
             :small-value="true"
           />
         </div>
