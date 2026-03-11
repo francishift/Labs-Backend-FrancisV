@@ -51,7 +51,7 @@ class MantenimientoServicioController extends Controller
         ]);
 
         $mantenimiento = Mantenimiento::find($data['mantenimiento_id']);
-        $data['precio_hora'] = $mantenimiento->precio_hora ?: Mantenimiento::getDiscountedHourlyRate();
+        $data['precio_hora'] = Mantenimiento::getDiscountedHourlyRate();
 
         MantenimientoServicio::create($data);
 

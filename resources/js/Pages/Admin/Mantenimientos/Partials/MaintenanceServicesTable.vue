@@ -38,7 +38,10 @@ const formatMinutesToHours = (minutes) => {
 }
 
 const getHourPrice = (service) => {
-    return service.precio_hora || props.mantenimiento.precio_hora || props.precioHoraConDescuento
+    // Priority: Service snapshot -> Project snapshot -> Global discount rate
+    return service.precio_hora !== null && service.precio_hora !== undefined 
+        ? service.precio_hora 
+        : (props.mantenimiento.precio_hora || props.precioHoraConDescuento)
 }
 
 const calculateServiceCost = (service) => {

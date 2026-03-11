@@ -47,9 +47,10 @@ Los ingresos de mantenimiento se calculan según el `tipo_pago`:
 - **Anual**: Se divide el `importe` entre 12 para los cálculos de balance mensual.
 - **Persistencia Histórica**: El sistema utiliza la tabla `mantenimiento_precios` para registrar cada cambio de tarifa. Esto garantiza que el balance de meses pasados use el precio que el cliente pagaba en ese momento, no el actual.
 
-### 3.2 Tasa Horaria Reducida
-- Se aplica un coeficiente (`descuento_mantenimiento`) definido en configuración sobre el precio/hora base.
-- Todos los servicios realizados dentro de un contrato de mantenimiento se computan automáticamente con esta tasa reducida, a menos que se especifique un precio fijo.
+### 3.2 Tasa Horaria y Coste de Servicios
+- **Cálculo Inmutable:** Al registrar un servicio, el sistema captura automáticamente y de forma inmutable el **Precio Hora Global** vigente en ese mismo instante (incluyendo el `descuento_mantenimiento`).
+- **Independencia Histórica:** Este snapshot del precio garantiza que cambios futuros en la configuración global no alteren retroactivamente el balance de rentabilidad de los meses pasados.
+- **Rentabilidad de Precisión:** El modelo financiero calcula la rentabilidad sumando el coste real e individual de cada intervención (`(minutos / 60) * precio_hora_capturado_en_el_servicio`), en lugar de aplicar promedios globales al total de horas mensuales.
 
 ---
 

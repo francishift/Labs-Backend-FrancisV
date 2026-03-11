@@ -185,28 +185,40 @@ class Mantenimiento extends Model
     {
         $year = $year ?: date('Y');
         
-        // Coste de servicios
-        $precioHora = $this->precio_hora ?: self::getDiscountedHourlyRate();
+        $precioHoraFallback = $this->precio_hora ?: self::getDiscountedHourlyRate();
         
+        $minutos = 0;
+        $costeServicios = 0;
+
         // OPTIMIZACIÓN: Si 'servicios' está cargado, filtramos en memoria
         if ($this->relationLoaded('servicios')) {
-            $minutos = $this->servicios
+            $serviciosFiltrados = $this->servicios
                 ->filter(function($s) use ($year, $month) {
                     $fecha = Carbon::parse($s->fecha);
                     $matchYear = $fecha->year === (int)$year;
                     if (!$matchYear) return false;
                     if ($month !== 'all' && $fecha->month !== (int)$month) return false;
                     return true;
-                })
-                ->sum('duracion_minutos');
+                });
+                
+            $minutos = $serviciosFiltrados->sum('duracion_minutos');
+            $costeServicios = $serviciosFiltrados->sum(function($s) use ($precioHoraFallback) {
+                $precio = $s->precio_hora !== null ? (float)$s->precio_hora : $precioHoraFallback;
+                return ($s->duracion_minutos / 60) * $precio;
+            });
         } else {
-            $minutos = $this->servicios()
+            $query = $this->servicios()
                 ->whereYear('fecha', $year)
-                ->when($month !== 'all', fn($q) => $q->whereMonth('fecha', $month))
-                ->sum('duracion_minutos');
-        }
+                ->when($month !== 'all', fn($q) => $q->whereMonth('fecha', $month));
+                
+            $minutos = $query->sum('duracion_minutos');
             
-        $costeServicios = ($minutos / 60) * $precioHora;
+            // Calculate directly in DB if possible, or fetch and sum
+            $costeServicios = $query->get()->sum(function($s) use ($precioHoraFallback) {
+                $precio = $s->precio_hora !== null ? (float)$s->precio_hora : $precioHoraFallback;
+                return ($s->duracion_minutos / 60) * $precio;
+            });
+        }
 
         // Coste de extensiones
         $costeExtensiones = $this->extensiones->sum(function($ext) use ($month) {
