@@ -29,8 +29,8 @@ const proxyChecked = computed({
         type="button" 
         @click="!disabled && (proxyChecked = !proxyChecked)"
         :class="[
-            proxyChecked ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-zinc-700',
-            disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-300 dark:hover:bg-zinc-600',
+            proxyChecked ? 'bg-emerald-500' : 'bg-red-500 dark:bg-red-600',
+            disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-red-400 dark:hover:bg-red-500',
             'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-800 focus:ring-offset-white'
         ]"
         role="switch" 
