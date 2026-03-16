@@ -1,5 +1,5 @@
 <script setup>
-import Checkbox from '@/Components/Checkbox.vue';
+import ToggleSwitch from '@/Components/ToggleSwitch.vue';
 import GuestLayout from '@/Layouts/GuestLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
@@ -84,9 +84,9 @@ const submit = () => {
             </div>
 
             <div class="mt-4 block">
-                <label class="flex items-center">
-                    <Checkbox name="remember" v-model:checked="form.remember" />
-                    <span class="ms-2 text-sm text-gray-600 dark:text-zinc-400"
+                <label class="flex items-center group cursor-pointer">
+                    <ToggleSwitch name="remember" v-model:checked="form.remember" />
+                    <span class="ms-3 text-sm text-gray-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-200 transition-colors"
                         >Recuérdame</span
                     >
                 </label>
