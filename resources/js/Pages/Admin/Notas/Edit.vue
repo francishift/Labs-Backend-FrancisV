@@ -25,6 +25,7 @@ const form = useForm({
     comentario: props.nota.comentario,
     enlace_reunion: props.nota.enlace_reunion || '',
     notificacion_minutos_antes: props.nota.notificacion_minutos_antes,
+    sync_calendar: !!props.nota.sync_calendar,
 })
 
 const formOptions = [
