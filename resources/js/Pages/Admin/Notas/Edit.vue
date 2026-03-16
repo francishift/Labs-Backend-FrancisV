@@ -11,6 +11,7 @@ import InputLabel from '@/Components/InputLabel.vue'
 import TextInput from '@/Components/TextInput.vue'
 import TextArea from '@/Components/TextArea.vue'
 import InputError from '@/Components/InputError.vue'
+import ToggleSwitch from '@/Components/ToggleSwitch.vue'
 
 import DangerButton from '@/Components/DangerButton.vue'
 
@@ -173,13 +174,11 @@ const deleteNota = () => {
                     </div>
 
                     <div class="flex items-center mt-4 text-left">
-                        <input 
+                        <ToggleSwitch 
                             id="sync_calendar" 
-                            type="checkbox" 
-                            v-model="form.sync_calendar"
-                            class="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 rounded focus:ring-emerald-500 dark:focus:ring-emerald-600 dark:ring-offset-zinc-800 focus:ring-2 dark:bg-zinc-700 dark:border-zinc-600"
-                        >
-                        <label for="sync_calendar" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                            v-model:checked="form.sync_calendar"
+                        />
+                        <label for="sync_calendar" @click="form.sync_calendar = !form.sync_calendar" class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300 cursor-pointer select-none">
                             Sincronizar con Google Calendar
                         </label>
                     </div>
