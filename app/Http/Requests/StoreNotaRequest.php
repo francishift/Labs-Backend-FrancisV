@@ -37,6 +37,7 @@ class StoreNotaRequest extends FormRequest
             'comentario' => 'required|string',
             'enlace_reunion' => 'nullable|url',
             'notificacion_minutos_antes' => 'required|integer|min:-1',
+            'sync_calendar' => 'boolean',
         ];
     }
 

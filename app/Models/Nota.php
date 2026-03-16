@@ -17,11 +17,14 @@ class Nota extends Model
         'enlace_reunion',
         'notificacion_minutos_antes',
         'notificado',
+        'sync_calendar',
+        'google_event_id',
     ];
 
     protected $casts = [
         'fecha' => 'date',
         'notificado' => 'boolean',
+        'sync_calendar' => 'boolean',
     ];
 
     public function user()

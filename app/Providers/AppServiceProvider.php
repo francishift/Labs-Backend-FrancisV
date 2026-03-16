@@ -20,6 +20,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \App\Models\Nota::observe(\App\Observers\NotaObserver::class);
+
         // Ignorar los E_USER_NOTICE del paquete de minishlink/web-push sobre GMP y BCMath
         set_error_handler(function ($severity, $message, $file, $line) {
             if (!(error_reporting() & $severity)) {

@@ -151,7 +151,7 @@ const destroyService = () => {
             <template #content>
                 <CreateServicioForm 
                     :proyecto-id="proyecto.id"
-                    @close="closeCreateModal"
+                    :close-create-modal="closeCreateModal"
                 />
             </template>
             <template #footer>

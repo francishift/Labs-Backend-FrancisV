@@ -29,6 +29,7 @@ Una solución **ERP y CRM completa y premium**, diseñada para agencias digitale
 - **📄 Gestión Inteligente de Facturas**: Sincronización, almacenamiento en Drive (`.../VENTAS/1tri/...`) y extracción automática de datos (proveedor, importes, impuestos) mediante **Google Gemini AI**. Incluye una interfaz Vue dedicada para revisión, validación y filtrado de facturas de compra.
 - **👥 Gestión Avanzada de Contactos**: Manejo inteligente de perfiles duplicados de Holded mediante "Contactos Secundarios", asegurando la unificación de datos financieros.
 - **🛡️ Persistencia de Precios de Mantenimiento**: Nueva arquitectura de base de datos que registra el historial de precios aplicados, permitiendo actualizaciones de tarifas sin afectar de forma destructiva a la analítica histórica.
+- **📅 Sincronización Automática con Google Calendar**: Motor en segundo plano (vía Eloquent Observer) que sincroniza de forma bidireccional y sin interrupciones visuales las Notas y Tareas de la app directamente hacia Google Calendar, con soporte multi-scope OAuth local.
 
 ---
 
@@ -124,6 +125,7 @@ graph TD
 - [Gestión de VPN WireGuard](docs/VPN_DOCUMENTATION.md)
 - [Lógica de Negocio](docs/logic_negocio.md)
 - [Configuración de Backups en Google Drive](docs/setup-google-backups.md)
+- [Integración con Google Calendar](docs/integracion-google-calendar.md)
 
 ---
 
@@ -164,6 +166,7 @@ A premium, full-featured **Enterprise Resource Planning (ERP) and CRM solution**
 - **👥 Advanced Contact Management**: Intelligent handling of duplicate Holded profiles via "Secondary Contacts", ensuring unified financial data aggregation.
 - **🛡️ VPN & Network Management**: Integrated module for provisioning WireGuard VPN access to employees, automating IP allocation and securing internal resources.
 - **🎨 UI Refinement**: Consistent interface for extension management aligned with maintenance modules and improved table readability.
+- **📅 Automated Google Calendar Synchronization**: Background engine (via Eloquent Observer) that provides silent, bidirectional syncing of Notes directly to Google Calendar, utilizing local multi-scope OAuth authentication.
 
 ---
 

@@ -58,6 +58,7 @@ const form = useForm({
     comentario: '',
     enlace_reunion: '',
     notificacion_minutos_antes: 0,
+    sync_calendar: true,
 })
 
 const formOptions = [
@@ -111,6 +112,7 @@ const openCreate = () => {
     form.comentario = ''
     form.enlace_reunion = ''
     form.notificacion_minutos_antes = 0
+    form.sync_calendar = true
     openCreateModal()
 }
 
@@ -145,7 +147,7 @@ const performDelete = () => {
     <template #header>
       <PageHeader title="Gestión de Notas">
         <template #actions>
-          <PushToggleButton class="w-full sm:w-auto flex justify-center" />
+          <!--<PushToggleButton class="w-full sm:w-auto flex justify-center" />-->
 
           <PrimaryButton type="button" @click="openCreate" class="flex items-center gap-2 w-full sm:w-auto">
             <PlusIcon class="h-4 w-4" />
@@ -323,6 +325,18 @@ const performDelete = () => {
                     </option>
                 </select>
                 <InputError class="mt-2" :message="form.errors.notificacion_minutos_antes" />
+            </div>
+
+            <div class="flex items-center mt-4">
+                <input 
+                    id="sync_calendar" 
+                    type="checkbox" 
+                    v-model="form.sync_calendar"
+                    class="w-4 h-4 text-emerald-600 bg-gray-100 border-gray-300 rounded focus:ring-emerald-500 dark:focus:ring-emerald-600 dark:ring-offset-zinc-800 focus:ring-2 dark:bg-zinc-700 dark:border-zinc-600"
+                >
+                <label for="sync_calendar" class="ml-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                    Sincronizar con Google Calendar
+                </label>
             </div>
         </div>
       </template>

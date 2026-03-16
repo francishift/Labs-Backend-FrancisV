@@ -147,4 +147,18 @@ Para garantizar que el panel web y los PDFs exportados muestren datos idénticos
 - Política estricta de carga ansiosa en todos los controladores para eliminar consultas N+1. Uso de `->with([...])` en listados y analíticas.
 
 ---
-*Documentación actualizada el 05/03/2026*
+
+## 9. Sincronización con Google Calendar (Notas)
+
+### 9.1 Automatización
+- El módulo de `Notas` cuenta con sincronización bidireccional en segundo plano usando el SDK oficial de `google/apiclient`.
+- **Eventos Eloquent**: Un `NotaObserver` escucha las operaciones CRUD sobre el modelo `Nota` y delega en el `GoogleCalendarService` si el campo `sync_calendar` es verdadero.
+
+### 9.2 Privacidad e Interrupciones
+- **Notificaciones Override**: Los eventos se suben con `UseDefault: false` en los *reminders* de la API para asegurar que no se solapen con las alertas nativas PWA, garantizando una única notificación silenciosa del PWA al usuario.
+- **Identificación**: A los eventos sincronizados se les adjunta el sufijo o emoji (📌) para distinguirlos visualmente dentro del calendario de los eventos creados manualmente.
+
+Para más detalles léase la [Documentación de Integración de Google Calendar](integracion-google-calendar.md).
+
+---
+*Documentación actualizada el 16/03/2026*
