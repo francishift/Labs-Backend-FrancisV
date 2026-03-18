@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { Link } from '@inertiajs/vue3'
 import ApplicationLogo from '@/Components/ApplicationLogo.vue'
+import SidebarAccordion from '@/Components/SidebarAccordion.vue'
 import { 
     Squares2X2Icon, 
     ShieldCheckIcon, 
@@ -15,7 +16,10 @@ import {
     XMarkIcon,
     Cog6ToothIcon,
     ComputerDesktopIcon,
-    DocumentTextIcon
+    DocumentTextIcon,
+    FolderIcon,
+    BanknotesIcon,
+    KeyIcon
 } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
@@ -42,6 +46,8 @@ const navigationGroups = computed(() => [
     },
     {
         title: 'Gestión Administrativa',
+        icon: FolderIcon,
+        defaultOpen: true,
         show: props.auth?.roles?.some(r => ['admin', 'coordinador'].includes(r)),
         items: [
             { name: 'Informe general', href: route('admin.resumen-horas.index'), icon: ClockIcon, active: route().current('admin.resumen-horas.*'), role: 'admin' },
@@ -55,21 +61,23 @@ const navigationGroups = computed(() => [
         ]
     },
     {
-        title: 'Accesos y Seguridad',
-        show: props.auth?.roles?.includes('admin'),
-        items: [
-            { name: 'Usuarios', href: route('admin.usuarios.index'), icon: UsersIcon, active: route().current('admin.usuarios.*'), role: 'admin' },
-            { name: 'Logs VPN', href: route('admin.logs.index'), icon: ShieldCheckIcon, active: route().current('admin.logs.*'), role: 'admin' }
-        ]
-    },
-    {
         title: 'Contabilidad',
+        icon: BanknotesIcon,
         show: props.auth?.roles?.includes('admin'),
         items: [
             { name: 'Clientes', href: route('admin.clientes.index'), icon: UserGroupIcon, active: route().current('admin.clientes.*'), role: 'admin' },
             { name: 'Presupuestos', href: route('admin.holded.presupuestos.index'), icon: DocumentTextIcon, active: route().current('admin.holded.presupuestos.*'), role: 'admin' },
             { name: 'Facturas ventas', href: route('admin.holded.facturas.index'), icon: DocumentTextIcon, active: route().current('admin.holded.facturas.*'), role: 'admin' },
             { name: 'Facturas compras', href: route('admin.purchase-facturas.index'), icon: DocumentTextIcon, active: route().current('admin.purchase-facturas.*'), role: 'admin' }
+        ]
+    },
+    {
+        title: 'Usuarios y Logs',
+        icon: KeyIcon,
+        show: props.auth?.roles?.includes('admin'),
+        items: [
+            { name: 'Usuarios', href: route('admin.usuarios.index'), icon: UsersIcon, active: route().current('admin.usuarios.*'), role: 'admin' },
+            { name: 'Logs VPN', href: route('admin.logs.index'), icon: ShieldCheckIcon, active: route().current('admin.logs.*'), role: 'admin' }
         ]
     }
 ])
@@ -89,32 +97,14 @@ const settingsLink = { name: 'Ajustes', href: route('admin.settings.index'), ico
             </div>
 
             <!-- Navigation -->
-            <nav class="flex-1 px-4 py-6 space-y-8 overflow-y-auto custom-scrollbar">
-                <div v-for="(group, idx) in navigationGroups" :key="idx">
-                    <template v-if="group.show !== false">
-                        <h3 v-if="group.title" class="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
-                            {{ group.title }}
-                        </h3>
-                        <div class="space-y-1">
-                            <template v-for="item in group.items" :key="item.name">
-                                <Link
-                                    v-if="!item.role || hasRole(item.role)"
-                                    :href="item.href"
-                                    :class="[
-                                        item.active
-                                            ? 'bg-zinc-800 text-white border border-zinc-700/50'
-                                            : 'text-zinc-400 hover:text-white hover:bg-zinc-800',
-                                        'group flex items-center px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200'
-                                    ]"
-                                    prefetch
-                                >
-                                    <component :is="item.icon" class="me-3 flex-shrink-0 h-5 w-5" aria-hidden="true" />
-                                    {{ item.name }}
-                                </Link>
-                            </template>
-                        </div>
-                    </template>
-                </div>
+            <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar">
+                <SidebarAccordion 
+                    v-for="(group, idx) in navigationGroups" 
+                    :key="idx"
+                    :group="group"
+                    :auth="auth"
+                    @close="$emit('close')"
+                />
             </nav>
 
             <!-- Bottom Section (Compact Username + Settings) -->
@@ -188,32 +178,15 @@ const settingsLink = { name: 'Ajustes', href: route('admin.settings.index'), ico
                     </div>
 
                     <div class="mt-8 flex-1 h-0 overflow-y-auto px-4 custom-scrollbar">
-                        <nav class="space-y-8">
-                            <div v-for="(group, idx) in navigationGroups" :key="idx">
-                                <template v-if="group.show !== false">
-                                    <h3 v-if="group.title" class="px-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-3">
-                                        {{ group.title }}
-                                    </h3>
-                                    <div class="space-y-1">
-                                        <template v-for="item in group.items" :key="item.name">
-                                            <Link
-                                                v-if="!item.role || hasRole(item.role)"
-                                                :href="item.href"
-                                                @click="$emit('close')"
-                                                :class="[
-                                                    item.active
-                                                        ? 'bg-zinc-800 text-white border border-zinc-700/50'
-                                                        : 'text-zinc-400 hover:text-white hover:bg-zinc-800',
-                                                    'group flex items-center px-3 py-3 text-base font-medium rounded-xl transition-all duration-200'
-                                                ]"
-                                            >
-                                                <component :is="item.icon" class="mr-4 flex-shrink-0 h-6 w-6 text-zinc-300" aria-hidden="true" />
-                                                {{ item.name }}
-                                            </Link>
-                                        </template>
-                                    </div>
-                                </template>
-                            </div>
+                        <nav class="space-y-2">
+                            <SidebarAccordion 
+                                v-for="(group, idx) in navigationGroups" 
+                                :key="idx"
+                                :group="group"
+                                :auth="auth"
+                                :isMobile="true"
+                                @close="$emit('close')"
+                            />
                         </nav>
                     </div>
 
