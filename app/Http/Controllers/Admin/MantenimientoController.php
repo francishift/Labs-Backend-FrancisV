@@ -8,6 +8,8 @@ use App\Models\Client;
 use App\Models\Extension;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\MantenimientoPdfMail;
 
 class MantenimientoController extends Controller
 {
@@ -207,15 +209,24 @@ class MantenimientoController extends Controller
 
     public function exportPdf(Request $request, Mantenimiento $mantenimiento)
     {
-        $mantenimiento->load([
-            'cliente:id,name,email,phone,mobile',
-            'extensiones:id,nombre,precio,tipo_licencia',
-            'servicios' => fn($q) => $q->orderBy('fecha', 'desc')->orderBy('created_at', 'desc'),
-        ]);
-
         $year = (int) $request->input('year', date('Y'));
         $month = $request->input('month', date('n'));
         if ($month !== 'all') $month = (int) $month;
+
+        $mantenimiento->load([
+            'cliente:id,name,email,phone,mobile',
+            'extensiones:id,nombre,precio,tipo_licencia',
+            'servicios' => function($q) use ($year, $month) {
+                $q->when($year, function ($query) use ($year) {
+                    $query->whereYear('fecha', $year);
+                })
+                ->when($month !== 'all', function ($query) use ($month) {
+                    $query->whereMonth('fecha', $month);
+                })
+                ->orderBy('fecha', 'desc')
+                ->orderBy('created_at', 'desc');
+            },
+        ]);
 
         $stats = $mantenimiento->getFinancialStats($month, $year);
 
@@ -234,7 +245,8 @@ class MantenimientoController extends Controller
             'periodo' => [
                 'month' => $month,
                 'year' => $year
-            ]
+            ],
+            'precioHoraFallback' => $mantenimiento->precio_hora ?: \App\Models\Mantenimiento::getDiscountedHourlyRate()
         ]);
 
         if ($request->has('download')) {
@@ -242,5 +254,58 @@ class MantenimientoController extends Controller
         }
 
         return $pdf->stream("Mantenimiento-{$mantenimiento->id}.pdf");
+    }
+
+    public function sendPdfEmail(Request $request, Mantenimiento $mantenimiento)
+    {
+        $request->validate([
+            'email' => 'required|email'
+        ]);
+
+        $year = (int) $request->input('year', date('Y'));
+        $month = $request->input('month', date('n'));
+        if ($month !== 'all') $month = (int) $month;
+
+        $mantenimiento->load([
+            'cliente:id,name,email,phone,mobile',
+            'extensiones:id,nombre,precio,tipo_licencia',
+            'servicios' => function($q) use ($year, $month) {
+                $q->when($year, function ($query) use ($year) {
+                    $query->whereYear('fecha', $year);
+                })
+                ->when($month !== 'all', function ($query) use ($month) {
+                    $query->whereMonth('fecha', $month);
+                })
+                ->orderBy('fecha', 'desc')
+                ->orderBy('created_at', 'desc');
+            },
+        ]);
+
+        $stats = $mantenimiento->getFinancialStats($month, $year);
+
+        $logoPath = public_path('img/logo.png');
+        $logoBase64 = '';
+        if (file_exists($logoPath)) {
+            $type = pathinfo($logoPath, PATHINFO_EXTENSION);
+            $data = file_get_contents($logoPath);
+            $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.mantenimiento', [
+            'mantenimiento' => $mantenimiento,
+            'logoBase64' => $logoBase64,
+            'stats' => $stats,
+            'periodo' => [
+                'month' => $month,
+                'year' => $year
+            ],
+            'precioHoraFallback' => $mantenimiento->precio_hora ?: \App\Models\Mantenimiento::getDiscountedHourlyRate()
+        ]);
+
+        $pdfOutput = $pdf->output();
+
+        Mail::to($request->email)->send(new MantenimientoPdfMail($mantenimiento, $pdfOutput, $month, $year));
+
+        return back()->with('success', 'Email enviado correctamente.');
     }
 }

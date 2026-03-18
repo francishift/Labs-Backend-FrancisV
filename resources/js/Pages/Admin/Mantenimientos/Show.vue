@@ -8,7 +8,10 @@ import PrimaryButton from '@/Components/PrimaryButton.vue'
 import DialogModal from '@/Components/DialogModal.vue'
 import ConfirmModal from '@/Components/ConfirmModal.vue'
 import Pagination from '@/Components/Pagination.vue'
-import { ChevronLeftIcon, PencilIcon, PrinterIcon, ArrowDownTrayIcon } from '@heroicons/vue/24/outline'
+import InputLabel from '@/Components/InputLabel.vue'
+import TextInput from '@/Components/TextInput.vue'
+import InputError from '@/Components/InputError.vue'
+import { ChevronLeftIcon, PencilIcon, PrinterIcon, ArrowDownTrayIcon, EnvelopeIcon } from '@heroicons/vue/24/outline'
 
 // Partials
 import PeriodFilters from './Partials/PeriodFilters.vue'
@@ -111,6 +114,34 @@ const destroyService = () => {
         onSuccess: () => closeConfirmModal()
     })
 }
+
+// Modal email
+const showEmailModal = ref(false)
+const emailForm = useForm({
+    email: props.mantenimiento.cliente?.email || ''
+})
+
+const openEmailModal = () => {
+    emailForm.email = props.mantenimiento.cliente?.email || ''
+    showEmailModal.value = true
+}
+
+const closeEmailModal = () => {
+    showEmailModal.value = false
+    emailForm.reset()
+    emailForm.clearErrors()
+}
+
+const sendEmail = () => {
+    emailForm.post(route('admin.mantenimientos.send-pdf', {
+        mantenimiento: props.mantenimiento.id,
+        month: month.value,
+        year: year.value
+    }), {
+        preserveScroll: true,
+        onSuccess: () => closeEmailModal()
+    })
+}
 </script>
 
 <template>
@@ -130,6 +161,10 @@ const destroyService = () => {
                             <PencilIcon class="h-4 w-4" />
                         </PrimaryButton>
 
+                        <SecondaryButton @click="openEmailModal" title="Enviar por email" class="flex items-center">
+                            <EnvelopeIcon class="h-4 w-4" />
+                        </SecondaryButton>
+
                         <Link 
                             :href="route('admin.visor-pdf', { 
                                 url: route('admin.mantenimientos.pdf', { mantenimiento: mantenimiento.id, month, year }),
@@ -141,12 +176,6 @@ const destroyService = () => {
                                 <PrinterIcon class="h-4 w-4" />
                             </SecondaryButton>
                         </Link>
-
-                        <a :href="route('admin.mantenimientos.pdf', { mantenimiento: mantenimiento.id, month, year, download: 1 })">
-                            <SecondaryButton title="Descargar PDF" class="flex items-center">
-                                <ArrowDownTrayIcon class="h-4 w-4" />
-                            </SecondaryButton>
-                        </a>
                     </div>
                 </template>
             </PageHeader>
@@ -259,5 +288,33 @@ const destroyService = () => {
             @close="closeConfirmModal"
             @confirm="destroyService"
         />
+
+        <DialogModal :show="showEmailModal" @close="closeEmailModal">
+            <template #title>Enviar Informe por Email</template>
+            <template #content>
+                <div class="space-y-4">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        Se generará y enviará un correo electrónico con el PDF del mantenimiento adjunto al destinatario indicado.
+                    </p>
+                    <div>
+                        <InputLabel for="email" value="Dirección de Email" />
+                        <TextInput
+                            id="email"
+                            v-model="emailForm.email"
+                            type="email"
+                            class="mt-1 block w-full"
+                            required
+                        />
+                        <InputError :message="emailForm.errors.email" class="mt-2" />
+                    </div>
+                </div>
+            </template>
+            <template #footer>
+                <SecondaryButton @click="closeEmailModal">Cancelar</SecondaryButton>
+                <PrimaryButton class="ms-3" :class="{ 'opacity-25': emailForm.processing }" :disabled="emailForm.processing" @click="sendEmail">
+                    Enviar
+                </PrimaryButton>
+            </template>
+        </DialogModal>
     </AuthenticatedLayout>
 </template>

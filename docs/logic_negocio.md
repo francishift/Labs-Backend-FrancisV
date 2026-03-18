@@ -52,6 +52,10 @@ Los ingresos de mantenimiento se calculan según el `tipo_pago`:
 - **Independencia Histórica:** Este snapshot del precio garantiza que cambios futuros en la configuración global no alteren retroactivamente el balance de rentabilidad de los meses pasados.
 - **Rentabilidad de Precisión:** El modelo financiero calcula la rentabilidad sumando el coste real e individual de cada intervención (`(minutos / 60) * precio_hora_capturado_en_el_servicio`), en lugar de aplicar promedios globales al total de horas mensuales.
 
+### 3.3 Exportación e Informes de Periodo
+- **Filtro Temporal:** Los PDFs de mantenimiento reflejan estrictamente el periodo visualizado (mes y año). Al exportarse, para evitar consultas N+1 en las tablas, los filtros se aplican directamente en la carga ansiosa `load(['servicios' => function(...) ])`.
+- **Precios de Respaldo:** El informe calcula los importes utilizando una tasa de respaldo global (`$precioHoraFallback`) si algún servicio heredado no posee un snapshot directo de su tarifa.
+
 ---
 
 ## 4. Proyectos y Balance Financiero
@@ -79,6 +83,9 @@ Para garantizar que el panel web y los PDFs exportados muestren datos idénticos
     - **Cálculo de Cobertura**: Se compara el `totalFacturadoNeto` (Base Imponible) contra el Presupuesto para obtener un porcentaje de cobertura real ("peras con peras").
     - **Total Facturado**: Se muestra el importe bruto (con impuestos) para referencia rápida del usuario, etiquetado claramente.
     - **Enlaces Directos**: Las facturas asociadas y el presupuesto vinculado son accesibles directamente mediante un clic en sus respectivas tarjetas/iconos, abriendo el visor PDF integrado.
+
+### 4.5 Exportación a PDF y Envío Integrado
+- **Generación en Memoria**: En lugar de obligar al usuario a descargar el informe para adjuntarlo manualmente, la app permite enviarlo en un clic. El PDF se construye en crudo mediante `DomPDF->output()` inyectándose al instante en la tubería de correo como `application/pdf`, evitando escrituras residuales en disco.
 
 ---
 
@@ -122,9 +129,9 @@ Para garantizar que el panel web y los PDFs exportados muestren datos idénticos
 
 ## 7. Frontend y UX Estándar
 
-### 7.1 Visor de PDF Profesional
-- **In-App**: Embebido en un componente Vue con cabecera fija y botón de retroceso SPA.
-- **Compatibilidad**: Optimizado para móviles y Safari.
+### 7.1 Visor de PDF Profesional y Envío In-App
+- **Visor In-App**: Embebido en un componente Vue con cabecera fija y botón de retroceso SPA.
+- **Acciones Rápidas (Anti-Spaghetti)**: Las vistas centralizan las descargas en el visor global suprimiendo botones redundantes. Se integran modales limpios para envío In-App (`DialogModal` reactivo) autocompletando la pre-selección de destinatarios con los datos asíncronos del modelo actual (`$page.props.proyecto.client.email`).
 
 ### 7.2 Arquitectura DRY y FormRequests
 - Las validaciones de datos sensibles de entrada pesada (incluidas comprobaciones de fecha/tiempo complejo) son delegadas íntegramente a `FormRequest` personalizados y a su hook interactivo `after()`, manteniendo a los controladores delgados en el sistema de gestión.
@@ -135,6 +142,10 @@ Para garantizar que el panel web y los PDFs exportados muestren datos idénticos
 - **Selects y Filtros**: Las tarjetas `<Card>` de filtros deben fusionarse con el layout usando el espaciado predeterminado y sin forzar fondos negros duros, heredando el estilo del componente base (`SearchableSelect` y `SelectInput`).
 - **DataTable**: Componente agnóstico para listados.
 - **Flash Messages**: Notificaciones con soporte para HTML.
+
+### 7.4 Correos Electrónicos Estándar (Markdown)
+- **Consistencia Visual:** Para garantizar que todos los correos automáticos (desde los informes de Proyectos hasta las Notificaciones de Copias de Seguridad de Spatie) compartan siempre el mismo estilo, logotipo y variables globales, **siempre** deben utilizarse las mallas nativas `<x-mail::message>`. 
+- Se prohíbe terminantemente crear diseños de correos HTML en crudo o tablas independientes que rompan la cohesión de la plantilla unificada de Laravel.
 
 ---
 

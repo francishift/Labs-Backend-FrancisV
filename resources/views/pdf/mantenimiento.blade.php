@@ -230,6 +230,53 @@
     </div>
     @endif
 
+    @if($mantenimiento->servicios && $mantenimiento->servicios->count() > 0)
+    <div style="margin-bottom: 30px;" class="keep-together">
+        <div class="label">Servicios Realizados (Periodo)</div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width: 55%">Concepto</th>
+                    <th style="width: 15%">Fecha</th>
+                    <th style="width: 15%" class="text-center">Tiempo</th>
+                    <th style="width: 15%" class="text-right">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($mantenimiento->servicios as $servicio)
+                <tr>
+                    <td>
+                        <div class="font-bold">{{ $servicio->descripcion }}</div>
+                    </td>
+                    <td style="color: #52525b;">{{ $servicio->fecha->format('d/m/Y') }}</td>
+                    <td class="text-center">
+                        @php
+                            $h = floor($servicio->duracion_minutos / 60);
+                            $m = $servicio->duracion_minutos % 60;
+                            $timeStr = $m > 0 ? "{$h}h {$m}min" : "{$h}h";
+                        @endphp
+                        {{ $timeStr }}
+                    </td>
+                    <td class="text-right font-bold">
+                        @php
+                            $precio = $servicio->precio_hora !== null ? (float)$servicio->precio_hora : (float)$precioHoraFallback;
+                            $coste = ($servicio->duracion_minutos / 60) * $precio;
+                        @endphp
+                        {{ number_format($coste, 2, ',', '.') }}€
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr class="subtotal-row">
+                    <td colspan="3" class="text-right subtotal-label">Subtotal Servicios</td>
+                    <td class="text-right subtotal-value" style="font-weight: bold !important;">{{ number_format($stats['coste_servicios'], 2, ',', '.') }}€</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    @endif
+
     <div>
         <div class="label">Desglose de Costes (Periodo)</div>
         <table class="data-table">

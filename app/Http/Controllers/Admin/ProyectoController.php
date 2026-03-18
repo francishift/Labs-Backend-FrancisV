@@ -9,6 +9,8 @@ use App\Models\Extension;
 use App\Models\Configuracion;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ProyectoPdfMail;
 
 class ProyectoController extends Controller
 {
@@ -187,6 +189,40 @@ class ProyectoController extends Controller
         }
 
         return $pdf->stream("Proyecto-{$proyecto->id}.pdf");
+    }
+
+    public function sendPdfEmail(Request $request, Proyecto $proyecto)
+    {
+        $request->validate([
+            'email' => 'required|email'
+        ]);
+
+        $proyecto->load([
+            'client',
+            'servicios' => fn($q) => $q->orderBy('fecha', 'desc')->orderBy('created_at', 'desc'),
+            'extensiones',
+        ]);
+
+        $stats = $proyecto->getFinancialStats();
+        
+        $logoPath = public_path('img/logo.png');
+        $logoBase64 = '';
+        if (file_exists($logoPath)) {
+            $type = pathinfo($logoPath, PATHINFO_EXTENSION);
+            $data = file_get_contents($logoPath);
+            $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.proyecto', array_merge(
+            compact('proyecto', 'logoBase64'),
+            $stats
+        ));
+
+        $pdfOutput = $pdf->output();
+
+        Mail::to($request->email)->send(new ProyectoPdfMail($proyecto, $pdfOutput));
+
+        return back()->with('success', 'Email enviado correctamente.');
     }
 
     /**
