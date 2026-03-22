@@ -79,7 +79,16 @@ class PurchaseFacturaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:pdf|max:10240',
+            'file' => [
+                'required',
+                'file',
+                'mimes:pdf',
+                function ($attribute, $value, $fail) {
+                    if ($value->getSize() > 10485760) {
+                        $fail('El archivo no debe pesar más de 10 MB.');
+                    }
+                },
+            ],
         ]);
 
         try {

@@ -112,7 +112,15 @@ class ClientController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv|max:10240',
+            'file' => [
+                'required',
+                'mimes:xlsx,xls,csv',
+                function ($attribute, $value, $fail) {
+                    if ($value->getSize() > 10485760) {
+                        $fail('El archivo no debe pesar más de 10 MB.');
+                    }
+                },
+            ],
         ]);
 
         Excel::import(new ClientImport, $request->file('file'));

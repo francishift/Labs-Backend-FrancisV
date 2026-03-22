@@ -135,6 +135,7 @@ Para garantizar que el panel web y los PDFs exportados muestren datos idénticos
 
 ### 7.2 Arquitectura DRY y FormRequests
 - Las validaciones de datos sensibles de entrada pesada (incluidas comprobaciones de fecha/tiempo complejo) son delegadas íntegramente a `FormRequest` personalizados y a su hook interactivo `after()`, manteniendo a los controladores delgados en el sistema de gestión.
+- **Validación de Archivos (Bug Laravel 12 / brick/math):** Está estrictamente prohibido usar la regla nativa `max:tamanio` (ej. `max:10240`) para validar el peso de archivos subidos (como PDFs o Excels). Esto se debe a que Laravel convierte el peso a kilobytes generando un *float*, lo cual dispara una advertencia de depreciación (`Passing floats to BigNumber::of()`) en los logs del servidor por parte de la librería matemática interna. En su lugar, se debe utilizar siempre un *Closure* personalizado (ej. `if ($value->getSize() > 10485760) { $fail(...); }`).
 
 ### 7.3 Componentes Reutilizables
 - **Buscadores (SearchInput)**: Diseño estandarizado globalmente con icono de lupa insertado a la izquierda.
