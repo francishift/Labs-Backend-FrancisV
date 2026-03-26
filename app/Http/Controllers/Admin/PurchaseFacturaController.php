@@ -45,6 +45,14 @@ class PurchaseFacturaController extends Controller
             $query->whereDate('date', '<=', $dateTo);
         }
 
+        // Calculate totals dynamically based on filters (avoiding N+1 by using aggregate sum)
+        $totalsQuery = clone $query;
+        $totals = [
+            'net_amount' => (float) $totalsQuery->sum('net_amount'),
+            'tax_amount' => (float) $totalsQuery->sum('tax_amount'),
+            'total' => (float) $totalsQuery->sum('total'),
+        ];
+
         // 4. Ordenación
         $sort = $request->input('sort', 'date');
         $direction = $request->input('direction', 'desc');
@@ -69,6 +77,7 @@ class PurchaseFacturaController extends Controller
         return Inertia::render('Admin/PurchaseFacturas/Index', [
             'facturas' => $facturas,
             'providers' => $providers,
+            'totals' => $totals,
             'filters' => array_merge($request->only(['search', 'provider', 'sort', 'direction']), [
                 'date_from' => $dateFrom,
                 'date_to' => $dateTo,

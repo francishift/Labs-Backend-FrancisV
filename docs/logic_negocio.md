@@ -158,6 +158,10 @@ Para garantizar que el panel web y los PDFs exportados muestren datos idénticos
 ### 8.2 Optimización de Consultas (Eager Loading)
 - Política estricta de carga ansiosa en todos los controladores para eliminar consultas N+1. Uso de `->with([...])` en listados y analíticas.
 
+### 8.3 Agregaciones Dinámicas de Totales (Sumatorias)
+- Para mostrar totales reactivos a filtros (como la suma de bases imponibles, IVAs y totales en los listados de facturas), el sistema clona la consulta principal de base de datos (`$totalsQuery = clone $query;`) inmediatamente después de aplicar los filtros y antes de la paginación.
+- Luego ejecuta funciones de agregación nativas (`sum()`) de SQL sobre esta copia. Esto garantiza el cálculo ultra-rápido y exacto sobre el total de los registros filtrados sin cargar modelos individuales a la memoria, previniendo cuellos de botella y evitando completamente operaciones N+1.
+
 ---
 
 ## 9. Sincronización con Google Calendar (Notas)
@@ -173,4 +177,4 @@ Para garantizar que el panel web y los PDFs exportados muestren datos idénticos
 Para más detalles léase la [Documentación de Integración de Google Calendar](integracion-google-calendar.md).
 
 ---
-*Documentación actualizada el 16/03/2026*
+*Documentación actualizada el 26/03/2026*

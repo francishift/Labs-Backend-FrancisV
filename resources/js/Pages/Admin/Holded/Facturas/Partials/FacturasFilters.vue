@@ -53,6 +53,36 @@ const resetFilters = () => {
 <template>
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
         <div class="flex flex-col md:flex-row gap-4 w-full items-end">
+            <div class="space-y-1 w-full md:flex-1">
+                <InputLabel for="search-facturas" value="Buscar" />
+                <SearchInput 
+                    id="search-facturas"
+                    name="search"
+                    placeholder="Buscar por contacto o nº..."
+                    class="w-full"
+                    :model-value="search"
+                    @update:model-value="onSearchUpdate"
+                />
+            </div>
+            <div class="space-y-1 w-full md:flex-1 z-50">
+                <InputLabel for="client" value="Cliente" />
+                <SearchableSelect
+                    id="client"
+                    class="w-full"
+                    v-model="filters.client"
+                    :options="clientsOptions"
+                    placeholder="Todos los clientes"
+                />
+            </div>
+            <div class="space-y-1 w-full md:w-32">
+                <InputLabel for="status" value="Estado" />
+                <SelectInput
+                    id="status"
+                    class="w-full"
+                    v-model="filters.status"
+                    :options="statusOptions"
+                />
+            </div>
             <div class="space-y-1 w-full md:w-32">
                 <InputLabel for="start_date" value="Fecha inicio" />
                 <TextInput
@@ -69,36 +99,6 @@ const resetFilters = () => {
                     type="date"
                     class="w-full"
                     v-model="filters.end"
-                />
-            </div>
-            <div class="space-y-1 w-full md:w-32">
-                <InputLabel for="status" value="Estado" />
-                <SelectInput
-                    id="status"
-                    class="w-full"
-                    v-model="filters.status"
-                    :options="statusOptions"
-                />
-            </div>
-            <div class="space-y-1 w-full md:flex-1 z-50">
-                <InputLabel for="client" value="Cliente" />
-                <SearchableSelect
-                    id="client"
-                    class="w-full"
-                    v-model="filters.client"
-                    :options="clientsOptions"
-                    placeholder="Todos los clientes"
-                />
-            </div>
-            <div class="space-y-1 w-full md:flex-1">
-                <InputLabel for="search-facturas" value="Buscar" />
-                <SearchInput 
-                    id="search-facturas"
-                    name="search"
-                    placeholder="Buscar por contacto o nº..."
-                    class="w-full"
-                    :model-value="search"
-                    @update:model-value="onSearchUpdate"
                 />
             </div>
             

@@ -16,6 +16,7 @@ import FacturasTable from './Partials/FacturasTable.vue'
 const props = defineProps({
   facturas: Object,
   filters: Object,
+  totals: Object,
   clients: Array,
   errorMessage: String,
 })
@@ -76,6 +77,10 @@ const syncDrive = () => {
         }
     })
 }
+
+const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount)
+}
 </script>
 
 <template>
@@ -118,6 +123,26 @@ const syncDrive = () => {
             @change="onFilterChange"
             @reset="resetFilters"
         />
+
+        <!-- Totals Card -->
+        <div class="flex justify-end mb-4">
+          <Card class="p-3 bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 w-full md:w-auto inline-block">
+            <div class="flex items-center gap-x-6 justify-between md:justify-start">
+              <div>
+                <div class="text-[10px] text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-wider mb-0.5">Base</div>
+                <div class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">{{ formatCurrency(totals?.subtotal || 0) }}</div>
+              </div>
+              <div>
+                <div class="text-[10px] text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-wider mb-0.5">IVA</div>
+                <div class="text-sm font-semibold text-blue-600 dark:text-blue-400">{{ formatCurrency(totals?.tax_amount || 0) }}</div>
+              </div>
+              <div class="pl-4 border-l border-gray-200 dark:border-zinc-700">
+                <div class="text-[10px] text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-wider mb-0.5">Total</div>
+                <div class="text-base font-bold text-gray-900 dark:text-zinc-100">{{ formatCurrency(totals?.total || 0) }}</div>
+              </div>
+            </div>
+          </Card>
+        </div>
         
         <!-- Table Partial -->
         <FacturasTable 

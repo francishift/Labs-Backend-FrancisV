@@ -43,7 +43,7 @@ class FacturaController extends Controller
         ]);
 
         // Obtener de la base de datos local con búsqueda y paginación
-        $facturas = Factura::whereBetween('date', [$startTimestamp, $endTimestamp])
+        $query = Factura::whereBetween('date', [$startTimestamp, $endTimestamp])
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('contact_name', 'like', "%{$search}%")
@@ -79,8 +79,16 @@ class FacturaController extends Controller
                 } else {
                     $query->where('contact_name', $clientId);
                 }
-            })
-            ->orderBy('date', 'desc')
+            });
+
+        $totalsQuery = clone $query;
+        $totals = [
+            'subtotal' => (float) $totalsQuery->sum('subtotal'),
+            'tax_amount' => (float) $totalsQuery->sum('tax_amount'),
+            'total' => (float) $totalsQuery->sum('total'),
+        ];
+
+        $facturas = $query->orderBy('date', 'desc')
             ->paginate(10)
             ->withQueryString();
 
@@ -91,6 +99,7 @@ class FacturaController extends Controller
         return Inertia::render('Admin/Holded/Facturas/Index', [
             'facturas' => $facturas,
             'clients' => $clients,
+            'totals' => $totals,
             'errorMessage' => $syncResult['error'] ?? null,
             'filters' => [
                 'start' => $start,
