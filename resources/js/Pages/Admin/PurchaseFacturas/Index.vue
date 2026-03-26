@@ -21,7 +21,19 @@ import UploadFacturaModal from './Components/UploadFacturaModal.vue'
 import EditFacturaModal from './Components/EditFacturaModal.vue'
 import DeleteFacturaModal from './Components/DeleteFacturaModal.vue'
 import OverwriteFacturaModal from './Components/OverwriteFacturaModal.vue'
+import DataTable from '@/Components/DataTable.vue'
 import { PlusIcon, ArrowUpTrayIcon, EyeIcon, TrashIcon, ExclamationTriangleIcon, ChevronUpIcon, ChevronDownIcon, PencilSquareIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
+
+const columns = [
+  { key: 'number', label: 'Número', sortable: true },
+  { key: 'provider_name', label: 'Proveedor', sortable: true },
+  { key: 'date', label: 'Fecha', sortable: true },
+  { key: 'net_amount', label: 'Base', sortable: true, align: 'right' },
+  { key: 'tax_amount', label: 'IVA', sortable: true, align: 'right' },
+  { key: 'total', label: 'Total', sortable: true, align: 'right' },
+  { key: 'status', label: 'Estado', sortable: true },
+  { key: 'actions', label: 'Acciones', align: 'right' },
+]
 
 const props = defineProps({
     facturas: Object,
@@ -245,123 +257,73 @@ const viewPdf = (item) => {
           </Card>
         </div>
 
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm text-left border-collapse">
-            <thead>
-              <tr class="bg-gray-50 dark:bg-zinc-900/50 border-b border-gray-200 dark:border-zinc-800">
-                <th @click="sort('number')" class="px-6 py-4 font-semibold text-gray-700 dark:text-zinc-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800/50 transition-colors">
-                  <div class="flex items-center gap-x-1">
-                    Número
-                    <ChevronUpIcon v-if="filterForm.sort === 'number' && filterForm.direction === 'asc'" class="h-4 w-4" />
-                    <ChevronDownIcon v-if="filterForm.sort === 'number' && filterForm.direction === 'desc'" class="h-4 w-4" />
-                  </div>
-                </th>
-                <th @click="sort('provider_name')" class="px-6 py-4 font-semibold text-gray-700 dark:text-zinc-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800/50 transition-colors">
-                  <div class="flex items-center gap-x-1">
-                    Proveedor
-                    <ChevronUpIcon v-if="filterForm.sort === 'provider_name' && filterForm.direction === 'asc'" class="h-4 w-4" />
-                    <ChevronDownIcon v-if="filterForm.sort === 'provider_name' && filterForm.direction === 'desc'" class="h-4 w-4" />
-                  </div>
-                </th>
-                <th @click="sort('date')" class="px-6 py-4 font-semibold text-gray-700 dark:text-zinc-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800/50 transition-colors">
-                  <div class="flex items-center gap-x-1">
-                    Fecha
-                    <ChevronUpIcon v-if="filterForm.sort === 'date' && filterForm.direction === 'asc'" class="h-4 w-4" />
-                    <ChevronDownIcon v-if="filterForm.sort === 'date' && filterForm.direction === 'desc'" class="h-4 w-4" />
-                  </div>
-                </th>
-                <th @click="sort('net_amount')" class="px-6 py-4 font-semibold text-gray-700 dark:text-zinc-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800/50 transition-colors">
-                  <div class="flex items-center gap-x-1">
-                    Base
-                    <ChevronUpIcon v-if="filterForm.sort === 'net_amount' && filterForm.direction === 'asc'" class="h-4 w-4" />
-                    <ChevronDownIcon v-if="filterForm.sort === 'net_amount' && filterForm.direction === 'desc'" class="h-4 w-4" />
-                  </div>
-                </th>
-                <th @click="sort('tax_amount')" class="px-6 py-4 font-semibold text-gray-700 dark:text-zinc-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800/50 transition-colors">
-                  <div class="flex items-center gap-x-1">
-                    IVA
-                    <ChevronUpIcon v-if="filterForm.sort === 'tax_amount' && filterForm.direction === 'asc'" class="h-4 w-4" />
-                    <ChevronDownIcon v-if="filterForm.sort === 'tax_amount' && filterForm.direction === 'desc'" class="h-4 w-4" />
-                  </div>
-                </th>
-                <th @click="sort('total')" class="px-6 py-4 font-semibold text-gray-700 dark:text-zinc-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800/50 transition-colors">
-                  <div class="flex items-center gap-x-1">
-                    Total
-                    <ChevronUpIcon v-if="filterForm.sort === 'total' && filterForm.direction === 'asc'" class="h-4 w-4" />
-                    <ChevronDownIcon v-if="filterForm.sort === 'total' && filterForm.direction === 'desc'" class="h-4 w-4" />
-                  </div>
-                </th>
-                <th @click="sort('status')" class="px-6 py-4 font-semibold text-gray-700 dark:text-zinc-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800/50 transition-colors">
-                  <div class="flex items-center gap-x-1">
-                    Estado
-                    <ChevronUpIcon v-if="filterForm.sort === 'status' && filterForm.direction === 'asc'" class="h-4 w-4" />
-                    <ChevronDownIcon v-if="filterForm.sort === 'status' && filterForm.direction === 'desc'" class="h-4 w-4" />
-                  </div>
-                </th>
-                <th class="px-6 py-4 font-semibold text-gray-700 dark:text-zinc-300 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200 dark:divide-zinc-800">
-              <tr v-for="factura in facturas.data" :key="factura.id" class="hover:bg-gray-50 dark:hover:bg-zinc-800/30 transition-colors">
-                <td class="px-6 py-4 text-gray-900 dark:text-zinc-300">{{ factura.number }}</td>
-                <td class="px-6 py-4 text-gray-900 dark:text-zinc-300">{{ factura.provider_name }}</td>
-                <td class="px-6 py-4 text-gray-900 dark:text-zinc-300">{{ formatDate(factura.date) }}</td>
-                <td class="px-6 py-4 text-emerald-600 dark:text-emerald-400 font-medium whitespace-nowrap">{{ formatCurrency(factura.net_amount) }}</td>
-                <td class="px-6 py-4 text-blue-600 dark:text-blue-400 font-medium whitespace-nowrap">{{ formatCurrency(factura.tax_amount) }}</td>
-                <td class="px-6 py-4 text-gray-900 dark:text-zinc-100 font-medium whitespace-nowrap">{{ formatCurrency(factura.total) }}</td>
-                <td class="px-6 py-4">
-                  <span class="px-2.5 py-1 rounded-full text-xs font-medium capitalize border border-transparent dark:border-zinc-800/50" 
+        <DataTable
+            :columns="columns"
+            :items="facturas.data"
+            :sort-key="filterForm.sort"
+            :sort-dir="filterForm.direction"
+            @sort="sort"
+            :hoverable="true"
+        >
+            <template #cell-date="{ item }">
+                {{ formatDate(item.date) }}
+            </template>
+            <template #cell-net_amount="{ item }">
+                <span class="font-medium text-emerald-600 dark:text-emerald-400 whitespace-nowrap">{{ formatCurrency(item.net_amount) }}</span>
+            </template>
+            <template #cell-tax_amount="{ item }">
+                <span class="font-medium text-blue-600 dark:text-blue-400 whitespace-nowrap">{{ formatCurrency(item.tax_amount) }}</span>
+            </template>
+            <template #cell-total="{ item }">
+                <span class="font-medium text-gray-900 dark:text-zinc-100 whitespace-nowrap">{{ formatCurrency(item.total) }}</span>
+            </template>
+            <template #cell-status="{ item }">
+                <span class="px-2.5 py-1 rounded-full text-xs font-medium capitalize border border-transparent dark:border-zinc-800/50" 
                     :class="{
-                      'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-500': factura.status === 'pagado' || factura.status === 'recibida',
-                      'bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-500': factura.status === 'procesando',
-                      'bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-500': factura.status === 'duplicada',
-                      'bg-purple-100 dark:bg-purple-500/10 text-purple-700 dark:text-purple-500': factura.status === 'error_ia'
+                    'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-500': item.status === 'pagado' || item.status === 'recibida',
+                    'bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-500': item.status === 'procesando',
+                    'bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-500': item.status === 'duplicada',
+                    'bg-purple-100 dark:bg-purple-500/10 text-purple-700 dark:text-purple-500': item.status === 'error_ia'
                     }">
-                    {{ factura.status === 'error_ia' ? 'Error IA' : factura.status }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 text-right flex justify-end gap-x-2">
+                    {{ item.status === 'error_ia' ? 'Error IA' : item.status }}
+                </span>
+            </template>
+            <template #cell-actions="{ item }">
+                <div class="flex justify-end gap-x-2">
                   <button 
-                    v-if="factura.google_drive_file_id"
-                    @click="viewPdf(factura)"
+                    v-if="item.google_drive_file_id"
+                    @click="viewPdf(item)"
                     class="inline-flex items-center p-2 text-gray-400 dark:text-zinc-400 hover:text-emerald-500 transition-colors"
                     title="Ver PDF"
                   >
                     <EyeIcon class="h-5 w-5" />
                   </button>
                   <button 
-                    v-if="factura.status === 'duplicada'"
-                    @click="confirmOverwrite(factura)"
+                    v-if="item.status === 'duplicada'"
+                    @click="confirmOverwrite(item)"
                     class="inline-flex items-center p-2 text-amber-600 dark:text-amber-500 hover:text-amber-400 transition-colors"
-                    :title="'Sobreescribir factura ' + (factura.raw_data?.intended_number || factura.number)"
+                    :title="'Sobreescribir factura ' + (item.raw_data?.intended_number || item.number)"
                   >
                     <ExclamationTriangleIcon class="h-5 w-5" />
-                    <span class="ml-1 text-xs font-bold uppercase whitespace-nowrap">Sustituir #{{ factura.raw_data?.intended_number || factura.number.replace('DUP-', '') }}</span>
+                    <span class="ml-1 text-xs font-bold uppercase whitespace-nowrap">Sustituir #{{ item.raw_data?.intended_number || item.number.replace('DUP-', '') }}</span>
                   </button>
                   <button 
-                    @click="editFactura(factura)"
+                    @click="editFactura(item)"
                     class="inline-flex items-center p-2 text-gray-400 dark:text-zinc-400 hover:text-blue-500 transition-colors"
                     title="Editar / Revisión Manual"
                   >
                     <PencilSquareIcon class="h-5 w-5" />
                   </button>
                   <button 
-                    @click="confirmFacturaDeletion(factura.id)"
+                    @click="confirmFacturaDeletion(item.id)"
                     class="inline-flex items-center p-2 text-gray-400 dark:text-zinc-400 hover:text-red-500 transition-colors"
                     title="Eliminar factura"
                   >
                     <TrashIcon class="h-5 w-5" />
                   </button>
-                </td>
-              </tr>
-              <tr v-if="facturas.data.length === 0">
-                <td colspan="8" class="px-6 py-12 text-center text-gray-500 dark:text-zinc-500 italic">
-                  No hay facturas de compra registradas.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                </div>
+            </template>
+        </DataTable>
         <!-- Pagination -->
         <div v-if="facturas.links.length > 3" class="px-6 py-4 border-t border-gray-200 dark:border-zinc-800">
           <Pagination :links="facturas.links" />

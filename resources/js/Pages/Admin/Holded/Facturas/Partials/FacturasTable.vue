@@ -7,21 +7,23 @@ import { useFormatters } from '@/Composables/useFormatters'
 
 const props = defineProps({
     items: Array,
-    currentUrl: String
+    currentUrl: String,
+    sortKey: String,
+    sortDir: String,
 })
 
-const emit = defineEmits(['row-click'])
+const emit = defineEmits(['row-click', 'sort'])
 
 const { formatCurrency } = useFormatters()
 
 const columns = [
-  { key: 'num', label: 'Nº Factura' },
-  { key: 'contact_name', label: 'Contacto' },
-  { key: 'date', label: 'Fecha' },
-  { key: 'subtotal', label: 'Base', align: 'right' },
-  { key: 'tax_amount', label: 'IVA', align: 'right' },
-  { key: 'irpf_amount', label: 'IRPF', align: 'right' },
-  { key: 'total', label: 'Total', align: 'right' },
+  { key: 'num', label: 'Nº Factura', sortable: true },
+  { key: 'contact_name', label: 'Contacto', sortable: true },
+  { key: 'date', label: 'Fecha', sortable: true },
+  { key: 'subtotal', label: 'Base', align: 'right', sortable: true },
+  { key: 'tax_amount', label: 'IVA', align: 'right', sortable: true },
+  { key: 'irpf_amount', label: 'IRPF', align: 'right', sortable: true },
+  { key: 'total', label: 'Total', align: 'right', sortable: true },
   { key: 'status', label: 'Estado' },
   { key: 'actions', label: 'Acciones', align: 'right' },
 ]
@@ -55,6 +57,9 @@ const getStatusClass = (item) => {
     <DataTable
         :columns="columns"
         :items="items"
+        :sort-key="sortKey"
+        :sort-dir="sortDir"
+        @sort="(key) => emit('sort', key)"
         @row-click="(item) => emit('row-click', item)"
         class="cursor-pointer"
         hoverable

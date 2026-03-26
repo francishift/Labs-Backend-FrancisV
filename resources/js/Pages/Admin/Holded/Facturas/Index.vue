@@ -27,6 +27,8 @@ const filters = reactive({
   end: props.filters.end,
   status: props.filters.status,
   client: props.filters.client || '',
+  sort: props.filters.sort || 'date',
+  direction: props.filters.direction || 'desc',
 })
 
 import { watch } from 'vue'
@@ -35,6 +37,8 @@ watch(() => props.filters, (newFilters) => {
     filters.end = newFilters.end
     filters.status = newFilters.status
     filters.client = newFilters.client || ''
+    filters.sort = newFilters.sort || 'date'
+    filters.direction = newFilters.direction || 'desc'
     search.value = newFilters.search || ''
 }, { deep: true })
 
@@ -50,6 +54,16 @@ const updateResults = debounce(() => {
 }, 300)
 
 const onFilterChange = () => {
+    updateResults()
+}
+
+const onSort = (column) => {
+    if (filters.sort === column) {
+        filters.direction = filters.direction === 'asc' ? 'desc' : 'asc'
+    } else {
+        filters.sort = column
+        filters.direction = 'asc'
+    }
     updateResults()
 }
 
@@ -148,6 +162,9 @@ const formatCurrency = (amount) => {
         <FacturasTable 
             :items="facturas.data"
             :current-url="currentUrl"
+            :sort-key="filters.sort"
+            :sort-dir="filters.direction"
+            @sort="onSort"
             @row-click="viewPdf"
         />
 

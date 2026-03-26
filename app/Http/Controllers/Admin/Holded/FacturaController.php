@@ -88,7 +88,21 @@ class FacturaController extends Controller
             'total' => (float) $totalsQuery->sum('total'),
         ];
 
-        $facturas = $query->orderBy('date', 'desc')
+        // Ordenación dinámica
+        $sort = $request->input('sort', 'date');
+        $direction = $request->input('direction', 'desc');
+        $allowedSorts = ['num', 'contact_name', 'date', 'subtotal', 'tax_amount', 'irpf_amount', 'total', 'status'];
+        
+        if (!in_array($sort, $allowedSorts)) {
+            $sort = 'date';
+        }
+        if (!in_array($direction, ['asc', 'desc'])) {
+            $direction = 'desc';
+        }
+
+        $orderByField = $sort === 'num' ? 'holded_id' : $sort;
+
+        $facturas = $query->orderBy($orderByField, $direction)
             ->paginate(10)
             ->withQueryString();
 
@@ -107,6 +121,8 @@ class FacturaController extends Controller
                 'search' => $request->input('search'),
                 'status' => $request->input('status'),
                 'client' => $request->input('client'),
+                'sort' => $sort,
+                'direction' => $direction,
             ],
         ]);
     }

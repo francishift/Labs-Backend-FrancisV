@@ -1,9 +1,11 @@
 <script setup>
+import { ChevronUpIcon, ChevronDownIcon } from '@heroicons/vue/24/outline'
+
 defineProps({
   columns: {
     type: Array,
     required: true,
-    // Formato esperado: [{ key: 'name', label: 'Nombre', sortable: true, align: 'left/right' }]
+    // Format: [{ key: 'name', label: 'Nombre', sortable: true, align: 'left/right' }]
   },
   items: {
     type: Array,
@@ -12,29 +14,49 @@ defineProps({
   hoverable: {
     type: Boolean,
     default: true,
+  },
+  sortKey: {
+    type: String,
+    default: ''
+  },
+  sortDir: {
+    type: String,
+    default: 'desc'
   }
 })
 
-defineEmits(['row-click'])
+const emit = defineEmits(['row-click', 'sort'])
+
+const handleSort = (key, sortable) => {
+    if (sortable) emit('sort', key)
+}
 </script>
 
 <template>
   <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-800">
-    <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-800">
-      <thead class="bg-gray-50 dark:bg-zinc-900/50">
+    <table class="w-full text-sm text-left border-collapse">
+      <thead class="bg-gray-50 dark:bg-zinc-900/50 border-b border-gray-200 dark:border-zinc-800">
         <tr>
           <th
             v-for="col in columns"
             :key="col.key"
+            @click="handleSort(col.key, col.sortable)"
             :class="[
-              'px-6 py-4 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-zinc-400 whitespace-nowrap',
+              'px-6 py-4 font-semibold text-gray-700 dark:text-zinc-300 whitespace-nowrap transition-colors',
+              col.sortable ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800/50' : '',
               col.align === 'right' ? 'text-right' : 'text-left',
               col.class || ''
             ]"
           >
-            <slot :name="`header-${col.key}`" :column="col">
-              {{ col.label }}
-            </slot>
+            <div class="flex items-center gap-x-1" :class="col.align === 'right' ? 'justify-end' : ''">
+              <slot :name="`header-${col.key}`" :column="col">
+                {{ col.label }}
+              </slot>
+              <template v-if="col.sortable">
+                <ChevronUpIcon v-if="sortKey === col.key && sortDir === 'asc'" class="h-4 w-4" />
+                <ChevronDownIcon v-if="sortKey === col.key && sortDir === 'desc'" class="h-4 w-4" />
+              </template>
+            </div>
           </th>
         </tr>
       </thead>
@@ -45,14 +67,14 @@ defineEmits(['row-click'])
           @click="$emit('row-click', item)"
           :class="[
             'transition-colors duration-150',
-            hoverable ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800/50' : ''
+            hoverable ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800/30' : ''
           ]"
         >
           <td
             v-for="col in columns"
             :key="col.key"
             :class="[
-              'px-6 py-4 text-sm text-gray-900 dark:text-zinc-300',
+              'px-6 py-4 text-gray-900 dark:text-zinc-300',
               col.align === 'right' ? 'text-right' : 'text-left',
               col.class || ''
             ]"
