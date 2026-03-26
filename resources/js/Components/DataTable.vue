@@ -33,9 +33,9 @@ const handleSort = (key, sortable) => {
 </script>
 
 <template>
-  <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-800">
+  <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-zinc-700">
     <table class="w-full text-sm text-left border-collapse">
-      <thead class="bg-gray-50 dark:bg-zinc-900/50 border-b border-gray-200 dark:border-zinc-800">
+      <thead class="bg-gray-50 dark:bg-zinc-800/50 border-b border-gray-200 dark:border-zinc-700">
         <tr>
           <th
             v-for="col in columns"
@@ -60,7 +60,7 @@ const handleSort = (key, sortable) => {
           </th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-200 dark:divide-zinc-800 bg-white dark:bg-zinc-900/50">
+      <tbody class="divide-y divide-gray-200 dark:divide-zinc-700">
         <tr
           v-for="(item, index) in items"
           :key="item.id || index"
@@ -90,7 +90,7 @@ const handleSort = (key, sortable) => {
           </td>
         </tr>
       </tbody>
-      <tfoot v-if="$slots.footer" class="bg-gray-50 dark:bg-zinc-900/50 border-t border-gray-200 dark:border-zinc-800">
+      <tfoot v-if="$slots.footer" class="bg-gray-50 dark:bg-zinc-800/50 border-t border-gray-200 dark:border-zinc-700">
         <slot name="footer" />
       </tfoot>
     </table>
