@@ -1,34 +1,26 @@
 # Motor de Rentabilidad Mensual (Dashboard)
 
-## Lógica Anterior (Pre-2026)
-Antes, el panel `Resumen de Horas` estaba estrechamente acoplado al "Tiempo Trabajado". La filosofía era simple:
-- **Si se registraban horas en Abril:** Se creaba la fila de Abril y se sumaban las métricas correspondientes a esos servicios (tanto Proyectos como Mantenimientos).
-- **Si NO se registraban horas en Abril:** El mes desaparecía por completo del sumatorio anual.
+## Arquitectura de Procesamiento
 
-**El problema de esta lógica:** Los mantenimientos se cobran *todos los meses* independientemente de que se abra una incidencia o haya horas trabajadas. Al estar acoplado visualmente al "Tiempo Trabajado", las gráficas y la facturación global no reflejaban el dinero real ingresado pasivamente y distorsionaban los KPI de rentabilidad.
+El controlador `ResumenHoraController.php` estructura el resumen financiero a través de una generación calendárica mensual unificando ingresos fijos y horas trabajadas.
 
-## Nueva Arquitectura (Base Calendario)
-Para corregir esto, el backend `ResumenHoraController.php` fue rediseñado usando un paradigma de "Ingreso Pasivo Mensual Puro":
+1. **Iteración Calendárica:** El sistema genera una matriz de 12 meses fijos.
+2. **Extracción de Cuotas (Mantenimientos):** La función `calculatePeriodIncome($mes, $año)` procesa la tabla de contratos evaluando el estado activo de cada mantenimiento por mes. El sistema suma o prorratea el ingreso fijo mensual (independiente de si existen servicios registrados).
+3. **Mapeo de Horas Trabajadas (Servicios):**
+    - Se extrae la colección combinada de servicios asociados a Proyectos y Mantenimientos filtrada por rango de fechas (y opcionalmente por cliente).
+    - Se calcula el costo interno multiplicando la duración registrada en el servicio por la franja tarifaria (`precio_hora` del proyecto, del mantenimiento o fallback de la configuración global).
+    - Se agrupan bajo su mes respectivo en la iteración calendárica.
+4. **Acumulación de Presupuestos (Proyectos):** El valor financiero asigando al presupuesto de un proyecto se acumula estrictamente en el último mes de trabajo registrado durante el año, evadiendo duplicidades de suma.
+5. **Agrupación y Limpieza:** Los meses sin ingresos por mantenimiento ni minutos imputados son discriminados en el volcado final (`$resumenMensual`).
+6. **Métrica Global (`$stats`):** Se exponen indicadores sumatorios globales como `total_facturado`, `total_mantenimientos` y `total_proyectos` consumidos por la capa de presentación (Vue).
 
-1. **Iteración Calendárica:** El servidor inicia creando desde el mes 1 (Enero) hasta el mes relativo de Máximo ($maxMonth). Si se solicita el año actual, iterará hasta el *Mes Actual* (por ej: Junio = Mes 6). Si se solicita un año anterior, iterará siempre hasta Diciembre (Mes 12).
-2. **Inyección de Cuota Activa (Mantenimientos):** Dentro de cada ciclo para cada mes pre-establecido (Enero, Febrero, Marzo...), el sistema llama la función `calculatePeriodIncome($mes, $año)` de *todos los Mantenimientos Activos* en la tabla de Contratos. De esta forma, cada mes suma el Ingreso Fijo sin importar si se han registrado servicios.
-3. **Cruce Estructural (Proyectos + N+1):**
-    - Posteriormente, el Controlador arrastra la colección de **Horas Trabajadas** (`$todos`).
-    - Esas horas se *encajan* o filtran por su respectivo mes en la plantilla del calendario.
-    - Se suma el "Costo en Horas Interno" de dichas tareas.
-    - Se acumula el total del "Ingreso Fijo de Proyectos" *únicamente* en el último mes trabajado de ese Proyecto en concreto en el año (evitando que un proyecto con horas en 4 meses distintos duplique su presupuesto ×4).
-4. **Agrupación y Limpieza:** Los meses que tengan dinero inyectado ($) pasivamente de los Mantenimientos o tengan minutos (horas trabajadas), entran al render final.
-5. **Estadísticas Nativas ($stats):** Se han dividido las variables en un objeto `$stats` con las llaves `total_facturado`, `total_mantenimientos` y `total_proyectos` para que la vista Vue pueda pintar un Desglose jerárquico directamente apoyado en Heroicons.
+## Testing
 
-## Tests (Carbon Mock)
-A raíz de la implantación de la "Base Calendárica" y la "Inyección de Cuota Mensual", el comando de tests tradicional variaría según en qué mes de la vida real se encuentre la ejecución. 
-Para los Tests en CI/CD o locales, en `ResumenHoraTest.php` se fuerza la simulación temporal de un año y mes congelado utilizando el facade del Framework: 
+La simulación y testeo temporal (para validar el prorrateo mensual recurrente) demanda la modificación directa de la clase global `Carbon`. Los tests de integración implementan invariablemente:
 `\Carbon\Carbon::setTestNow(\Carbon\Carbon::create(2024, 6, 15));`
-Con esto, se asegura estructuralmente el testeo para que, por ejemplo, el mes 6 de un Mantenimiento Activo de 200€, devuelva matemáticamente $1.200 (200€ x 6 meses).
 
-## Layout UI Responsivo (StatCards y Filtros)
-Todos los módulos de analítica superior (Resumen Horas, Proyectos y Mantenimientos) comparten una directriz estandarizada estéticamente para unificar toda la interfaz visual de Laravel admin:
-- Tipografía estricta unificada (`small-value="true"` en todos los `<StatCard>`).
-- Rejilla adaptativa personalizada que salta al formato escritorio/4 columnas **únicamente en pantallas amplias (Tailwind `2xl` > 1536px)** (`grid-cols-1 md:grid-cols-2 2xl:grid-cols-X`) para salvaguardar el diseño del dashboard en resoluciones intermedias de laptops y tablets grandes, previniendo el desbordamiento o "aplastamiento" del flexbox.
-- **Filtros Unificados**: Las cabeceras de filtros de `Resumen Horas` respetan matemáticamente la misma jerarquía y proporciones base de los bloques de `Facturas` (`<Card class="p-4 sm:p-6 !overflow-visible relative z-20">` con un Grid interno de `gap-4`). No existen fondos de color quemados directamente en las vistas, se delegan a los componentes Vue `SelectInput` y `SearchInput` para respetar el tema centralizado.
-- El módulo Resumen mantiene scroll lateral seguro `overflow-x-auto` en dispositivos móviles.
+## Estructura UI y Componentes
+
+El módulo despliega una jerarquía estandarizada compartida con Proyectos y Mantenimientos:
+- Grid adaptativo `2xl:grid-cols-4` para los indicadores principales (`<StatCard small-value="true">`).
+- Sistema de refiltrado reactivo apoyado en tarjetas base (`<Card>`) con inputs selectores agnósticos. Desplazamiento horizontal condicionado en modo móvil (`overflow-x-auto`).

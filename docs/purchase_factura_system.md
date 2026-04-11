@@ -1,79 +1,40 @@
-# Análisis del Sistema `PurchaseFactura` (Facturas de Compra)
+# Especificación Técnica: PurchaseFactura (Compras)
 
-Este documento contiene un estudio técnico exhaustivo del sistema de gestión comercial de facturas de compra (`PurchaseFactura`), analizando de forma pormenorizada tanto el backend (Laravel) como el frontend (Vue/Inertia), así como todos los servicios externos integrados.
-
-A continuación, se detalla la arquitectura, el flujo de procesamiento y las características principales del sistema.
-
-## 1. Arquitectura y Componentes Principales
-
-El sistema sigue el patrón MVC utilizando Laravel en el backend, e Inertia.js con Vue 3 en el frontend. Está diseñado como un sistema automatizado inteligente para el procesamiento, lectura mediante IA y archivo automático de facturas en la nube.
+## 1. Arquitectura Base
 
 - **Modelo (`App\Models\PurchaseFactura`)**:
-  - Almacena campos financieros clave: `net_amount` (Base), `tax_amount` (IVA), `irpf_amount` (IRPF) y `total`.
-  - Incorpora `SoftDeletes` para recuperación y seguridad.
-  - El campo `raw_data` almacena en formato JSON toda la información bruta extraída para futura referencia o corrección manual.
-  - Guarda la referencial al archivo almacenado en Google Drive mediante `google_drive_file_id`.
+  - Campos de cálculo: `net_amount` (Base), `tax_amount` (IVA), `irpf_amount` (IRPF) y `total`.
+  - Seguridad: Soporta `SoftDeletes`.
+  - Persistencia documental: Refleja enlace remoto en `google_drive_file_id`.
+  - Persistencia de metadatos: Almacena el esquema JSON retornado por extracción en `raw_data`.
 
 - **Controlador (`App\Http\Controllers\Admin\PurchaseFacturaController`)**:
-  - Centraliza el CRUD, el filtrado avanzado y actúa como orquestador entre la base de datos, el proveedor de IA y el API de Google Drive.
+  - Encargado del ciclo CRUD, peticiones de filtrado reactivo asíncrono y enrutamiento con los servicios de IA.
 
-- **Frontend (`resources/js/Pages/Admin/PurchaseFacturas/Index.vue`)**:
-  - Interfaz reactiva donde se presentan filtros avanzados y un cálculo asíncrono de sumatorios dinámicos ("Tarjetas de Totales").
+- **Servicios Integrados (`App\Services`)**:
+  - `GeminiInvoiceService`: Implementa llamadas directas a la API de **Google Gemini 2.5 Flash** para NLP de facturas complejas.
+  - `GoogleDriveService`: Actúa a través del Facade de *Storage* para el enrutamiento remoto de binarios en Flysystem.
 
-- **Servicios Externos (`App\Services`)**:
-  - `GeminiInvoiceService`: Encargado de la extracción de datos de Pdfs utilizando Google Gemini 2.5 Flash.
-  - `GoogleDriveService`: (A través del Storage y un proveedor de Drive) Organiza el almacenamiento remoto.
+## 2. Flujo de Subida y Procesamiento IA
 
----
+1. **Placeholder (Init)**: Crea un registro modelo inicial en la DB iterado como `procesando` con máscara de identificador único.
+2. **Transferencia Remota**: Despliega el PDF a Google Drive (`Storage::disk('google_facturas')`) usando el mapeo temporal año/semestre.
+3. **Parseo Gemini**: Codifica el documento en `Base64` y despacha el prompt a Gemini API. El servicio restringe la validación del JSON pre-formateando divisas y discriminando al perfil del titular respecto al emisor de la factura.
+4. **Guardado Condicional (`handleExtractedData`)**:
+   - Revisa colisión por número de factura.
+   - En caso de conflicto: Inyecta el flag `DUP-[timestamp]`, retiene estado a `duplicada` y aguarda la resolución en Front.
+   - En ejecución exitosa: Renombra, actualiza sumatorios matemáticos detectados, mapea fechas oficiales a la carpeta definitiva de Google Drive moviendo el archivo y fija status a `recibida`.
 
-## 2. Flujo de Subida y Procesamiento (Pipeline)
+## 3. Características Avanzadas (Backend/Frontend)
 
-El método `store` del controlador define el ciclo de vida principal al subir un PDF. Es un proceso de 4 pasos fuertemente cohesionados:
+- **Resolver Colisiones**: La función `confirmOverwrite()` remueve iteraciones obsoletas (`forceDelete`) en DB y Driver.
+- **Totales Agregados Dinámicos**: En el listado `Index` el controlador clona una petición SQL base y le sobrepone las interfaces `sum()`, logrando entregar pre-cálculos unificados de la base de datos sin incurrir en cuellos de botella mediante queries aisladas N+1.
+- **Visualizador Stream**: El endpoint `showPdf` emite `Content-Disposition: inline` alimentando los Modals interactivos de VUE de forma directa.
 
-### Paso 1: Registro Inicial o "Placeholder"
-Al recibir el archivo, se crea inmediatamente un registro temporal en la base de datos con el estado `procesando` y un número autogenerado (ej. `PENDING-123456...`).
+## 4. Diagrama de Estados (`status`)
 
-### Paso 2: Subida e Indexación en Google Drive
-1. Se sube el archivo a Google Drive integrando un adaptador de Flysystem (`Storage::disk('google_facturas')`).
-2. Se implementa un **sistema de archivero inteligente**: estructura las carpetas jerárquicamente por Año > COMPRAS > Trimestre (ej. `2024 > COMPRAS > 1tri`). Inicialmente, usa la fecha actual (`now()`) si no se dispone de la fecha real.
-
-### Paso 3: Extracción de Datos por IA
-El PDF (codificado en Base64) es enviado a `GeminiInvoiceService`, donde interactúa con Gemini 2.5 Flash. 
-- **Prompting Restrictivo**: Obliga a la IA a devolver exclusivamente un JSON estructurado con reglas estrictas (no alucinar, preformatear a floats).
-- **Heurística de corrección de proveedor/cliente**: Si la IA confunde y marca al titular ("LABS FRANCIS", "FRANCISCO VALENZUELA") como proveedor (emisor de factura), el servicio lo detecta vía hardcode de nombres permitidos, revierte los roles si es posible, o marca "Revisión manual necesaria".
-
-### Paso 4: Resolución y Guardado Final (`handleExtractedData`)
-1. Comprueba si el número de factura ya existe (Gestión de Duplicados).
-2. Si **ya existe:** En lugar de fallar, renombra la factura como `DUP-[timestamp]-[numero]`, guarda el ID original al que duplica, y la marca en estado `duplicada` para su revisión en la interfaz.
-3. Si **es nueva:** Actualiza los importes, fecha y nombre de proveedor real. 
-4. Por último, actualiza la ubicación en Drive: si la "Fecha de Factura" extraída pertenece a un trimestre o año distinto al actual, mueve el archivo del Drive a su carpeta cronológica correcta.
-
----
-
-## 3. Comportamientos y Lógica Interesante
-
-### Manejo Inteligente de Duplicadas
-Cuando el sistema detecta que se intenta subir una variante de una factura existente, bloquea la sobreescritura automática. Desde el Frontend (en `Index.vue`), el botón `Sustituir #[num_factura]` llama a la ruta y método `confirmOverwrite()`. Este método elimina el archivo en Drive de la versión antigua, realiza un `forceDelete()` sobre el registro antiguo de DB, y adopta definitivamente el estado y valores de la "nueva" subida, moviendo el archivo en Drive automáticamente.
-
-### Cálculo de Totales Ágil
-En `Index.php`, el backend pre-calcula los totales (Base, IVA, Total neto) de todas las facturas en vista (incluso si la lista está paginada) *clonando la query actual*. Esto evita generar problemas de desempeño `N+1` mientras mantiene sincronizados los visores del total arriba de la tabla con los filtros de proveedor y fecha estipulados.
-
-### Visualización y Descarga "In-line"
-El `PurchaseFacturaController@showPdf` descarga el flujo de datos del archivo en Drive y retorna un PDF directamente renderizado en el navegador con un `Content-Disposition: inline` que permite el pre-visualizador PDF en la misma pestaña y modal.
-
----
-
-## 4. Áreas Claves del Estado de Facturas (`status`)
-
-El modelo transita entre los siguientes estados que se renderizan mediante badgets de colores en Vue:
-- `procesando` (Naranja): Recién subida, pendiente del hook de I.A.
-- `recibida` (Verde): I.A completó la extracción con éxito y se archivó.
-- `duplicada` (Rojo): Retenida manual, existe un conflicto de n° de factura.
-- `error_ia` (Morado): Formato PDF ilegible, encriptado o la IA falló por Timeout/Parse JSON.
-- `pagado` (Verde): Marcador administrativo (usualmente gestionado desde el crud de edición).
-
----
-
-## Resumen
-
-El sistema es robusto, automatiza completamente el ciclo de ordenamiento documental en "cloud" (Google Drive) y digitaliza la introducción de asientos de gastos (data entry) gestionando colisiones y extracciones fallidas de Gemini AI.
+- `procesando`: Petición iniciada, API Gemini en curso.
+- `recibida`: Transacción SQL y almacenamiento superado.
+- `duplicada`: Conflicto por número ID y/o cif idéntico. Requiere Merge o Descarte manual.
+- `error_ia`: Input incomprensible o denegado, timeout en request o estructura JSON corrupta.
+- `pagado`: Meta-estado flag de uso contable.
