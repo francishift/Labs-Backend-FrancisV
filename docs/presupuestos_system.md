@@ -34,6 +34,15 @@ Una de las responsabilidades principales de la aplicación con los presupuestos 
 - **Proyectos**: El modelo `Presupuesto` es inyectado y vinculado con los Proyectos (`App\Models\Proyecto`), ya que un proyecto puede crearse a partir de un presupuesto (Relación uno-a-muchos).
 - **Contactos**: Identifica y relaciona los `contact_id` nativos de Holded. Con esta filosofía, en lugar de manejar entidades o cuentas de cliente duplicadas, la app utiliza el ID y `contact_name` como llaves maestras para encontrar la entidad original en la plataforma de Holded.
 
+## 4. Evolución a Sistema Nativo (Actualización)
+
+A partir de la reciente iteración de desarrollo, el sistema ha evolucionado de ser puramente un "Espejo" de Holded a permitir una **gestión 100% Nativa e Independiente** de presupuestos, desligándose de Holded para futuras facturaciones pre-venta directas. Novedades clave:
+
+- **Migración a Base de Datos Local Completa**: Los presupuestos ya no dependen de un ID de Holded forzoso; ahora generan su propia matriculación (ej. `PR-5893`), mantienen líneas de venta (`PresupuestoLinea`), control de IRPF e IVA por separado, estado independiente (borrador, enviado, firmado, etc.) y fecha nativa local.
+- **Relaciones y Clientes Directos**: Se ha vinculado a cada presupuesto su propio `client_id` (migrado previamente desde `contact_id`), permitiendo cargar información demográfica real (CIF, dirección, etc.) almacenada sin requerir consultas cruzadas lentas, con un fallback (sistema de rescate) a la data heredada de Holded para retrocompatibilidad total con facturas antiguas.
+- **Descripciones Enriquecidas (WYSIWYG)**: Se ha integrado el componente `@vueup/vue-quill` que permite incluir descripciones detalladas con formato HTML. Presenta capacidades híbridas, tolerando el modo oscuro, personalización de viñetas tipográficas o alternancia en vivo entre Código Puro (HTML) y Visión Gráfica.
+- **Generador PDF Híbrido Corporativo**: Descartando la generación rígida externa, la plataforma renderiza sus propios archivos PDF a través de vistas locales (`pdf.presupuesto`), imponiendo forzosamente la tipografía corporativa (`Lexend`) con diferentes pesos, espaciados perfeccionados, directrices en listas/párrafos e imponiendo paletas de alto contraste (#27272a) para repeler imperfecciones en el código HTML inyectado externamente (pegados sucios de otras webs). 
+
 ## Resumen
 
-Este código es altamente seguro, operando como un **caché avanzado**. Reduce las llamadas redundantes a la API de Holded al crear respaldos permanentes cronológicos en Google Drive. Además, el backend es lo suficientemente autónomo como para limpiar y recálcular retenciones e IVA leyendo el objeto bruto desde Holded para usarlo en el front-end dinámico local.
+El sistema opera combinando lo mejor del archivado histórico heredado con control total e independiente para las finanzas futuras de la empresa, siendo lo suficientemente resiliente para reparar carencias de datos antiguos sobre la marcha y entregando documentación al cliente de calidad estética premium.

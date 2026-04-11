@@ -61,6 +61,7 @@ class PresupuestoController extends Controller
             'lineas.*.porcentaje_iva' => 'required|numeric|min:0',
             'lineas.*.porcentaje_irpf' => 'required|numeric|min:0',
             'due_date' => 'nullable|date',
+            'description' => 'nullable|string',
         ]);
 
         $lastPresupuesto = Presupuesto::where('number', 'like', 'PR-%')
@@ -81,6 +82,7 @@ class PresupuestoController extends Controller
             'due_date' => $request->due_date ? date('Y-m-d', strtotime($request->due_date)) : null,
             'status' => 0,
             'notes' => $request->notes,
+            'description' => $request->description,
         ]);
 
         $this->syncLineas($presupuesto, $request->lineas);
@@ -126,6 +128,7 @@ class PresupuestoController extends Controller
             'lineas.*.porcentaje_iva' => 'required|numeric|min:0',
             'lineas.*.porcentaje_irpf' => 'required|numeric|min:0',
             'due_date' => 'nullable|date',
+            'description' => 'nullable|string',
         ]);
 
         $presupuesto->update([
@@ -134,6 +137,7 @@ class PresupuestoController extends Controller
             'date' => strtotime($request->date),
             'due_date' => $request->due_date ? date('Y-m-d', strtotime($request->due_date)) : null,
             'notes' => $request->notes,
+            'description' => $request->description,
         ]);
 
         $this->syncLineas($presupuesto, $request->lineas);

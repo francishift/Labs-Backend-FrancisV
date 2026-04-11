@@ -184,6 +184,31 @@
 
         .item-concept { font-weight: bold; color: #18181b; margin-bottom: 4px;}
         .item-desc { font-size: 8pt; color: #71717a; }
+
+        .desc-content,
+        .desc-content p, 
+        .desc-content span, 
+        .desc-content div, 
+        .desc-content li, 
+        .desc-content ul, 
+        .desc-content ol,
+        .desc-content table,
+        .desc-content td,
+        .desc-content th {
+            color: #27272a !important; 
+        }
+        .desc-content p {
+            margin-top: 4px;
+            margin-bottom: 6px;
+        }
+        .desc-content ul, .desc-content ol {
+            padding-left: 20px;
+            margin-top: 4px;
+            margin-bottom: 6px;
+        }
+        .desc-content li {
+            margin-bottom: 3px;
+        }
     </style>
 </head>
 <body>
@@ -247,13 +272,27 @@
         <div class="client-box">
             <div class="box-title">Cliente</div>
             <div class="box-content">
+                @php
+                    $resolvedClient = $presupuesto->cliente;
+                    if (!$resolvedClient && $presupuesto->contact) {
+                        $resolvedClient = \App\Models\Client::where('contact', $presupuesto->contact)
+                            ->orWhereJsonContains('secondary_contacts', $presupuesto->contact)
+                            ->first();
+                    }
+                @endphp
+
                 {{ $presupuesto->contact_name }}<br>
-                @if($presupuesto->cliente)
-                    @if($presupuesto->cliente->address) {{ $presupuesto->cliente->address }}<br>@endif
-                    @if($presupuesto->cliente->city || $presupuesto->cliente->province || $presupuesto->cliente->zip_code)
-                        {{ $presupuesto->cliente->city }} @if($presupuesto->cliente->zip_code)({{ $presupuesto->cliente->zip_code }})@endif, {{ $presupuesto->cliente->province }}<br>
+                
+                @if($resolvedClient)
+                    @if($resolvedClient->address) {{ $resolvedClient->address }}<br>@endif
+                    @if($resolvedClient->city || $resolvedClient->province || $resolvedClient->zip_code)
+                        {{ $resolvedClient->city }} @if($resolvedClient->zip_code)({{ $resolvedClient->zip_code }})@endif, {{ $resolvedClient->province }}<br>
                     @endif
-                    @if($presupuesto->cliente->cif_nif) {{ $presupuesto->cliente->cif_nif }}<br>@endif
+                    @if($resolvedClient->cif_nif) {{ $resolvedClient->cif_nif }}<br>@endif
+                @elseif(isset($presupuesto->raw_data['contactAddress']) && !empty($presupuesto->raw_data['contactAddress']))
+                    {{ $presupuesto->raw_data['contactAddress'] }}<br>
+                    {{ $presupuesto->raw_data['contactCity'] ?? '' }} {{ $presupuesto->raw_data['contactZip'] ?? '' }}, {{ $presupuesto->raw_data['contactProvince'] ?? '' }}<br>
+                    @if(!empty($presupuesto->raw_data['contactCif'])) {{ $presupuesto->raw_data['contactCif'] }}<br>@endif
                 @endif
             </div>
         </div>
@@ -342,6 +381,19 @@
         </table>
         <div class="clear"></div>
     </div>
+
+    @php
+        $hasDescription = $presupuesto->description && trim(strip_tags(str_replace(['&nbsp;', ' ', "\n", "\r"], '', $presupuesto->description))) !== '';
+    @endphp
+
+    @if($hasDescription)
+    <div style="margin-top: 30px; border-top: 1px solid #e4e4e7; padding-top: 20px;">
+        <div class="box-title" style="font-size: 11pt; margin-bottom: 10px; color: #18181b;">Descripción del proyecto</div>
+        <div class="desc-content" style="font-size: 9.5pt; line-height: 1.4;">
+            {!! $presupuesto->description !!}
+        </div>
+    </div>
+    @endif
 
 </body>
 </html>

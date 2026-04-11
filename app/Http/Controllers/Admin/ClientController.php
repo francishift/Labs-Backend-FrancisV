@@ -23,7 +23,6 @@ class ClientController extends Controller
     public function index(Request $request)
     {
         $clients = Client::query()
-            ->select(['id', 'name', 'cif_nif', 'email', 'city'])
             ->when($request->input('search'), function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
@@ -148,8 +147,8 @@ class ClientController extends Controller
         $facturas = [];
 
         if (!empty($contactIds)) {
-            $presupuestos = Presupuesto::where(function($q) use ($contactIds) {
-                    $q->whereIn('contact_id', $contactIds)
+            $presupuestos = Presupuesto::where(function($q) use ($contactIds, $client) {
+                    $q->where('client_id', $client->id)
                       ->orWhereIn('contact', $contactIds);
                 })
                 ->orderBy('date', 'desc')

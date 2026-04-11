@@ -24,6 +24,7 @@ class Presupuesto extends Model
         'tax_amount',
         'irpf_amount',
         'notes',
+        'description',
     ];
 
     protected $casts = [

@@ -10,6 +10,8 @@ import TextInput from '@/Components/TextInput.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import InputError from '@/Components/InputError.vue'
 import { PlusIcon, TrashIcon } from '@heroicons/vue/24/outline'
+import { QuillEditor } from '@vueup/vue-quill'
+import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
 const props = defineProps({
   presupuesto: Object,
@@ -31,6 +33,7 @@ const form = useForm({
   date: getFormattedDate(props.presupuesto.date),
   due_date: props.presupuesto.due_date ? getFormattedDate(props.presupuesto.due_date) : '',
   notes: props.presupuesto.notes || '',
+  description: props.presupuesto.description || '',
   lineas: props.presupuesto.lineas && props.presupuesto.lineas.length > 0 
     ? props.presupuesto.lineas.map(l => ({
         concepto: l.concepto,
@@ -41,6 +44,8 @@ const form = useForm({
     }))
     : [{ concepto: '', cantidad: 1, precio_unitario: 0, porcentaje_iva: props.defaultIva !== undefined ? props.defaultIva : 21, porcentaje_irpf: props.defaultIrpf !== undefined ? props.defaultIrpf : 0 }]
 })
+
+const showHtml = ref(false)
 
 const onClientChange = (event) => {
     const clientId = event.target.value
@@ -192,6 +197,29 @@ const submit = () => {
                         <PlusIcon class="w-4 h-4 mr-1" />
                         Añadir Concepto
                     </SecondaryButton>
+                </div>
+            </div>
+
+            <!-- Descripción del proyecto -->
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <InputLabel value="Descripción del Proyecto (Opcional)" />
+                    <button type="button" @click="showHtml = !showHtml" class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-200 hover:underline">
+                        {{ showHtml ? 'Ver Editor Visual' : 'Editar Código HTML' }}
+                    </button>
+                </div>
+                <!-- Modo Visual -->
+                <div v-show="!showHtml" class="bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-md shadow-sm">
+                    <QuillEditor theme="snow" v-model:content="form.description" contentType="html" toolbar="minimal" />
+                </div>
+                <!-- Modo HTML -->
+                <div v-show="showHtml">
+                    <textarea 
+                        v-model="form.description" 
+                        rows="8" 
+                        class="block w-full border-gray-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm font-mono text-sm"
+                        placeholder="<p>Escribe HTML aquí...</p>"
+                    ></textarea>
                 </div>
             </div>
 
