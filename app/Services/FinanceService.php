@@ -22,10 +22,16 @@ class FinanceService
         $query = Factura::query();
 
         // Las fechas en Holded se guardan como timestamp en la columna 'date'
-        $query->whereYear(DB::raw('FROM_UNIXTIME(date)'), $year);
-
         if ($quarter) {
-            $query->whereRaw('QUARTER(FROM_UNIXTIME(date)) = ?', [$quarter]);
+            $startMonth = ($quarter - 1) * 3 + 1;
+            $endMonth = $startMonth + 2;
+            $startPeriod = strtotime("$year-$startMonth-01 00:00:00");
+            $endPeriod = strtotime(date("Y-m-t 23:59:59", strtotime("$year-$endMonth-01")));
+            $query->whereBetween('date', [$startPeriod, $endPeriod]);
+        } else {
+            $startPeriod = strtotime("$year-01-01 00:00:00");
+            $endPeriod = strtotime("$year-12-31 23:59:59");
+            $query->whereBetween('date', [$startPeriod, $endPeriod]);
         }
 
         // Ahora usamos sum() directamente a la BBDD evitando cargar colecciones pesadas, 
@@ -57,7 +63,9 @@ class FinanceService
         $query->whereYear('date', $year);
 
         if ($quarter) {
-            $query->whereRaw('QUARTER(date) = ?', [$quarter]);
+            $startMonth = ($quarter - 1) * 3 + 1;
+            $query->whereMonth('date', '>=', $startMonth)
+                  ->whereMonth('date', '<=', $startMonth + 2);
         }
 
         // Aquí sí podemos usar sum() directamente a la BBDD evitando cargar colecciones pesadas

@@ -70,7 +70,7 @@ class Client extends Model
      */
     public static function getAnnualValueDataForChart($year = null)
     {
-        $year = $year ?: date('Y');
+        $year = $year ?: now()->year;
         $clientesData = [];
 
         // Proyectos activos o finalizados este año

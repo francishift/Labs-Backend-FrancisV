@@ -109,7 +109,7 @@ class Mantenimiento extends Model
 
     public function calculatePeriodIncome($period = 'all', $year = null)
     {
-        $year = $year ?: date('Y');
+        $year = $year ?: now()->year;
 
         if ($period === 'all') {
             // Si las relaciones están cargadas, calculamos en memoria para evitar N+1
@@ -183,7 +183,7 @@ class Mantenimiento extends Model
      */
     public function getFinancialStats($month = 'all', $year = null)
     {
-        $year = $year ?: date('Y');
+        $year = $year ?: now()->year;
         
         $precioHoraFallback = $this->precio_hora ?: self::getDiscountedHourlyRate();
         
@@ -303,7 +303,7 @@ class Mantenimiento extends Model
      */
     public static function getAggregatedStatsForYear($year = null)
     {
-        $year = $year ?: date('Y');
+        $year = $year ?: now()->year;
         // EAGER LOADING: Cargamos todas las relaciones necesarias para evitar N+1 en el bucle
         $mantenimientos = self::active()
             ->orWhere(fn($q) => $q->finishedThisYear($year))

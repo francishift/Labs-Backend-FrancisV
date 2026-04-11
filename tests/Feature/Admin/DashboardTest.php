@@ -17,6 +17,10 @@ class DashboardTest extends TestCase
 
     public function test_dashboard_returns_proper_chart_data()
     {
+        // Freeze time to March 1st so that active monthly maintenances equal exactly 10 months of income
+        \Carbon\Carbon::setTestNow(\Carbon\Carbon::create(2024, 3, 1));
+        \Illuminate\Support\Facades\Cache::flush();
+
         // Seed roles if necessary or manually create
         \Spatie\Permission\Models\Role::create(['name' => 'admin']);
         

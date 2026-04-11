@@ -85,7 +85,7 @@ class PurchaseFacturaController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, GeminiInvoiceService $geminiService)
     {
         $request->validate([
             'file' => [
@@ -120,7 +120,6 @@ class PurchaseFacturaController extends Controller
             $factura->update(['google_drive_file_id' => $driveFileId]);
             
             // 3. Extracción de Datos
-            $geminiService = new \App\Services\GeminiInvoiceService();
             $extractedData = $geminiService->extractInvoiceData($pdfBinary);
 
             if (empty($extractedData)) {
