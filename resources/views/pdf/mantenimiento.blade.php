@@ -4,11 +4,42 @@
     <meta charset="UTF-8">
     <title>Informe de Mantenimiento - {{ $mantenimiento->aplicacion }}</title>
     <style>
+        @font-face {
+            font-family: 'Lexend';
+            src: url('{{ public_path('fonts/lexend/Lexend-Light.ttf') }}') format('truetype');
+            font-weight: 300;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Lexend';
+            src: url('{{ public_path('fonts/lexend/Lexend-Light.ttf') }}') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Lexend';
+            src: url('{{ public_path('fonts/lexend/Lexend-Light.ttf') }}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Lexend';
+            src: url('{{ public_path('fonts/lexend/Lexend-Regular.ttf') }}') format('truetype');
+            font-weight: 600;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Lexend';
+            src: url('{{ public_path('fonts/lexend/Lexend-Regular.ttf') }}') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+
         @page {
             margin: 1.5cm;
         }
         body {
-            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-family: 'Lexend', sans-serif;
             color: #18181b;
             line-height: 1.4;
             font-size: 10pt;

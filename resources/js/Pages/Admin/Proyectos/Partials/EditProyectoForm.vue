@@ -121,7 +121,7 @@ const submitEdit = () => {
             </div>
 
             <div class="md:col-span-2">
-                <InputLabel for="edit_presupuesto_id" value="Presupuesto Asociado (Holded)" />
+                <InputLabel for="edit_presupuesto_id" value="Presupuesto Asociado" />
                 <SearchableSelect
                     id="edit_presupuesto_id"
                     v-model="editForm.presupuesto_id"

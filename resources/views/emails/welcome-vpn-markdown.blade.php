@@ -29,5 +29,5 @@ Para acceder al sistema de forma segura, primero debes conectarte a nuestra red 
 Una vez conectado a WireGuard, podrás iniciar sesión en la plataforma.
 
 Saludos,<br>
-{{ $appName }}
+Francis Valenzuela
 </x-mail::message>

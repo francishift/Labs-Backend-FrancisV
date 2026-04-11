@@ -86,12 +86,22 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/admin/purchase-facturas/{purchaseFactura}', [\App\Http\Controllers\Admin\PurchaseFacturaController::class, 'destroy'])->name('admin.purchase-facturas.destroy');
         Route::post('/admin/purchase-facturas/{purchaseFactura}/overwrite', [\App\Http\Controllers\Admin\PurchaseFacturaController::class, 'confirmOverwrite'])->name('admin.purchase-facturas.overwrite');
         
+        // Presupuestos Nativos
+        Route::get('/admin/presupuestos', [\App\Http\Controllers\Admin\PresupuestoController::class, 'index'])->name('admin.presupuestos.index');
+        Route::get('/admin/presupuestos/create', [\App\Http\Controllers\Admin\PresupuestoController::class, 'create'])->name('admin.presupuestos.create');
+        Route::post('/admin/presupuestos', [\App\Http\Controllers\Admin\PresupuestoController::class, 'store'])->name('admin.presupuestos.store');
+        Route::get('/admin/presupuestos/{presupuesto}', [\App\Http\Controllers\Admin\PresupuestoController::class, 'show'])->name('admin.presupuestos.show');
+        Route::get('/admin/presupuestos/{presupuesto}/edit', [\App\Http\Controllers\Admin\PresupuestoController::class, 'edit'])->name('admin.presupuestos.edit');
+        Route::patch('/admin/presupuestos/{presupuesto}', [\App\Http\Controllers\Admin\PresupuestoController::class, 'update'])->name('admin.presupuestos.update');
+        Route::delete('/admin/presupuestos/{presupuesto}', [\App\Http\Controllers\Admin\PresupuestoController::class, 'destroy'])->name('admin.presupuestos.destroy');
+        Route::get('/admin/presupuestos/{presupuesto}/export-pdf', [\App\Http\Controllers\Admin\PresupuestoController::class, 'exportPdf'])->name('admin.presupuestos.pdf');
+        Route::post('/admin/presupuestos/{presupuesto}/send-pdf', [\App\Http\Controllers\Admin\PresupuestoController::class, 'sendPdfEmail'])->name('admin.presupuestos.send-pdf');
+        
+
 
         // Holded
         Route::prefix('admin/holded')->name('admin.holded.')->group(function () {
-            Route::get('/presupuestos', [\App\Http\Controllers\Admin\Holded\PresupuestoController::class, 'index'])->name('presupuestos.index');
-            Route::get('/presupuestos/{id}/pdf', [\App\Http\Controllers\Admin\Holded\PresupuestoController::class, 'downloadPdf'])->name('presupuestos.pdf');
-            
+
             Route::get('/facturas', [\App\Http\Controllers\Admin\Holded\FacturaController::class, 'index'])->name('facturas.index');
             Route::post('/facturas/sync-drive', [\App\Http\Controllers\Admin\Holded\FacturaController::class, 'syncDrive'])->name('facturas.sync-drive');
             Route::get('/facturas/{id}/pdf', [\App\Http\Controllers\Admin\Holded\FacturaController::class, 'downloadPdf'])->name('facturas.pdf');

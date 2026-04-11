@@ -259,17 +259,17 @@ class ClientController extends Controller
                 ...($client->secondary_contacts ?? [])
             ]);
 
-            // Buscar por ID de contacto en la columna 'contact_id' O en la columna 'contact' (manejo de sincronizaciones heredadas)
-            $presupuestos = Presupuesto::where(function($q) use ($contactIds) {
-                    $q->whereIn('contact_id', $contactIds)
-                      ->orWhereIn('contact', $contactIds);
-                })
+            // Buscar de manera robusta usando la clave foránea nativa
+            $presupuestos = Presupuesto::with('cliente:id,name')->where('client_id', $client->id)
                 ->orderBy('date', 'desc')
-                ->get(['id', 'holded_id', 'total', 'date', 'raw_data'])
+                ->get(['id', 'client_id', 'holded_id', 'total', 'date', 'raw_data', 'number'])
                 ->map(function ($p) {
+                    $docName = $p->number ?? ($p->raw_data['docNumber'] ?? $p->holded_id ?? 'Propuesta N/A');
+                    $clientName = $p->cliente ? $p->cliente->name : 'Sin Cliente';
+                    $timestamp = is_numeric($p->date) ? $p->date : strtotime($p->date);
                     return [
                         'id' => $p->id,
-                        'name' => ($p->raw_data['docNumber'] ?? $p->holded_id) . ' - ' . date('d/m/Y', $p->date) . ' (' . number_format($p->total, 2) . '€)',
+                        'name' => "{$docName} - {$clientName} - " . date('d/m/Y', $timestamp) . ' (' . number_format($p->total, 2) . '€)',
                     ];
                 });
 

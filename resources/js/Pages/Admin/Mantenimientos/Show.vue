@@ -205,6 +205,7 @@ const sendEmail = () => {
                     :total-extensions-cost="stats.coste_extensiones"
                     :total-software-cost="stats.coste_software"
                     :total-cost="stats.coste_servicios"
+                    :total-minutos="stats.minutos"
                     :balance="stats.balance"
                 />
             </div>

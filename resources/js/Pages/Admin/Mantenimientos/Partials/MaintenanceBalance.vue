@@ -7,10 +7,11 @@ const props = defineProps({
     totalExtensionsCost: Number,
     totalSoftwareCost: Number,
     totalCost: Number,
-    balance: Number
+    balance: Number,
+    totalMinutos: Number
 })
 
-const { formatCurrency } = useFormatters()
+const { formatCurrency, formatDuration } = useFormatters()
 </script>
 
 <template>
@@ -22,16 +23,20 @@ const { formatCurrency } = useFormatters()
                 <span class="font-medium text-emerald-600 dark:text-emerald-400">{{ formatCurrency(totalIncome) }}</span>
             </div>
             <div class="flex justify-between items-center text-sm">
+                <span class="text-gray-600 dark:text-zinc-400">Horas Realizadas</span>
+                <span class="font-medium text-gray-900 dark:text-white">{{ formatDuration(totalMinutos) }}</span>
+            </div>
+            <div class="flex justify-between items-center text-sm">
+                <span class="text-gray-600 dark:text-zinc-400">Coste Servicios</span>
+                <span class="font-medium text-red-600 dark:text-red-400">{{ formatCurrency(totalCost) }}</span>
+            </div>
+            <div class="flex justify-between items-center text-sm">
                 <span class="text-gray-600 dark:text-zinc-400">Coste Extensiones</span>
                 <span class="font-medium text-red-600 dark:text-red-400">{{ formatCurrency(totalExtensionsCost) }}</span>
             </div>
             <div class="flex justify-between items-center text-sm">
                 <span class="text-gray-600 dark:text-zinc-400">Coste Software / Hosting</span>
                 <span class="font-medium text-red-600 dark:text-red-400">{{ formatCurrency(totalSoftwareCost) }}</span>
-            </div>
-            <div class="flex justify-between items-center text-sm">
-                <span class="text-gray-600 dark:text-zinc-400">Coste Servicios</span>
-                <span class="font-medium text-red-600 dark:text-red-400">{{ formatCurrency(totalCost) }}</span>
             </div>
             <div class="border-t border-gray-200 dark:border-zinc-700 pt-3 flex justify-between items-center">
                 <span class="text-base font-bold text-gray-900 dark:text-white">Balance Neto</span>

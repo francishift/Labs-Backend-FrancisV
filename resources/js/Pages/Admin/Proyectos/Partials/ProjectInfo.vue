@@ -46,15 +46,15 @@ const getStatusVariant = (status) => {
                 <p class="text-xl font-black text-emerald-900 dark:text-emerald-200">{{ formatCurrency(proyecto.presupuesto) }}</p>
                 <div v-if="proyecto.presupuesto_asociado" class="mt-1">
                         <a :href="route('admin.visor-pdf', { 
-                            url: route('admin.holded.presupuestos.pdf', { id: proyecto.presupuesto_asociado.holded_id }),
-                            title: `Presupuesto: ${proyecto.presupuesto_asociado.raw_data?.docNumber || proyecto.presupuesto_asociado.holded_id}`,
+                            url: route('admin.presupuestos.pdf', { presupuesto: proyecto.presupuesto_asociado.id }),
+                            title: `Presupuesto: ${proyecto.presupuesto_asociado.number || proyecto.presupuesto_asociado.raw_data?.docNumber || proyecto.presupuesto_asociado.id}`,
                             backUrl: route('admin.proyectos.show', proyecto.id)
                         })" 
                         class="inline-flex items-center gap-1 text-xs text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium transition-colors"
                         title="Ver Presupuesto PDF"
                         >
                         <DocumentTextIcon class="h-3 w-3" />
-                        Ref: {{ proyecto.presupuesto_asociado.raw_data?.docNumber || 'Ver PDF' }}
+                        Ref: {{ proyecto.presupuesto_asociado.number || proyecto.presupuesto_asociado.raw_data?.docNumber || 'Ver PDF' }}
                         </a>
                 </div>
             </div>

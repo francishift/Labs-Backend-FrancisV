@@ -1,0 +1,8 @@
+{
+    "lexend": {
+        "300": "\/var\/www\/vhosts\/TU_DOMINIO\/httpdocs\/storage\/fonts\/lexend_300_b9d384a10717407d5a3abfb642535ad4",
+        "normal": "\/var\/www\/vhosts\/TU_DOMINIO\/httpdocs\/storage\/fonts\/lexend_normal_b9d384a10717407d5a3abfb642535ad4",
+        "600": "\/var\/www\/vhosts\/TU_DOMINIO\/httpdocs\/storage\/fonts\/lexend_600_3a8eff9bca402cd2df6110cd04090cb9",
+        "bold": "lexend_bold_3a8eff9bca402cd2df6110cd04090cb9"
+    }
+}

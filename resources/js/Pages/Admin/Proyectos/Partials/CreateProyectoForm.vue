@@ -96,7 +96,7 @@ const submitCreate = () => {
             </div>
 
             <div class="md:col-span-2">
-                <InputLabel for="create_presupuesto_id" value="Presupuesto Asociado (Holded)" />
+                <InputLabel for="create_presupuesto_id" value="Presupuesto Asociado" />
                 <SearchableSelect
                     id="create_presupuesto_id"
                     v-model="createForm.presupuesto_id"

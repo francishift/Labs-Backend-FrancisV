@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('presupuestos', function (Blueprint $table) {
             $table->id();
-            $table->string('holded_id')->unique();
+            $table->string('holded_id')->nullable()->unique();
             $table->string('contact_id')->nullable();
             $table->string('contact_name')->nullable();
             $table->json('contact')->nullable();

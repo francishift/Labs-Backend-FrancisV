@@ -4,12 +4,43 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Resumen de Cliente: {{ $client->name }}</title>
     <style>
+        @font-face {
+            font-family: 'Lexend';
+            src: url('{{ public_path('fonts/lexend/Lexend-Light.ttf') }}') format('truetype');
+            font-weight: 300;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Lexend';
+            src: url('{{ public_path('fonts/lexend/Lexend-Light.ttf') }}') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Lexend';
+            src: url('{{ public_path('fonts/lexend/Lexend-Light.ttf') }}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Lexend';
+            src: url('{{ public_path('fonts/lexend/Lexend-Regular.ttf') }}') format('truetype');
+            font-weight: 600;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Lexend';
+            src: url('{{ public_path('fonts/lexend/Lexend-Regular.ttf') }}') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+
         /* Tipografía estándar para PDF */
         @page {
             margin: 1.5cm;
         }
         body {
-            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-family: 'Lexend', sans-serif;
             font-size: 11pt;
             line-height: 1.5;
             color: #18181b;
@@ -244,7 +275,7 @@
         </table>
     </div>
 
-    @if($presupuestos && $presupuestos->count() > 0)
+    @if(is_array($presupuestos) ? count($presupuestos) > 0 : ($presupuestos && $presupuestos->count() > 0))
     <div class="keep-together">
         <div class="label">Presupuestos Holded Recientes</div>
         <table class="data-table">
@@ -257,7 +288,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($presupuestos->take(10) as $presu)
+                @foreach(is_array($presupuestos) ? array_slice($presupuestos, 0, 10) : $presupuestos->take(10) as $presu)
                 <tr>
                     <td class="font-bold">{{ $presu->raw_data['docNumber'] ?? '-' }}</td>
                     <td>{{ date('d/m/Y', $presu->date) }}</td>

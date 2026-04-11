@@ -17,7 +17,7 @@ watch(
 </script>
 
 <template>
-  <div class="fixed top-20 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-4 w-full max-w-sm pointer-events-none">
+  <div class="fixed top-20 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-4 w-full max-w-sm pointer-events-none">
     <TransitionGroup
       enter-active-class="transform ease-out duration-300 transition"
       enter-from-class="translate-y-2 opacity-0 sm:translate-y-0"

@@ -8,5 +8,5 @@ El informe detalla los servicios prestados, los gastos de infraestructura asocia
 Si tienes alguna pregunta o necesitas alguna aclaración sobre el informe, no dudes en contactar con nosotros.
 
 Saludos,<br>
-{{ config('app.name') }}
+Francis Valenzuela
 </x-mail::message>
