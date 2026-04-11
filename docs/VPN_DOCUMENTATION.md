@@ -13,7 +13,7 @@ El **Módulo VPN de Labs Backend** permite a los administradores gestionar el ac
 
 ## 🏗️ Requisitos Previos del Servidor
 
-Para desplegar este módulo en un nuevo servidor (ej. Ubuntu 20.04/22.04), sigue estos pasos:
+Para desplegar este módulo en un nuevo servidor (ej. Ubuntu 20.04/22.04), se deben seguir estos pasos:
 
 ### 1. Instalar WireGuard
 ```bash
@@ -29,7 +29,7 @@ wg genkey | tee privatekey | wg pubkey > publickey
 ```
 
 ### 3. Configurar la Interfaz del Servidor (`/etc/wireguard/wg0.conf`)
-Crea el archivo y añade la siguiente configuración. Reemplaza `<SERVER_PRIVATE_KEY>` con el contenido de `/etc/wireguard/privatekey`.
+Se debe crear el archivo y añadir la siguiente configuración. Reemplazar `<SERVER_PRIVATE_KEY>` con el contenido de `/etc/wireguard/privatekey`.
 
 ```ini
 [Interface]
@@ -43,7 +43,7 @@ PostUp = sysctl -w net.ipv4.ip_forward=1
 PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o ens6 -j MASQUERADE
 PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o ens6 -j MASQUERADE
 ```
-*Nota: Asegúrate de que el nombre de la interfaz de red principal sea el correcto (ej. `ens6`, `eth0`). Compruébalo con `ip addr`.*
+*Nota: Es necesario confirmar que el nombre de la interfaz de red principal sea el correcto (ej. `ens6`, `eth0`). Puede comprobarse con `ip addr`.*
 
 ### 4. Habilitar e Iniciar el Servicio WireGuard
 ```bash
@@ -58,12 +58,12 @@ sudo systemctl start wg-quick@wg0
 La aplicación Laravel necesita privilegios simplificados para gestionar los pares (peers) activos de WireGuard.
 
 ### Configurar Sudoers
-Crea un nuevo archivo de sudoers:
+Se debe crear un nuevo archivo de sudoers:
 ```bash
 sudo visudo -f /etc/sudoers.d/vpn-management
 ```
 
-Añade lo siguiente (reemplaza `username` por el usuario del sistema/web):
+Añadir lo siguiente (reemplazando `username` por el usuario del sistema/web):
 ```bash
 # Permitir al usuario web gestionar WireGuard
 username ALL=(root) NOPASSWD: /usr/bin/wg
@@ -79,7 +79,7 @@ VPN_ENDPOINT=(IP del servidor):51892
 ```
 
 ### 🔄 Restauración Automática y Persistencia
-Para asegurar que los pares se restauren tras un reinicio y que los apretones de manos (handshakes) sean monitorizados, añade lo siguiente a tu crontab (`crontab -e -u username` o a través de Tareas Programadas en Plesk):
+Para asegurar que los pares se restauren tras un reinicio y que los apretones de manos (handshakes) sean monitorizados, se debe añadir lo siguiente en el crontab (`crontab -e -u username` o a través de Tareas Programadas en panel de hosting):
 
 ```bash
 # Programador de Laravel (Cada minuto) - Monitoriza handshakes
@@ -94,9 +94,9 @@ Para asegurar que los pares se restauren tras un reinicio y que los apretones de
 ## 🔍 Solución de Problemas
 
 ### Los clientes conectan pero no tienen internet
-1. **DNS**: Asegúrate de que el perfil del cliente utiliza DNS públicos (ej. `DNS = 1.1.1.1, 8.8.8.8`).
-2. **NAT**: Verifica que la regla `PostUp` en `wg0.conf` tiene el nombre de interfaz correcto (usa `ip addr`).
+1. **DNS**: Asegurar que el perfil del cliente utiliza DNS públicos (ej. `DNS = 1.1.1.1, 8.8.8.8`).
+2. **NAT**: Verificar que la regla `PostUp` en `wg0.conf` tiene el nombre de interfaz correcto (usa `ip addr`).
 
 ### "403 Forbidden" en el Panel
-1. Asegúrate de que la IP pública del servidor está incluida en los `AllowedIPs` del cliente (ej. `AllowedIPs = 10.0.0.0/24, IP_SERVIDOR/32`).
-2. Comprueba si la configuración de Nginx del dominio permite el rango `10.0.0.0/24`.
+1. Confirmar que la IP pública del servidor está incluida en los `AllowedIPs` del cliente (ej. `AllowedIPs = 10.0.0.0/24, IP_SERVIDOR/32`).
+2. Comprobar si la configuración de Nginx del dominio permite el rango `10.0.0.0/24`.

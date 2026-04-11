@@ -1,8 +1,8 @@
 # Análisis del Sistema `PurchaseFactura` (Facturas de Compra)
 
-He realizado un estudio exhaustivo del sistema de gestión comercial de facturas de compra (`PurchaseFactura`), analizando tanto el backend (Laravel) como el frontend (Vue/Inertia), así como los servicios externos integrados.
+Este documento contiene un estudio técnico exhaustivo del sistema de gestión comercial de facturas de compra (`PurchaseFactura`), analizando de forma pormenorizada tanto el backend (Laravel) como el frontend (Vue/Inertia), así como todos los servicios externos integrados.
 
-A continuación, detallo la arquitectura, el flujo de procesamiento y las características principales del sistema.
+A continuación, se detalla la arquitectura, el flujo de procesamiento y las características principales del sistema.
 
 ## 1. Arquitectura y Componentes Principales
 
