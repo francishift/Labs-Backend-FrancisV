@@ -158,6 +158,22 @@ const viewPdf = (item) => {
         backUrl: window.location.href
     });
 }
+
+const setDateRange = (rangeType) => {
+    const today = new Date();
+    if (rangeType === 'thisYear') {
+        filterForm.value.date_from = new Date(today.getFullYear(), 0, 2).toISOString().split('T')[0];
+        filterForm.value.date_to = new Date(today.getFullYear(), 11, 31).toISOString().split('T')[0];
+    } else if (rangeType === 'lastYear') {
+        filterForm.value.date_from = new Date(today.getFullYear() - 1, 0, 2).toISOString().split('T')[0];
+        filterForm.value.date_to = new Date(today.getFullYear() - 1, 11, 31).toISOString().split('T')[0];
+    } else if (rangeType === 'last12Months') {
+        const lastYear = new Date();
+        lastYear.setFullYear(today.getFullYear() - 1);
+        filterForm.value.date_from = lastYear.toISOString().split('T')[0];
+        filterForm.value.date_to = today.toISOString().split('T')[0];
+    }
+}
 </script>
 
 <template>
@@ -180,83 +196,102 @@ const viewPdf = (item) => {
 
     <div class="py-6 space-y-6">
       <Card class="p-4 sm:p-6 overflow-hidden">
-        <div class="flex flex-col md:flex-row gap-4 mb-6 items-end">
-          <!-- Search -->
-          <div class="space-y-1 w-full md:flex-1">
-            <InputLabel for="search" value="Buscar (Nº o Proveedor)" />
-            <SearchInput
-              id="search"
-              v-model="filterForm.search"
-              placeholder="Ej: 5477... o Google"
-            />
-          </div>
-
-          <!-- Provider Filter -->
-          <div class="space-y-1 w-full md:flex-1">
-            <InputLabel for="filter_provider" value="Proveedor" />
-            <SearchableSelect 
-              id="filter_provider"
-              v-model="filterForm.provider"
-              :options="providersOptions"
-              placeholder="Todos los proveedores"
-              class="w-full z-50"
-            />
-          </div>
-
-          <!-- Date From -->
-          <div class="space-y-1 w-full md:w-32">
-            <InputLabel for="date_from" value="Desde" />
-            <TextInput 
-              id="date_from"
-              v-model="filterForm.date_from"
-              type="date"
-              class="w-full"
-            />
-          </div>
-
-          <!-- Date To -->
-          <div class="space-y-1 w-full md:w-32">
-            <InputLabel for="date_to" value="Hasta" />
-            <TextInput 
-              id="date_to"
-              v-model="filterForm.date_to"
-              type="date"
-              class="w-full"
-            />
-          </div>
+                <!-- Unified Filters & Totals -->
+        <div class="mb-6 flex flex-col lg:flex-row gap-6 lg:items-start justify-between">
           
-          <!-- Clear Filters Button -->
-          <div class="w-full md:w-auto flex justify-end">
-              <button 
-                  @click="resetFilters" 
-                  title="Limpiar filtros"
-                  class="h-[42px] px-3 flex items-center justify-center bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-500 hover:text-emerald-600 transition-colors rounded-lg border border-gray-200 dark:border-zinc-700"
-              >
-                  <ArrowPathIcon class="w-5 h-5" />
-              </button>
-          </div>
-        </div>
+          <!-- Left Side: General Filters -->
+          <div class="w-full lg:flex-1 flex flex-col sm:flex-row flex-wrap gap-4 items-end">
+            <!-- Search -->
+            <div class="space-y-1 w-full sm:min-w-[200px] sm:flex-[2]">
+              <InputLabel for="search" value="Buscar (Nº o Proveedor)" />
+              <SearchInput
+                id="search"
+                v-model="filterForm.search"
+                placeholder="Ej: 5477... o Google"
+              />
+            </div>
 
-        <!-- Totals Card -->
-        <div class="flex justify-end mb-4">
-          <Card class="p-3 bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 w-full md:w-auto inline-block">
-            <div class="flex items-center gap-x-6 justify-between md:justify-start">
-              <div>
-                <div class="text-[10px] text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-wider mb-0.5">Base</div>
-                <div class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">{{ formatCurrency(totals?.net_amount || 0) }}</div>
+            <!-- Provider Filter -->
+            <div class="space-y-1 w-full sm:min-w-[250px] sm:flex-[3]">
+              <InputLabel for="filter_provider" value="Proveedor" />
+              <SearchableSelect 
+                id="filter_provider"
+                v-model="filterForm.provider"
+                :options="providersOptions"
+                placeholder="Todos los proveedores"
+                class="w-full z-50"
+              />
+            </div>
+            
+            <!-- Clear Filters Button -->
+            <div class="w-full sm:w-auto flex justify-start sm:justify-end mt-2 sm:mt-0">
+                <button 
+                    @click="resetFilters" 
+                    title="Limpiar filtros"
+                    class="h-[42px] px-3 flex items-center justify-center bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-500 hover:text-emerald-600 transition-colors rounded-lg border border-gray-200 dark:border-zinc-700"
+                >
+                    <ArrowPathIcon class="w-5 h-5" />
+                </button>
+            </div>
+          </div>
+
+          <!-- Right Side: Dates & Totals Column -->
+          <div class="w-full lg:w-max flex flex-col gap-4">
+            
+            <!-- Dates -->
+            <div class="flex flex-col gap-2 w-full">
+              <div class="flex gap-3">
+                <!-- Date From -->
+                <div class="space-y-1 flex-1">
+                  <InputLabel for="date_from" value="Desde" />
+                  <TextInput 
+                    id="date_from"
+                    v-model="filterForm.date_from"
+                    type="date"
+                    class="w-full text-sm"
+                  />
+                </div>
+
+                <!-- Date To -->
+                <div class="space-y-1 flex-1">
+                  <InputLabel for="date_to" value="Hasta" />
+                  <TextInput 
+                    id="date_to"
+                    v-model="filterForm.date_to"
+                    type="date"
+                    class="w-full text-sm"
+                  />
+                </div>
               </div>
-              <div>
-                <div class="text-[10px] text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-wider mb-0.5">IVA</div>
-                <div class="text-sm font-semibold text-blue-600 dark:text-blue-400">{{ formatCurrency(totals?.tax_amount || 0) }}</div>
-              </div>
-              <div class="pl-4 border-l border-gray-200 dark:border-zinc-700">
-                <div class="text-[10px] text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-wider mb-0.5">Total</div>
-                <div class="text-base font-bold text-gray-900 dark:text-zinc-100">{{ formatCurrency(totals?.total || 0) }}</div>
+              
+              <!-- Quick Date Filters -->
+              <div class="flex items-center justify-between gap-2 mt-1">
+                 <button @click="setDateRange('thisYear')" class="text-[11px] text-gray-500 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-500 transition-colors">Este año</button>
+                 <button @click="setDateRange('lastYear')" class="text-[11px] text-gray-500 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-500 transition-colors">Año pasado</button>
+                 <button @click="setDateRange('last12Months')" class="text-[11px] text-gray-500 hover:text-emerald-600 dark:text-zinc-400 dark:hover:text-emerald-500 transition-colors">Últimos 12 meses</button>
               </div>
             </div>
-          </Card>
-        </div>
 
+            <!-- Totals Card -->
+            <Card class="p-3 bg-gray-50 dark:bg-zinc-800/50 border border-gray-200 dark:border-zinc-700 w-full">
+              <div class="flex items-center gap-x-6 justify-between lg:justify-end">
+                <div>
+                  <div class="text-[10px] text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-wider mb-0.5">Base</div>
+                  <div class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">{{ formatCurrency(totals?.net_amount || 0) }}</div>
+                </div>
+                <div>
+                  <div class="text-[10px] text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-wider mb-0.5">IVA</div>
+                  <div class="text-sm font-semibold text-blue-600 dark:text-blue-400">{{ formatCurrency(totals?.tax_amount || 0) }}</div>
+                </div>
+                <div class="pl-4 border-l border-gray-200 dark:border-zinc-700">
+                  <div class="text-[10px] text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-wider mb-0.5">Total</div>
+                  <div class="text-base font-bold text-gray-900 dark:text-zinc-100">{{ formatCurrency(totals?.total || 0) }}</div>
+                </div>
+              </div>
+            </Card>
+          </div>
+        </div>
+        
         <DataTable
             :columns="columns"
             :items="facturas.data"

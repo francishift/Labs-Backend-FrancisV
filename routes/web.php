@@ -96,7 +96,8 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/admin/presupuestos/{presupuesto}', [\App\Http\Controllers\Admin\PresupuestoController::class, 'destroy'])->name('admin.presupuestos.destroy');
         Route::get('/admin/presupuestos/{presupuesto}/export-pdf', [\App\Http\Controllers\Admin\PresupuestoController::class, 'exportPdf'])->name('admin.presupuestos.pdf');
         Route::post('/admin/presupuestos/{presupuesto}/send-pdf', [\App\Http\Controllers\Admin\PresupuestoController::class, 'sendPdfEmail'])->name('admin.presupuestos.send-pdf');
-        
+        Route::patch('/admin/presupuestos/{presupuesto}/reactivate', [\App\Http\Controllers\Admin\PresupuestoController::class, 'reactivate'])->name('admin.presupuestos.reactivate');
+        Route::patch('/admin/presupuestos/{presupuesto}/status', [\App\Http\Controllers\Admin\PresupuestoController::class, 'updateStatus'])->name('admin.presupuestos.update-status');
 
 
         // Holded

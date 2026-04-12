@@ -34,6 +34,7 @@ class Presupuesto extends Model
         'subtotal' => 'decimal:2',
         'tax_amount' => 'decimal:2',
         'irpf_amount' => 'decimal:2',
+        'status' => \App\Enums\PresupuestoStatus::class,
     ];
 
     public function proyectos()

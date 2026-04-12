@@ -41,6 +41,10 @@ const formatCurrency = (val) => new Intl.NumberFormat('es-ES', { style: 'currenc
     <template #header>
       <PageHeader :title="'Presupuesto: ' + (presupuesto.number || 'Sin Número')">
         <template #actions>
+          <div class="flex items-center gap-4">
+            <span v-if="presupuesto.status == 2" class="px-3 py-1 font-bold text-white bg-red-600 rounded-md">
+              ANULADO
+            </span>
           <div class="flex flex-wrap gap-2">
               <Link :href="route('admin.presupuestos.index')">
                 <SecondaryButton>
@@ -64,6 +68,7 @@ const formatCurrency = (val) => new Intl.NumberFormat('es-ES', { style: 'currenc
                   Editar
                 </SecondaryButton>
               </Link>
+          </div>
           </div>
         </template>
       </PageHeader>

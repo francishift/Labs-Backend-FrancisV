@@ -13,26 +13,85 @@ use Google\Service\Drive\DriveFile;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PresupuestoPdfMail;
 use App\Models\Configuracion;
+use App\Enums\PresupuestoStatus;
 
 class PresupuestoController extends Controller
 {
     public function index(Request $request)
     {
-        $presupuestos = Presupuesto::with('cliente')
-            ->when($request->input('search'), function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('contact_name', 'like', "%{$search}%")
-                      ->orWhere('number', 'like', "%{$search}%");
-                });
-            })
-            ->orderBy('date', 'desc')
-            ->orderBy('id', 'desc')
-            ->paginate(10)
+        $query = Presupuesto::with('cliente');
+
+        // Búsqueda general
+        if ($request->has('search') && !empty($request->get('search'))) {
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('contact_name', 'like', "%{$search}%")
+                  ->orWhere('number', 'like', "%{$search}%");
+            });
+        }
+
+        // Filtro de Cliente/Contacto
+        if ($request->has('client') && !empty($request->get('client'))) {
+            $query->where('contact_name', $request->get('client'));
+        }
+
+        // Filtro de estado
+        if ($request->has('status') && $request->get('status') !== '') {
+            $query->where('status', (int) $request->get('status'));
+        }
+
+        // Filtros de Fecha (por defecto, últimos 12 meses)
+        $dateFrom = $request->has('date_from') ? $request->get('date_from') : now()->subYear()->toDateString();
+        $dateTo = $request->has('date_to') ? $request->get('date_to') : now()->toDateString();
+
+        if (!empty($dateFrom)) {
+            $query->where('date', '>=', strtotime($dateFrom));
+        }
+        if (!empty($dateTo)) {
+            $query->where('date', '<=', strtotime($dateTo . ' 23:59:59'));
+        }
+
+        // Solo sumar Pendientes y Aprobados
+        $totalsQuery = clone $query;
+        $totalsQuery->whereIn('status', [PresupuestoStatus::PENDING->value, PresupuestoStatus::APPROVED->value]);
+        
+        $totals = [
+            'net_amount' => (float) $totalsQuery->sum('subtotal'),
+            'tax_amount' => (float) $totalsQuery->sum('tax_amount'),
+            'total' => (float) $totalsQuery->sum('total'),
+        ];
+
+        // Ordenación
+        $sort = $request->input('sort', 'date');
+        $direction = $request->input('direction', 'desc');
+        
+        $allowedSorts = ['number', 'contact_name', 'date', 'subtotal', 'tax_amount', 'total', 'status'];
+        if (!in_array($sort, $allowedSorts)) {
+            $sort = 'date';
+        }
+        if (!in_array($direction, ['asc', 'desc'])) {
+            $direction = 'desc';
+        }
+
+        $presupuestos = $query->orderBy($sort, $direction)
+            ->paginate(15)
             ->withQueryString();
+
+        $clientsOptions = Presupuesto::select('contact_name')
+            ->distinct()
+            ->whereNotNull('contact_name')
+            ->orderBy('contact_name')
+            ->pluck('contact_name');
 
         return Inertia::render('Admin/Presupuestos/Index', [
             'presupuestos' => $presupuestos,
-            'filters' => ['search' => $request->input('search')],
+            'clients' => $clientsOptions,
+            'statuses' => PresupuestoStatus::options(),
+            'totals' => $totals,
+            'filters' => array_merge($request->only(['search', 'client', 'status', 'sort', 'direction']), [
+                'date_from' => $dateFrom,
+                'date_to' => $dateTo,
+            ]),
         ]);
     }
 
@@ -80,7 +139,7 @@ class PresupuestoController extends Controller
             'contact_name' => $request->contact_name,
             'date' => strtotime($request->date),
             'due_date' => $request->due_date ? date('Y-m-d', strtotime($request->due_date)) : null,
-            'status' => 0,
+            'status' => PresupuestoStatus::PENDING,
             'notes' => $request->notes,
             'description' => $request->description,
         ]);
@@ -109,6 +168,7 @@ class PresupuestoController extends Controller
         return Inertia::render('Admin/Presupuestos/Edit', [
             'presupuesto' => $presupuesto,
             'clientes' => $clientes,
+            'statuses' => PresupuestoStatus::options(),
             'defaultIva' => (float) Configuracion::get('default_iva', 21),
             'defaultIrpf' => (float) Configuracion::get('default_irpf', 0),
         ]);
@@ -128,6 +188,7 @@ class PresupuestoController extends Controller
             'lineas.*.porcentaje_iva' => 'required|numeric|min:0',
             'lineas.*.porcentaje_irpf' => 'required|numeric|min:0',
             'due_date' => 'nullable|date',
+            'status' => 'nullable|integer',
             'description' => 'nullable|string',
         ]);
 
@@ -136,6 +197,7 @@ class PresupuestoController extends Controller
             'contact_name' => $request->contact_name,
             'date' => strtotime($request->date),
             'due_date' => $request->due_date ? date('Y-m-d', strtotime($request->due_date)) : null,
+            'status' => $request->has('status') ? PresupuestoStatus::tryFrom((int)$request->status) : $presupuesto->status,
             'notes' => $request->notes,
             'description' => $request->description,
         ]);
@@ -144,13 +206,26 @@ class PresupuestoController extends Controller
 
         $this->saveToDrive($presupuesto);
 
-        return redirect()->route('admin.presupuestos.index')->with('success', 'Presupuesto actualizado con éxito.');
+        return redirect()->route('admin.presupuestos.show', $presupuesto)->with('success', 'Presupuesto actualizado con éxito.');
     }
 
     public function destroy(Presupuesto $presupuesto)
     {
-        $presupuesto->delete();
-        return redirect()->route('admin.presupuestos.index')->with('success', 'Presupuesto eliminado.');
+        $presupuesto->updateQuietly(['status' => PresupuestoStatus::CANCELED]);
+        return redirect()->route('admin.presupuestos.index')->with('success', 'Presupuesto anulado correctamente.');
+    }
+
+    public function updateStatus(Request $request, Presupuesto $presupuesto)
+    {
+        $validated = $request->validate(['status' => 'required|integer']);
+        $presupuesto->updateQuietly(['status' => PresupuestoStatus::tryFrom($validated['status'])]);
+        return redirect()->back()->with('success', 'Estado modificado correctamente.');
+    }
+
+    public function reactivate(Presupuesto $presupuesto)
+    {
+        $presupuesto->updateQuietly(['status' => PresupuestoStatus::PENDING]);
+        return redirect()->route('admin.presupuestos.index')->with('success', 'Presupuesto reactivado correctamente.');
     }
 
     private function syncLineas(Presupuesto $presupuesto, array $lineas)

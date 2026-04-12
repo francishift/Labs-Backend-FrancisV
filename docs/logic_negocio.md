@@ -76,6 +76,8 @@ El Modelo `Client` encapsula atributos Accessor delegando las sumatorias complej
 - **Solución Obligada**: Archivos pesados deben validarse usando abstracción de metaclase `$value->getSize() > 10485760` dentro de un `<Closure>` customizado en el FormRequest.
 
 ### 7.2 Componentes e Interfaz Común
+- **Estandarización Financiera (UI/UX)**: Las vistas analíticas principales (Presupuestos, Facturas de Compras y Ventas) implementan obligatoriamente una arquitectura visual en 2 columnas para el panel de cabecera. La columna izquierda consolida los selectores de metadatos (búsquedas por texto, `SearchableSelect` de clientes/proveedores y estados), mientras que la columna derecha agrupa de forma cohesionada los rangos de fecha junto a chips de selección rápida ("Este año", "Últimos 12 meses", "Año pasado") y la interfaz de totales financieros.
+- **Cronología por Defecto**: Todos los controladores financieros (Ventas, Compras, Presupuestos) establecen su ventana de consulta predeterminada en los **Últimos 12 meses** (`now()->subYear()`), eliminando el sesgo del año natural vigente.
 - **Búsquedas Globales**: Requerimiento técnico para el uso estricto de `lodash/debounce` sobre cualquier input teclear. Cancelada la compatibilidad con directiva `throttle` para Input Searchs.
 - **Totales Asíncronos**: El listado de tablas clona el framework `Illuminate\Database\Eloquent\Builder` antes de instanciar `$query->paginate()`. Invoca operaciones sumatorias directas (`clone $query->sum('base_amount')`) rindiendo información reactiva multi-tabla en O(1) peticiones.
 

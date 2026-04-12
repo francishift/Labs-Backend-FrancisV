@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Head, useForm, Link } from '@inertiajs/vue3'
 import Card from '@/Components/Card.vue'
@@ -9,6 +9,7 @@ import SecondaryButton from '@/Components/SecondaryButton.vue'
 import TextInput from '@/Components/TextInput.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import InputError from '@/Components/InputError.vue'
+import SearchableSelect from '@/Components/SearchableSelect.vue'
 import { PlusIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
@@ -16,6 +17,7 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css'
 const props = defineProps({
   presupuesto: Object,
   clientes: Array,
+  statuses: Array,
   defaultIva: Number,
   defaultIrpf: Number,
 })
@@ -32,6 +34,7 @@ const form = useForm({
   contact_name: props.presupuesto.contact_name || '',
   date: getFormattedDate(props.presupuesto.date),
   due_date: props.presupuesto.due_date ? getFormattedDate(props.presupuesto.due_date) : '',
+  status: props.presupuesto.status !== undefined ? props.presupuesto.status : 0,
   notes: props.presupuesto.notes || '',
   description: props.presupuesto.description || '',
   lineas: props.presupuesto.lineas && props.presupuesto.lineas.length > 0 
@@ -47,15 +50,21 @@ const form = useForm({
 
 const showHtml = ref(false)
 
-const onClientChange = (event) => {
-    const clientId = event.target.value
-    const client = props.clientes.find(c => String(c.id) === String(clientId))
+const clientesOpciones = computed(() => {
+    return props.clientes.map(c => ({
+        ...c,
+        display_name: `${c.name} (${c.cif_nif || 'Sin NIF'})`
+    }))
+})
+
+watch(() => form.client_id, (newClientId) => {
+    const client = props.clientes.find(c => String(c.id) === String(newClientId))
     if (client) {
         form.contact_name = client.name
     } else {
         form.contact_name = ''
     }
-}
+})
 
 const addLinea = () => {
     form.lineas.push({
@@ -92,9 +101,7 @@ const total = computed(() => {
 const formatCurrency = (val) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(val || 0)
 
 const submit = () => {
-    form.patch(route('admin.presupuestos.update', props.presupuesto.id), {
-        preserveScroll: true,
-    })
+    form.patch(route('admin.presupuestos.update', props.presupuesto.id))
 }
 </script>
 
@@ -116,19 +123,17 @@ const submit = () => {
       <Card class="p-4 sm:p-6 max-w-5xl mx-auto">
         <form @submit.prevent="submit" class="space-y-8">
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pb-6 border-b border-gray-200 dark:border-zinc-700">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 pb-6 border-b border-gray-200 dark:border-zinc-700">
                 <div>
                     <InputLabel for="client" value="Cliente" />
-                    <select 
-                        id="client" 
-                        v-model="form.client_id" 
-                        @change="onClientChange"
-                        class="mt-1 block w-full border-gray-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
-                        required
-                    >
-                        <option value="" disabled>Selecciona un cliente</option>
-                        <option v-for="c in clientes" :key="c.id" :value="c.id">{{ c.name }} ({{ c.cif_nif || 'Sin NIF' }})</option>
-                    </select>
+                    <SearchableSelect
+                        id="client"
+                        v-model="form.client_id"
+                        :options="clientesOpciones"
+                        label-key="display_name"
+                        placeholder="Buscar y seleccionar cliente..."
+                        class="mt-1 block w-full"
+                    />
                     <InputError class="mt-2" :message="form.errors.client_id" />
                 </div>
                 <div>
@@ -151,6 +156,17 @@ const submit = () => {
                         v-model="form.due_date" 
                     />
                     <InputError class="mt-2" :message="form.errors.due_date" />
+                </div>
+                <div>
+                    <InputLabel for="status" value="Estado" />
+                    <select 
+                        id="status" 
+                        v-model="form.status" 
+                        class="mt-1 block w-full border-gray-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 focus:border-emerald-500 dark:focus:border-emerald-600 focus:ring-emerald-500 dark:focus:ring-emerald-600 rounded-md shadow-sm h-[42px]"
+                    >
+                        <option v-for="s in statuses" :key="s.id" :value="s.id">{{ s.name }}</option>
+                    </select>
+                    <InputError class="mt-2" :message="form.errors.status" />
                 </div>
             </div>
 

@@ -34,9 +34,9 @@ class PurchaseFacturaController extends Controller
             $query->where('provider_name', $request->get('provider'));
         }
 
-        // Filtros de Fecha
-        $dateFrom = $request->has('date_from') ? $request->get('date_from') : now()->startOfYear()->toDateString();
-        $dateTo = $request->has('date_to') ? $request->get('date_to') : now()->endOfYear()->toDateString();
+        // Filtros de Fecha (por defecto, últimos 12 meses)
+        $dateFrom = $request->has('date_from') ? $request->get('date_from') : now()->subYear()->toDateString();
+        $dateTo = $request->has('date_to') ? $request->get('date_to') : now()->toDateString();
 
         if (!empty($dateFrom)) {
             $query->whereDate('date', '>=', $dateFrom);

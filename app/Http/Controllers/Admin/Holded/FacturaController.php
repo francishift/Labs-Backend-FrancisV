@@ -22,12 +22,8 @@ class FacturaController extends Controller
 
     public function index(Request $request)
     {
-        $month = now()->month;
-        $year = now()->year;
-        $quarter = ceil($month / 3);
-        
-        $defaultStart = sprintf('%04d-%02d-01', $year, ($quarter - 1) * 3 + 1);
-        $defaultEnd = (new \DateTime(sprintf('%04d-%02d-01', $year, $quarter * 3)))->format('Y-m-t');
+        $defaultStart = now()->subYear()->format('Y-m-d');
+        $defaultEnd = now()->format('Y-m-d');
 
         $start = $request->input('start', $defaultStart);
         $end = $request->input('end', $defaultEnd);

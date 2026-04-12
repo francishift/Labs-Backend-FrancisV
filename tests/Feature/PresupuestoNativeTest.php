@@ -10,6 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Role;
 use Mockery;
+use App\Enums\PresupuestoStatus;
 
 class PresupuestoNativeTest extends TestCase
 {
@@ -145,5 +146,54 @@ class PresupuestoNativeTest extends TestCase
         $response = $this->actingAs($this->admin)->post(route('admin.presupuestos.store'), $payload);
 
         $response->assertSessionHasErrors(['lineas.0.cantidad', 'lineas.0.porcentaje_iva']);
+    }
+
+    public function test_presupuesto_index_totals_ignore_anulados_and_rechazados()
+    {
+        $client = Client::factory()->create();
+        $recentDate = time(); // Timestamp para que entre en el filtro por defecto de 12 meses
+
+        // Creamos tres presupuestos con distintos valores y estados
+        Presupuesto::create([
+            'number' => 'PR-TEST-1',
+            'date' => $recentDate,
+            'client_id' => $client->id,
+            'total' => 100,
+            'status' => PresupuestoStatus::PENDING
+        ]);
+
+        Presupuesto::create([
+            'number' => 'PR-TEST-2',
+            'date' => $recentDate,
+            'client_id' => $client->id,
+            'total' => 200,
+            'status' => PresupuestoStatus::APPROVED
+        ]);
+
+        Presupuesto::create([
+            'number' => 'PR-TEST-3',
+            'date' => $recentDate,
+            'client_id' => $client->id,
+            'total' => 5000,
+            'status' => PresupuestoStatus::REJECTED
+        ]);
+
+        Presupuesto::create([
+            'number' => 'PR-TEST-4',
+            'date' => $recentDate,
+            'client_id' => $client->id,
+            'total' => 10000,
+            'status' => PresupuestoStatus::CANCELED
+        ]);
+
+        $response = $this->actingAs($this->admin)->get(route('admin.presupuestos.index'));
+
+        $response->assertStatus(200);
+
+        // Pasamos a extraer el objeto total desde las variables inyectadas por Inertia
+        $response->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->has('totals')
+            ->where('totals.total', 300) // 100 (Pendiente) + 200 (Aprobado). Excluye 5000 y 10000.
+        );
     }
 }

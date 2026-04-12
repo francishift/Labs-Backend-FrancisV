@@ -8,8 +8,11 @@ El sistema de Presupuestos utiliza un motor relacional local y opera de manera a
   - `number`: Identificador autogenerado (ej. `PR-5893`).
   - `client_id`: Clave foránea referenciando a la tabla `clients` para la carga de datos demográficos (CIF, dirección, email).
   - `description`: Campo destinado a texto enriquecido (HTML) proveniente del componente WYSIWYG.
-  - `status`: Estado del ciclo de vida (borrador, enviado, firmado).
+  - `status`: Estado del ciclo de vida gestionado obligatoriamente por un Enum estricto (`App\Enums\PresupuestoStatus`). Los estados permitidos son: `PENDING` (Pendiente), `APPROVED` (Aprobado), `CANCELED` (Anulado), y `REJECTED` (Rechazado).
   - `raw_data`: Contenedor JSON heredado para retrocompatibilidad con facturas antiguas (Fallback).
+
+- **Lógica Financiera y Estados**: 
+  - Regla de negocio estricta: Los cálculos de totales financieros globales informados a nivel listado y dashboard actúan únicamente sobre los presupuestos que se encuentran en estado `PENDING` o `APPROVED`. Presupuestos `CANCELED` o `REJECTED` se excluyen de la contabilidad activa de la empresa.
 
 - **Modelo Relacional (`App\Models\PresupuestoLinea`)**:
   - Mantiene las líneas de concepto individuales, cada una con su desglose parametrizado: `precio_unitario`, `cantidad`, `porcentaje_iva` y `porcentaje_irpf`.

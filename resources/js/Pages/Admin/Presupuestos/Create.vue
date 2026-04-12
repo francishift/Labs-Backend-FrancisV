@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Head, useForm, Link } from '@inertiajs/vue3'
 import Card from '@/Components/Card.vue'
@@ -9,6 +9,7 @@ import SecondaryButton from '@/Components/SecondaryButton.vue'
 import TextInput from '@/Components/TextInput.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import InputError from '@/Components/InputError.vue'
+import SearchableSelect from '@/Components/SearchableSelect.vue'
 import { PlusIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
@@ -48,15 +49,21 @@ const showHtml = ref(false)
 
 const selectedClient = ref(null)
 
-const onClientChange = (event) => {
-    const clientId = event.target.value
-    const client = props.clientes.find(c => String(c.id) === String(clientId))
+const clientesOpciones = computed(() => {
+    return props.clientes.map(c => ({
+        ...c,
+        display_name: `${c.name} (${c.cif_nif || 'Sin NIF'})`
+    }))
+})
+
+watch(() => form.client_id, (newClientId) => {
+    const client = props.clientes.find(c => String(c.id) === String(newClientId))
     if (client) {
         form.contact_name = client.name
     } else {
         form.contact_name = ''
     }
-}
+})
 
 const addLinea = () => {
     form.lineas.push({
@@ -121,16 +128,14 @@ const submit = () => {
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pb-6 border-b border-gray-200 dark:border-zinc-700">
                 <div>
                     <InputLabel for="client" value="Cliente" />
-                    <select 
-                        id="client" 
-                        v-model="form.client_id" 
-                        @change="onClientChange"
-                        class="mt-1 block w-full border-gray-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
-                        required
-                    >
-                        <option value="" disabled>Selecciona un cliente</option>
-                        <option v-for="c in clientes" :key="c.id" :value="c.id">{{ c.name }} ({{ c.cif_nif || 'Sin NIF' }})</option>
-                    </select>
+                    <SearchableSelect
+                        id="client"
+                        v-model="form.client_id"
+                        :options="clientesOpciones"
+                        label-key="display_name"
+                        placeholder="Buscar y seleccionar cliente..."
+                        class="mt-1 block w-full"
+                    />
                     <InputError class="mt-2" :message="form.errors.client_id" />
                 </div>
                 <div>
