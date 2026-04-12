@@ -22,8 +22,8 @@ class FacturaController extends Controller
 
     public function index(Request $request)
     {
-        $defaultStart = now()->subYear()->format('Y-m-d');
-        $defaultEnd = now()->format('Y-m-d');
+        $defaultStart = now()->startOfYear()->format('Y-m-d');
+        $defaultEnd = now()->endOfYear()->format('Y-m-d');
 
         $start = $request->input('start', $defaultStart);
         $end = $request->input('end', $defaultEnd);

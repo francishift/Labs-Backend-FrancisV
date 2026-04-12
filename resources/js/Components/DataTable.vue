@@ -22,6 +22,10 @@ defineProps({
   sortDir: {
     type: String,
     default: 'desc'
+  },
+  rowClass: {
+    type: [Function, String, Array, Object],
+    default: ''
   }
 })
 
@@ -45,10 +49,11 @@ const handleSort = (key, sortable) => {
               'px-6 py-4 font-semibold text-gray-700 dark:text-zinc-300 whitespace-nowrap transition-colors',
               col.sortable ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-zinc-800/50' : '',
               col.align === 'right' ? 'text-right' : 'text-left',
+              col.center === true ? '!text-center' : '',
               col.class || ''
             ]"
           >
-            <div class="flex items-center gap-x-1" :class="col.align === 'right' ? 'justify-end' : ''">
+            <div class="flex items-center gap-x-1" :class="col.align === 'right' ? 'justify-end' : (col.center ? 'justify-center' : '')">
               <slot :name="`header-${col.key}`" :column="col">
                 {{ col.label }}
               </slot>
@@ -60,14 +65,14 @@ const handleSort = (key, sortable) => {
           </th>
         </tr>
       </thead>
-      <tbody class="divide-y divide-gray-200 dark:divide-zinc-700">
+      <tbody class="bg-white dark:bg-zinc-900 divide-y divide-gray-200 dark:divide-zinc-700">
         <tr
           v-for="(item, index) in items"
           :key="item.id || index"
           @click="$emit('row-click', item)"
           :class="[
             'transition-colors duration-150',
-            hoverable ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-800/30' : ''
+            (typeof rowClass === 'function' ? rowClass(item) : rowClass) || (hoverable ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-zinc-900/50' : '')
           ]"
         >
           <td

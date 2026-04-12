@@ -328,7 +328,7 @@ const setDateRange = (rangeType) => {
                   <button 
                     v-if="item.google_drive_file_id"
                     @click="viewPdf(item)"
-                    class="inline-flex items-center p-2 text-gray-400 dark:text-zinc-400 hover:text-emerald-500 transition-colors"
+                    class="inline-flex items-center p-2 text-emerald-500/70 hover:text-emerald-600 dark:text-emerald-400/70 dark:hover:text-emerald-400 transition-colors"
                     title="Ver PDF"
                   >
                     <EyeIcon class="h-5 w-5" />
@@ -336,7 +336,7 @@ const setDateRange = (rangeType) => {
                   <button 
                     v-if="item.status === 'duplicada'"
                     @click="confirmOverwrite(item)"
-                    class="inline-flex items-center p-2 text-amber-600 dark:text-amber-500 hover:text-amber-400 transition-colors"
+                    class="inline-flex items-center p-2 text-amber-500/70 hover:text-amber-600 dark:text-amber-400/70 dark:hover:text-amber-400 transition-colors"
                     :title="'Sobreescribir factura ' + (item.raw_data?.intended_number || item.number)"
                   >
                     <ExclamationTriangleIcon class="h-5 w-5" />
@@ -344,14 +344,14 @@ const setDateRange = (rangeType) => {
                   </button>
                   <button 
                     @click="editFactura(item)"
-                    class="inline-flex items-center p-2 text-gray-400 dark:text-zinc-400 hover:text-blue-500 transition-colors"
+                    class="inline-flex items-center p-2 text-blue-500/70 hover:text-blue-600 dark:text-blue-400/70 dark:hover:text-blue-400 transition-colors"
                     title="Editar / Revisión Manual"
                   >
                     <PencilSquareIcon class="h-5 w-5" />
                   </button>
                   <button 
                     @click="confirmFacturaDeletion(item.id)"
-                    class="inline-flex items-center p-2 text-gray-400 dark:text-zinc-400 hover:text-red-500 transition-colors"
+                    class="inline-flex items-center p-2 text-red-500/70 hover:text-red-600 dark:text-red-400/70 dark:hover:text-red-400 transition-colors"
                     title="Eliminar factura"
                   >
                     <TrashIcon class="h-5 w-5" />

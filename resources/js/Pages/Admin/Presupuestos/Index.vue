@@ -6,14 +6,14 @@ import pickBy from 'lodash/pickBy'
 import Card from '@/Components/Card.vue'
 import PageHeader from '@/Components/PageHeader.vue'
 import Pagination from '@/Components/Pagination.vue'
+import DataTable from '@/Components/DataTable.vue'
 import PrimaryButton from '@/Components/PrimaryButton.vue'
 import TextInput from '@/Components/TextInput.vue'
 import SearchInput from '@/Components/SearchInput.vue'
 import SearchableSelect from '@/Components/SearchableSelect.vue'
-import InputLabel from '@/Components/InputLabel.vue'
 import ConfirmModal from '@/Components/ConfirmModal.vue'
 import debounce from 'lodash/debounce'
-import { PlusIcon, EyeIcon, PencilIcon, NoSymbolIcon, CheckCircleIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
+import { PlusIcon, EyeIcon, PencilIcon, PencilSquareIcon, NoSymbolIcon, CheckCircleIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
   presupuestos: Object,
@@ -22,6 +22,31 @@ const props = defineProps({
   totals: Object,
   statuses: Array,
 })
+
+
+const columns = [
+    { key: 'number', label: 'Número', sortable: true },
+    { key: 'date', label: 'Fecha', sortable: true },
+    { key: 'contact_name', label: 'Cliente', sortable: true },
+    { key: 'status', label: 'Estado', sortable: true },
+    { key: 'total', label: 'Total Neto', sortable: true, align: 'right' },
+    { key: 'acciones', label: 'Acciones', sortable: false, center: true },
+]
+
+const sort = (key) => {
+    if (filterForm.value.sort === key) {
+        filterForm.value.direction = filterForm.value.direction === 'asc' ? 'desc' : 'asc'
+    } else {
+        filterForm.value.sort = key
+        filterForm.value.direction = 'asc'
+    }
+}
+
+const getRowClass = (item) => {
+    return item.status == 2 
+        ? 'bg-red-50/60 dark:bg-red-900/10 hover:bg-red-100/60 dark:hover:bg-red-900/20' 
+        : ''
+}
 
 const filterForm = ref({
     search: props.filters.search || '',
@@ -259,77 +284,59 @@ const setDateRange = (rangeType) => {
         </div>
         
         <!-- Table -->
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-zinc-700">
-                <thead class="bg-gray-50 dark:bg-zinc-800/50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Número</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Fecha</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Cliente</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estado</th>
-                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Neto</th>
-                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white dark:bg-zinc-900 divide-y divide-gray-200 dark:divide-zinc-800">
-                    <tr v-for="item in presupuestos.data" :key="item.id" 
-                        :class="[
-                            item.status == 2 
-                                ? 'bg-red-50/60 dark:bg-red-900/10 hover:bg-red-100/60 dark:hover:bg-red-900/20' 
-                                : 'hover:bg-gray-50 dark:hover:bg-zinc-800/50'
-                        ]"
-                    >
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                            {{ item.number }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                            {{ formatDate(item.date) }}
-                        </td>
-                        <td class="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                            {{ item.contact_name }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            <select 
-                                :value="item.status"
-                                @change="updateStatusInline(item.id, $event)"
-                                class="text-xs font-semibold rounded-full border border-transparent shadow-sm focus:ring-2 focus:ring-offset-1 focus:ring-emerald-500 cursor-pointer py-1 pl-3 pr-8"
-                                :class="{
-                                    'bg-gray-100 text-gray-800 dark:bg-zinc-800 dark:text-zinc-300': item.status == 0,
-                                    'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300': item.status == 1,
-                                    'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300': item.status == 2,
-                                    'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300': item.status == 3
-                                }"
-                            >
-                                <option v-for="s in statuses" :key="s.id" :value="s.id">{{ s.name }}</option>
-                            </select>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-right"
-                            :class="[item.status == 2 ? 'text-gray-500 dark:text-gray-500 line-through' : 'text-gray-900 dark:text-white']">
-                            {{ formatCurrency(item.total) }}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-center space-x-3">
-                            <Link :href="route('admin.presupuestos.show', item.id)" class="text-emerald-600 hover:text-emerald-900 dark:text-emerald-500 dark:hover:text-emerald-400" title="Ver Propuesta / PDF">
-                                <EyeIcon class="w-5 h-5 inline" />
-                            </Link>
-                            <Link v-if="item.status != 2" :href="route('admin.presupuestos.edit', item.id)" class="text-blue-600 hover:text-blue-900 dark:text-blue-500 dark:hover:text-blue-400" title="Editar Presupuesto">
-                                <PencilIcon class="w-5 h-5 inline" />
-                            </Link>
-                            <button v-if="item.status != 2" @click="confirmCancel(item)" class="text-red-600 hover:text-red-900 dark:text-red-500 dark:hover:text-red-400" title="Anular Presupuesto">
-                                <NoSymbolIcon class="w-5 h-5 inline" />
-                            </button>
-                            <button v-if="item.status == 2" @click="confirmReactivate(item)" class="text-teal-500 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300" title="Aprobar / Reactivar Presupuesto">
-                                <CheckCircleIcon class="w-5 h-5 inline" />
-                            </button>
-                        </td>
-                    </tr>
-                    <tr v-if="presupuestos.data.length === 0">
-                        <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                            No se encontraron presupuestos.
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        <DataTable
+            :columns="columns"
+            :items="presupuestos.data"
+            :sort-key="filterForm.sort"
+            :sort-dir="filterForm.direction"
+            @sort="sort"
+            :hoverable="true"
+            :row-class="getRowClass"
+        >
+            <template #cell-date="{ item }">
+                {{ formatDate(item.date) }}
+            </template>
+            
+            <template #cell-status="{ item }">
+                <select 
+                    :value="item.status"
+                    @change="updateStatusInline(item.id, $event)"
+                    @click.stop
+                    class="text-xs font-semibold rounded-full border border-transparent shadow-sm focus:ring-2 focus:ring-offset-1 focus:ring-emerald-500 cursor-pointer py-1 pl-3 pr-8"
+                    :class="{
+                        'bg-gray-100 text-gray-800 dark:bg-zinc-800 dark:text-zinc-300': item.status == 0,
+                        'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300': item.status == 1,
+                        'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300': item.status == 2,
+                        'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300': item.status == 3
+                    }"
+                >
+                    <option v-for="s in statuses" :key="s.id" :value="s.id">{{ s.name }}</option>
+                </select>
+            </template>
+            
+            <template #cell-total="{ item }">
+                <span :class="[item.status == 2 ? 'text-gray-500 dark:text-gray-500 line-through font-normal' : 'font-bold text-gray-900 dark:text-white']">
+                    {{ formatCurrency(item.total) }}
+                </span>
+            </template>
+            
+            <template #cell-acciones="{ item }">
+                <div class="space-x-4 w-full flex justify-center items-center">
+                  <Link :href="route('admin.presupuestos.show', item.id)" class="text-emerald-500/70 hover:text-emerald-600 dark:text-emerald-400/70 dark:hover:text-emerald-400 transition-colors" title="Ver Propuesta / PDF" @click.stop>
+                      <EyeIcon class="w-5 h-5 inline" />
+                  </Link>
+                  <Link v-if="item.status != 2" :href="route('admin.presupuestos.edit', item.id)" class="text-blue-500/70 hover:text-blue-600 dark:text-blue-400/70 dark:hover:text-blue-400 transition-colors" title="Editar Presupuesto" @click.stop>
+                      <PencilSquareIcon class="w-5 h-5 inline" />
+                  </Link>
+                  <button v-if="item.status != 2" @click.stop="confirmCancel(item)" class="text-red-500/70 hover:text-red-600 dark:text-red-400/70 dark:hover:text-red-400 transition-colors" title="Anular Presupuesto">
+                      <NoSymbolIcon class="w-5 h-5 inline" />
+                  </button>
+                  <button v-if="item.status == 2" @click.stop="confirmReactivate(item)" class="text-teal-500/70 hover:text-teal-600 dark:text-teal-400/70 dark:hover:text-teal-400 transition-colors" title="Aprobar / Reactivar Presupuesto">
+                      <CheckCircleIcon class="w-5 h-5 inline" />
+                  </button>
+                </div>
+            </template>
+        </DataTable>
 
         <Pagination :links="presupuestos.links" class="mt-6" v-if="presupuestos.links?.length > 3" />
 
