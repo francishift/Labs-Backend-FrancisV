@@ -25,7 +25,7 @@ class MantenimientoServicio extends Model
     ];
 
     protected $casts = [
-        'fecha' => 'date',
+        'fecha' => 'date:Y-m-d',
     ];
 
     public function mantenimiento(): BelongsTo

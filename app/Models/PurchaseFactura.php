@@ -25,7 +25,7 @@ class PurchaseFactura extends Model
     ];
 
     protected $casts = [
-        'date' => 'date',
+        'date' => 'date:Y-m-d',
         'total' => 'decimal:2',
         'net_amount' => 'decimal:2',
         'tax_amount' => 'decimal:2',

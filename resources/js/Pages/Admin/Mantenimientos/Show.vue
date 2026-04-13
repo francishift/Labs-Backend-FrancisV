@@ -118,8 +118,33 @@ const destroyService = () => {
 // Modal email
 const showEmailModal = ref(false)
 const emailForm = useForm({
-    email: props.mantenimiento.cliente?.email || ''
+    email: props.mantenimiento.cliente?.email || '',
+    hide_prices: false
 })
+
+// Modal para imprimir
+const showPrintModal = ref(false)
+const printForm = useForm({
+    hide_prices: false
+})
+
+const openPrintModal = () => {
+    showPrintModal.value = true
+}
+
+const closePrintModal = () => {
+    showPrintModal.value = false
+    printForm.reset()
+}
+
+const proceedToPrint = () => {
+    const url = route('admin.mantenimientos.pdf', { mantenimiento: props.mantenimiento.id, month: month.value, year: year.value, hide_prices: printForm.hide_prices ? 1 : 0 })
+    const title = `Mantenimiento: ${props.mantenimiento.aplicacion}`
+    const backUrl = route('admin.mantenimientos.show', { mantenimiento: props.mantenimiento.id, month: month.value, year: year.value })
+    
+    router.visit(route('admin.visor-pdf', { url, title, backUrl }))
+    closePrintModal()
+}
 
 const openEmailModal = () => {
     emailForm.email = props.mantenimiento.cliente?.email || ''
@@ -151,7 +176,7 @@ const sendEmail = () => {
         <template #header>
             <PageHeader :title="mantenimiento.aplicacion">
                 <template #actions>
-                    <div class="flex flex-wrap gap-2">
+                    <div class="flex flex-wrap gap-2 items-center">
                         <Link :href="route('admin.mantenimientos.index')" prefetch>
                             <SecondaryButton title="Volver a todos los mantenimientos" class="flex items-center">
                                 <ChevronLeftIcon class="h-4 w-4" />
@@ -165,17 +190,9 @@ const sendEmail = () => {
                             <EnvelopeIcon class="h-4 w-4" />
                         </SecondaryButton>
 
-                        <Link 
-                            :href="route('admin.visor-pdf', { 
-                                url: route('admin.mantenimientos.pdf', { mantenimiento: mantenimiento.id, month, year }),
-                                title: `Mantenimiento: ${mantenimiento.aplicacion}`,
-                                backUrl: route('admin.mantenimientos.show', { mantenimiento: mantenimiento.id, month, year })
-                            })"
-                        >
-                            <SecondaryButton title="Imprimir PDF" class="flex items-center">
-                                <PrinterIcon class="h-4 w-4" />
-                            </SecondaryButton>
-                        </Link>
+                        <SecondaryButton @click="openPrintModal" title="Imprimir PDF" class="flex items-center">
+                            <PrinterIcon class="h-4 w-4" />
+                        </SecondaryButton>
                     </div>
                 </template>
             </PageHeader>
@@ -308,12 +325,41 @@ const sendEmail = () => {
                         />
                         <InputError :message="emailForm.errors.email" class="mt-2" />
                     </div>
+                    <div class="mt-4">
+                        <label class="flex items-center">
+                            <input type="checkbox" v-model="emailForm.hide_prices" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:focus:ring-indigo-600" />
+                            <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">Ocultar importes y costes en el PDF</span>
+                        </label>
+                    </div>
                 </div>
             </template>
             <template #footer>
                 <SecondaryButton @click="closeEmailModal">Cancelar</SecondaryButton>
                 <PrimaryButton class="ms-3" :class="{ 'opacity-25': emailForm.processing }" :disabled="emailForm.processing" @click="sendEmail">
                     Enviar
+                </PrimaryButton>
+            </template>
+        </DialogModal>
+
+        <DialogModal :show="showPrintModal" @close="closePrintModal">
+            <template #title>Opciones de Impresión PDF</template>
+            <template #content>
+                <div class="space-y-4">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        Configura las opciones de visualización antes de generar el PDF para imprimir.
+                    </p>
+                    <div class="mt-4">
+                        <label class="flex items-center">
+                            <input type="checkbox" v-model="printForm.hide_prices" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:focus:ring-indigo-600" />
+                            <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">Ocultar importes y costes en el PDF</span>
+                        </label>
+                    </div>
+                </div>
+            </template>
+            <template #footer>
+                <SecondaryButton @click="closePrintModal">Cancelar</SecondaryButton>
+                <PrimaryButton class="ms-3" @click="proceedToPrint">
+                    Ver e Imprimir PDF
                 </PrimaryButton>
             </template>
         </DialogModal>

@@ -68,8 +68,8 @@ class Mantenimiento extends Model
     ];
 
     protected $casts = [
-        'fecha_inicio' => 'date',
-        'fecha_fin' => 'date',
+        'fecha_inicio' => 'date:Y-m-d',
+        'fecha_fin' => 'date:Y-m-d',
         'importe' => 'decimal:2',
     ];
 

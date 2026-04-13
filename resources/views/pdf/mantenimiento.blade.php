@@ -77,9 +77,9 @@
         .clear { clear: both; }
 
         .card {
-            padding: 15px;
+            padding: 10px 15px;
             border-radius: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         .bg-zinc { background-color: #f4f4f5; border: 1px solid #e4e4e7; }
         .bg-emerald { background-color: #ecfdf5; border: 1px solid #d1fae5; }
@@ -210,21 +210,19 @@
         <tr>
             <td class="grid-col">
                 <div class="card bg-zinc">
-                    <div class="label">Información General</div>
-                    <div>
-                        <div class="value-label">Cliente</div>
-                        <div class="value">{{ $mantenimiento->cliente->name }}</div>
-                    </div>
-                    <table style="width: 100%; margin-top: 15px;">
+                    <div class="label" style="margin-bottom: 5px;">Información General</div>
+                    <table style="width: 100%;">
                         <tr>
                             <td>
                                 <div class="value-label">Periodicidad</div>
                                 <div class="value" style="font-size: 10pt; text-transform: capitalize;">{{ $mantenimiento->tipo_pago }}</div>
                             </td>
+                            @if(empty($hidePrices))
                             <td>
                                 <div class="value-label">Importe Cuota</div>
-                                <div class="value" style="font-size: 10pt;">{{ number_format($mantenimiento->importe, 2, ',', '.') }}€</div>
+                                <div class="value" style="font-size: 16pt; margin-top: 2px;">{{ number_format($mantenimiento->importe, 2, ',', '.') }}€</div>
                             </td>
+                            @endif
                         </tr>
                     </table>
                 </div>
@@ -232,14 +230,11 @@
             <td class="grid-col">
                 <div class="card bg-emerald">
                     <div class="label emerald-label">Resumen del Periodo</div>
-                    <div class="value-label" style="color: #065f46;">Ingresos Totales</div>
-                    <div class="value-large" style="font-weight: bold !important;">{{ number_format($stats['ingreso'], 2, ',', '.') }}€</div>
-                    
-                    <div style="margin-top: 15px; border-top: 1px solid #d1fae5; padding-top: 10px;">
+                    <div style="margin-top: 5px;">
                         <table style="width: 100%;">
                             <tr>
-                                <td class="value-label" style="color: #065f46;">Tiempo Invertido</td>
-                                <td class="value text-right" style="color: #064e3b; font-weight: bold !important;">
+                                <td class="value-label" style="color: #065f46; font-size: 11pt;">Tiempo Invertido</td>
+                                <td class="value text-right" style="color: #064e3b; font-weight: bold !important; font-size: 22pt;">
                                     @php
                                         $h = floor($stats['minutos'] / 60);
                                         $m = $stats['minutos'] % 60;
@@ -270,7 +265,9 @@
                     <th style="width: 55%">Concepto</th>
                     <th style="width: 15%">Fecha</th>
                     <th style="width: 15%" class="text-center">Tiempo</th>
+                    @if(empty($hidePrices))
                     <th style="width: 15%" class="text-right">Total</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -288,6 +285,7 @@
                         @endphp
                         {{ $timeStr }}
                     </td>
+                    @if(empty($hidePrices))
                     <td class="text-right font-bold">
                         @php
                             $precio = $servicio->precio_hora !== null ? (float)$servicio->precio_hora : (float)$precioHoraFallback;
@@ -295,19 +293,23 @@
                         @endphp
                         {{ number_format($coste, 2, ',', '.') }}€
                     </td>
+                    @endif
                 </tr>
                 @endforeach
             </tbody>
+            @if(empty($hidePrices))
             <tfoot>
                 <tr class="subtotal-row">
                     <td colspan="3" class="text-right subtotal-label">Subtotal Servicios</td>
                     <td class="text-right subtotal-value" style="font-weight: bold !important;">{{ number_format($stats['coste_servicios'], 2, ',', '.') }}€</td>
                 </tr>
             </tfoot>
+            @endif
         </table>
     </div>
     @endif
 
+    @if(empty($hidePrices))
     <div>
         <div class="label">Desglose de Costes (Periodo)</div>
         <table class="data-table">
@@ -344,6 +346,7 @@
             </tfoot>
         </table>
     </div>
+    @endif
 
     @if($mantenimiento->extensiones->count() > 0)
     <div style="margin-top: 30px;" class="keep-together">
@@ -352,9 +355,11 @@
             @foreach($mantenimiento->extensiones as $extension)
             <div class="extension-card">
                 <div class="extension-name">{{ $extension->nombre }}</div>
+                @if(empty($hidePrices))
                 <div class="extension-price">
                     {{ number_format($extension->pivot->precio_aplicado ?? $extension->precio, 2, ',', '.') }}€
                 </div>
+                @endif
                 <div class="extension-type">{{ $extension->tipo_licencia }}</div>
             </div>
             @endforeach
@@ -362,12 +367,14 @@
     </div>
     @endif
 
+    @if(empty($hidePrices))
     <div class="footer-total keep-together">
         <div class="total-label">Rentabilidad (Balance Final)</div>
         <div class="total-value {{ $stats['balance'] >= 0 ? 'positive' : 'negative' }}">
             {{ number_format($stats['balance'], 2, ',', '.') }}€
         </div>
     </div>
+    @endif
 
     <div class="page-footer">
     </div>

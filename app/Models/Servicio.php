@@ -27,7 +27,7 @@ class Servicio extends Model
     ];
 
     protected $casts = [
-        'fecha' => 'date',
+        'fecha' => 'date:Y-m-d',
         'duracion_minutos' => 'integer',
         'precio' => 'decimal:2',
     ];

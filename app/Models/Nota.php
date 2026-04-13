@@ -22,7 +22,7 @@ class Nota extends Model
     ];
 
     protected $casts = [
-        'fecha' => 'date',
+        'fecha' => 'date:Y-m-d',
         'notificado' => 'boolean',
         'sync_calendar' => 'boolean',
     ];

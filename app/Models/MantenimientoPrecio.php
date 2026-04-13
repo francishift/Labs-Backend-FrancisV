@@ -19,7 +19,7 @@ class MantenimientoPrecio extends Model
     ];
 
     protected $casts = [
-        'fecha_aplicacion' => 'date',
+        'fecha_aplicacion' => 'date:Y-m-d',
         'importe' => 'decimal:2',
     ];
 

@@ -238,6 +238,8 @@ class MantenimientoController extends Controller
             $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
         }
 
+        $hidePrices = $request->boolean('hide_prices', false);
+
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.mantenimiento', [
             'mantenimiento' => $mantenimiento,
             'logoBase64' => $logoBase64,
@@ -246,7 +248,8 @@ class MantenimientoController extends Controller
                 'month' => $month,
                 'year' => $year
             ],
-            'precioHoraFallback' => $mantenimiento->precio_hora ?: \App\Models\Mantenimiento::getDiscountedHourlyRate()
+            'precioHoraFallback' => $mantenimiento->precio_hora ?: \App\Models\Mantenimiento::getDiscountedHourlyRate(),
+            'hidePrices' => $hidePrices,
         ]);
 
         if ($request->has('download')) {
@@ -291,6 +294,8 @@ class MantenimientoController extends Controller
             $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
         }
 
+        $hidePrices = $request->boolean('hide_prices', false);
+
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.mantenimiento', [
             'mantenimiento' => $mantenimiento,
             'logoBase64' => $logoBase64,
@@ -299,7 +304,8 @@ class MantenimientoController extends Controller
                 'month' => $month,
                 'year' => $year
             ],
-            'precioHoraFallback' => $mantenimiento->precio_hora ?: \App\Models\Mantenimiento::getDiscountedHourlyRate()
+            'precioHoraFallback' => $mantenimiento->precio_hora ?: \App\Models\Mantenimiento::getDiscountedHourlyRate(),
+            'hidePrices' => $hidePrices,
         ]);
 
         $pdfOutput = $pdf->output();

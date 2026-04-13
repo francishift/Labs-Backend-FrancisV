@@ -79,8 +79,8 @@ const calculateServiceTotal = (service) => {
 
             <template #cell-duracion_minutos="{ item }">
                 <div class="flex flex-col items-center">
-                    <span>{{ formatMinutesToHours(item.duracion_minutos) }}</span>
-                    <span class="text-[10px] text-gray-500">({{ formatCurrency(getHourPrice(item)) }}/h)</span>
+                    <span class="whitespace-nowrap">{{ formatMinutesToHours(item.duracion_minutos) }}</span>
+                    <span class="text-[10px] text-gray-500 whitespace-nowrap">({{ formatCurrency(getHourPrice(item)) }}/h)</span>
                 </div>
             </template>
 
