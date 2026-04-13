@@ -116,6 +116,16 @@ const executeDuplicate = () => {
       </Card>
     </div>
 
+    <ConfirmModal 
+        :show="showDuplicateModal" 
+        @close="showDuplicateModal = false"
+        title="Duplicar Factura" 
+        content="¿Estás seguro de que deseas duplicar esta factura? Se creará una copia en estado Pendiente y se te redigirá a su vista de edición para que puedas ajustar cualquier dato antes de enviarla."
+        confirmText="Sí, duplicar"
+        cancelText="Cancelar"
+        @confirm="executeDuplicate"
+    />
+
     <Modal :show="emailModal" @close="emailModal = false">
         <div class="p-6">
             <h2 class="text-lg font-medium text-gray-900 dark:text-gray-100">

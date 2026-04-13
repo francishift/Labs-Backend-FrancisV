@@ -369,12 +369,12 @@ onMounted(() => {
 
     <!-- Modals -->
     <ConfirmModal 
-        v-model="showDuplicateModal" 
+        :show="showDuplicateModal" 
+        @close="showDuplicateModal = false"
         title="Duplicar Factura" 
-        message="¿Estás seguro de que deseas duplicar esta factura? Se creará una copia en estado Pendiente y se te redigirá a su vista de edición para que puedas ajustar cualquier dato antes de enviarla."
-        confirm-text="Sí, duplicar"
-        cancel-text="Cancelar"
-        type="warning"
+        content="¿Estás seguro de que deseas duplicar esta factura? Se creará una copia en estado Pendiente y se te redigirá a su vista de edición para que puedas ajustar cualquier dato antes de enviarla."
+        confirmText="Sí, duplicar"
+        cancelText="Cancelar"
         @confirm="executeDuplicate"
     />
     <ConfirmModal
