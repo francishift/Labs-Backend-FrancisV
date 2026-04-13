@@ -280,7 +280,9 @@ class PresupuestoController extends Controller
         $safeDocNumber = str_replace(['/', '\\'], '-', $presupuesto->number ?? $presupuesto->id);
         $disposition = $request->has('download') ? 'attachment' : 'inline';
 
-        if ($presupuesto->google_drive_file_id) {
+        $isCurrentlySyncing = $presupuesto->updated_at && $presupuesto->updated_at->diffInSeconds(now()) < 10;
+
+        if ($presupuesto->google_drive_file_id && !$isCurrentlySyncing) {
             try {
                 $adapter = Storage::disk('google_presupuestos')->getAdapter();
                 $service = $adapter->getService();

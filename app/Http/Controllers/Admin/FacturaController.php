@@ -339,7 +339,9 @@ class FacturaController extends Controller
         $safeDocNumber = str_replace(['/', '\\'], '-', $factura->number ?? $factura->id);
         $disposition = $request->has('download') ? 'attachment' : 'inline';
 
-        if ($factura->google_drive_file_id) {
+        $isCurrentlySyncing = $factura->updated_at && $factura->updated_at->diffInSeconds(now()) < 10;
+
+        if ($factura->google_drive_file_id && !$isCurrentlySyncing) {
             try {
                 $adapter = Storage::disk('google_facturas')->getAdapter();
                 $service = $adapter->getService();
