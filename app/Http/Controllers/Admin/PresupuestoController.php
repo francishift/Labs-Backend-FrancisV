@@ -205,6 +205,7 @@ class PresupuestoController extends Controller
         ]);
 
         $this->syncLineas($presupuesto, $request->lineas);
+        $presupuesto->touch(); // Force updated_at refresh even if updates were quiet
 
         defer(fn () => $this->saveToDrive($presupuesto));
 

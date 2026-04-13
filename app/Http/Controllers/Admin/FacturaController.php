@@ -215,6 +215,7 @@ class FacturaController extends Controller
         ]);
 
         $this->syncLineas($factura, $request->lineas);
+        $factura->touch(); // Force updated_at refresh even if updates were quiet or unchanged parent
         defer(fn () => $this->saveToDrive($factura));
 
         return redirect()->route('admin.facturas.index')->with('success', 'Factura actualizada con éxito.');
