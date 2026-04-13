@@ -113,7 +113,7 @@ const executeDuplicate = () => {
       
       <Card class="p-0 overflow-hidden h-[800px]">
           <!-- PDF Viewer iframe -->
-          <iframe :src="route('admin.facturas.pdf', factura.id)" class="w-full h-full border-0"></iframe>
+          <iframe :src="route('admin.facturas.pdf', factura.id) + '?t=' + new Date().getTime()" class="w-full h-full border-0"></iframe>
       </Card>
     </div>
 
