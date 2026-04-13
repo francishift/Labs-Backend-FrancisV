@@ -217,8 +217,7 @@ class FacturaController extends Controller
         $this->syncLineas($factura, $request->lineas);
         defer(fn () => $this->saveToDrive($factura));
 
-        // Redirigir a vista show
-        return redirect()->route('admin.facturas.show', $factura->id)->with('success', 'Factura actualizada con éxito.');
+        return redirect()->route('admin.facturas.index')->with('success', 'Factura actualizada con éxito.');
     }
 
     public function destroy(Factura $factura)

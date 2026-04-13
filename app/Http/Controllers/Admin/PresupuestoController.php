@@ -208,8 +208,7 @@ class PresupuestoController extends Controller
 
         defer(fn () => $this->saveToDrive($presupuesto));
 
-        // Redirigir a vista show
-        return redirect()->route('admin.presupuestos.show', $presupuesto->id)->with('success', 'Presupuesto actualizado con éxito.');
+        return redirect()->route('admin.presupuestos.index')->with('success', 'Presupuesto actualizado con éxito.');
     }
 
     public function destroy(Presupuesto $presupuesto)
