@@ -155,7 +155,7 @@ class FacturaController extends Controller
         ]);
 
         $this->syncLineas($factura, $request->lineas);
-        $this->saveToDrive($factura);
+        \App\Jobs\DriveSyncFactura::dispatch($factura);
 
         return redirect()->route('admin.facturas.index')->with('success', 'Factura creada con éxito.');
     }
@@ -215,7 +215,7 @@ class FacturaController extends Controller
         ]);
 
         $this->syncLineas($factura, $request->lineas);
-        $this->saveToDrive($factura);
+        \App\Jobs\DriveSyncFactura::dispatch($factura);
 
         // Redirigir a vista show
         return redirect()->route('admin.facturas.show', $factura->id)->with('success', 'Factura actualizada con éxito.');
@@ -223,23 +223,27 @@ class FacturaController extends Controller
 
     public function destroy(Factura $factura)
     {
-        $factura->updateQuietly(['status' => FacturaStatus::CANCELED]);
-        $this->saveToDrive($factura);
-        return redirect()->route('admin.facturas.index')->with('success', 'Factura anulada correctamente.');
+        $factura->updateQuietly(['status' => \App\Enums\FacturaStatus::CANCELED]);
+
+        \App\Jobs\DriveSyncFactura::dispatch($factura);
+
+        return redirect()->route('admin.facturas.index')->with('success', 'Factura anulada exitosamente.');
     }
 
     public function updateStatus(Request $request, Factura $factura)
     {
         $validated = $request->validate(['status' => 'required|integer']);
         $factura->updateQuietly(['status' => FacturaStatus::tryFrom($validated['status'])]);
-        $this->saveToDrive($factura);
+        \App\Jobs\DriveSyncFactura::dispatch($factura);
         return redirect()->back()->with('success', 'Estado modificado correctamente.');
     }
 
     public function reactivate(Factura $factura)
     {
         $factura->updateQuietly(['status' => FacturaStatus::PENDING]);
-        $this->saveToDrive($factura);
+
+        \App\Jobs\DriveSyncFactura::dispatch($factura);
+
         return redirect()->route('admin.facturas.index')->with('success', 'Factura reactivada correctamente.');
     }
 
@@ -297,7 +301,7 @@ class FacturaController extends Controller
                 return response($content)
                     ->header('Content-Type', 'application/pdf')
                     ->header('Content-Disposition', $disposition . '; filename="' . $safeDocNumber . '.pdf"');
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 \Log::warning('No se pudo traer el PDF original guardado en Drive. Generando fallback local: ' . $e->getMessage());
             }
         }
@@ -358,7 +362,7 @@ class FacturaController extends Controller
         return $pdf->output();
     }
 
-    private function saveToDrive(Factura $factura)
+    public function saveToDrive(Factura $factura)
     {
         try {
             $pdfBinary = $this->generatePdfBytes($factura);
@@ -400,7 +404,7 @@ class FacturaController extends Controller
                         ]);
                         return; // Exito actualizando el existente
                     }
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     \Log::warning('Drive file not found by ID, continuing: ' . $e->getMessage());
                 }
             }

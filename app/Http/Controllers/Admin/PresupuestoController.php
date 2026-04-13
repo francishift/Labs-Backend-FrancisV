@@ -149,7 +149,7 @@ class PresupuestoController extends Controller
 
         $this->syncLineas($presupuesto, $request->lineas);
 
-        $this->saveToDrive($presupuesto);
+        \App\Jobs\DriveSyncPresupuesto::dispatch($presupuesto);
 
         return redirect()->route('admin.presupuestos.index')->with('success', 'Presupuesto creado con éxito.');
     }
@@ -206,7 +206,7 @@ class PresupuestoController extends Controller
 
         $this->syncLineas($presupuesto, $request->lineas);
 
-        $this->saveToDrive($presupuesto);
+        \App\Jobs\DriveSyncPresupuesto::dispatch($presupuesto);
 
         // Redirigir a vista show
         return redirect()->route('admin.presupuestos.show', $presupuesto->id)->with('success', 'Presupuesto actualizado con éxito.');
@@ -214,23 +214,25 @@ class PresupuestoController extends Controller
 
     public function destroy(Presupuesto $presupuesto)
     {
-        $presupuesto->updateQuietly(['status' => PresupuestoStatus::CANCELED]);
-        $this->saveToDrive($presupuesto);
+        $presupuesto->updateQuietly(['status' => \App\Enums\PresupuestoStatus::CANCELED]);
+
+        \App\Jobs\DriveSyncPresupuesto::dispatch($presupuesto);
+
         return redirect()->route('admin.presupuestos.index')->with('success', 'Presupuesto anulado correctamente.');
     }
 
     public function updateStatus(Request $request, Presupuesto $presupuesto)
     {
         $validated = $request->validate(['status' => 'required|integer']);
-        $presupuesto->updateQuietly(['status' => PresupuestoStatus::tryFrom($validated['status'])]);
-        $this->saveToDrive($presupuesto);
+        $presupuesto->updateQuietly(['status' => \App\Enums\PresupuestoStatus::tryFrom($validated['status'])]);
+        \App\Jobs\DriveSyncPresupuesto::dispatch($presupuesto);
         return redirect()->back()->with('success', 'Estado modificado correctamente.');
     }
 
     public function reactivate(Presupuesto $presupuesto)
     {
-        $presupuesto->updateQuietly(['status' => PresupuestoStatus::PENDING]);
-        $this->saveToDrive($presupuesto);
+        $presupuesto->updateQuietly(['status' => \App\Enums\PresupuestoStatus::PENDING]);
+        \App\Jobs\DriveSyncPresupuesto::dispatch($presupuesto);
         return redirect()->route('admin.presupuestos.index')->with('success', 'Presupuesto reactivado correctamente.');
     }
 
@@ -348,7 +350,7 @@ class PresupuestoController extends Controller
         return $pdf->output();
     }
 
-    private function saveToDrive(Presupuesto $presupuesto)
+    public function saveToDrive(Presupuesto $presupuesto)
     {
         try {
             $pdfBinary = $this->generatePdfBytes($presupuesto);
@@ -400,7 +402,7 @@ class PresupuestoController extends Controller
                         ]);
                         return; // Exito actualizando el existente
                     }
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     \Log::warning('Drive file not found by ID, continuing: ' . $e->getMessage());
                 }
             }
@@ -433,7 +435,7 @@ class PresupuestoController extends Controller
             
             $presupuesto->updateQuietly(['google_drive_file_id' => $fileId]);
             
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Log::error('Fallo al subir presupuesto nativo a Google Drive: ' . $e->getMessage());
         }
     }
