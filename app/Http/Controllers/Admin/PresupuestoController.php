@@ -289,7 +289,9 @@ class PresupuestoController extends Controller
 
                 return response($content)
                     ->header('Content-Type', 'application/pdf')
-                    ->header('Content-Disposition', $disposition . '; filename="' . $safeDocNumber . '.pdf"');
+                    ->header('Content-Disposition', $disposition . '; filename="' . $safeDocNumber . '.pdf"')
+                    ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0')
+                    ->header('Pragma', 'no-cache');
             } catch (\Exception $e) {
                 \Log::warning('No se pudo traer el PDF original guardado en Drive. Generando fallback local: ' . $e->getMessage());
             }
@@ -299,7 +301,9 @@ class PresupuestoController extends Controller
 
         return response($pdfOutput)
             ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', $disposition . '; filename="' . $safeDocNumber . '.pdf"');
+            ->header('Content-Disposition', $disposition . '; filename="' . $safeDocNumber . '.pdf"')
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0')
+            ->header('Pragma', 'no-cache');
     }
 
     public function sendPdfEmail(Presupuesto $presupuesto, Request $request)
