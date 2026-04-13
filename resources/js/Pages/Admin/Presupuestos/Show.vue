@@ -51,7 +51,7 @@ const formatCurrency = (val) => new Intl.NumberFormat('es-ES', { style: 'currenc
               <Link :href="route('admin.presupuestos.index')">
                   <SecondaryButton>
                       <ArrowLeftIcon class="w-4 h-4 mr-2 inline" />
-                      Volver a Todos
+                      Todos los presupuestos
                   </SecondaryButton>
               </Link>
               <a :href="route('admin.presupuestos.pdf', { presupuesto: presupuesto.id, download: 1 })">

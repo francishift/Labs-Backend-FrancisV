@@ -66,7 +66,7 @@ const executeDuplicate = () => {
               <Link :href="route('admin.facturas.index')">
                   <SecondaryButton>
                       <ArrowLeftIcon class="w-4 h-4 mr-2 inline" />
-                      Volver a Todos
+                      Todas las facturas
                   </SecondaryButton>
               </Link>
               <a :href="route('admin.facturas.pdf', { factura: factura.id, download: 1 })">
