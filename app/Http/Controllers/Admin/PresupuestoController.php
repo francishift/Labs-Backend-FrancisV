@@ -149,7 +149,7 @@ class PresupuestoController extends Controller
 
         $this->syncLineas($presupuesto, $request->lineas);
 
-        \App\Jobs\DriveSyncPresupuesto::dispatch($presupuesto);
+        defer(fn () => $this->saveToDrive($presupuesto));
 
         return redirect()->route('admin.presupuestos.index')->with('success', 'Presupuesto creado con éxito.');
     }
@@ -206,7 +206,7 @@ class PresupuestoController extends Controller
 
         $this->syncLineas($presupuesto, $request->lineas);
 
-        \App\Jobs\DriveSyncPresupuesto::dispatch($presupuesto);
+        defer(fn () => $this->saveToDrive($presupuesto));
 
         // Redirigir a vista show
         return redirect()->route('admin.presupuestos.show', $presupuesto->id)->with('success', 'Presupuesto actualizado con éxito.');
@@ -216,7 +216,7 @@ class PresupuestoController extends Controller
     {
         $presupuesto->updateQuietly(['status' => \App\Enums\PresupuestoStatus::CANCELED]);
 
-        \App\Jobs\DriveSyncPresupuesto::dispatch($presupuesto);
+        defer(fn () => $this->saveToDrive($presupuesto));
 
         return redirect()->route('admin.presupuestos.index')->with('success', 'Presupuesto anulado correctamente.');
     }
@@ -225,14 +225,14 @@ class PresupuestoController extends Controller
     {
         $validated = $request->validate(['status' => 'required|integer']);
         $presupuesto->updateQuietly(['status' => \App\Enums\PresupuestoStatus::tryFrom($validated['status'])]);
-        \App\Jobs\DriveSyncPresupuesto::dispatch($presupuesto);
+        defer(fn () => $this->saveToDrive($presupuesto));
         return redirect()->back()->with('success', 'Estado modificado correctamente.');
     }
 
     public function reactivate(Presupuesto $presupuesto)
     {
         $presupuesto->updateQuietly(['status' => \App\Enums\PresupuestoStatus::PENDING]);
-        \App\Jobs\DriveSyncPresupuesto::dispatch($presupuesto);
+        defer(fn () => $this->saveToDrive($presupuesto));
         return redirect()->route('admin.presupuestos.index')->with('success', 'Presupuesto reactivado correctamente.');
     }
 

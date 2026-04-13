@@ -155,7 +155,7 @@ class FacturaController extends Controller
         ]);
 
         $this->syncLineas($factura, $request->lineas);
-        \App\Jobs\DriveSyncFactura::dispatch($factura);
+        defer(fn () => $this->saveToDrive($factura));
 
         return redirect()->route('admin.facturas.index')->with('success', 'Factura creada con éxito.');
     }
@@ -215,7 +215,7 @@ class FacturaController extends Controller
         ]);
 
         $this->syncLineas($factura, $request->lineas);
-        \App\Jobs\DriveSyncFactura::dispatch($factura);
+        defer(fn () => $this->saveToDrive($factura));
 
         // Redirigir a vista show
         return redirect()->route('admin.facturas.show', $factura->id)->with('success', 'Factura actualizada con éxito.');
@@ -225,7 +225,7 @@ class FacturaController extends Controller
     {
         $factura->updateQuietly(['status' => \App\Enums\FacturaStatus::CANCELED]);
 
-        \App\Jobs\DriveSyncFactura::dispatch($factura);
+        defer(fn () => $this->saveToDrive($factura));
 
         return redirect()->route('admin.facturas.index')->with('success', 'Factura anulada exitosamente.');
     }
@@ -234,7 +234,7 @@ class FacturaController extends Controller
     {
         $validated = $request->validate(['status' => 'required|integer']);
         $factura->updateQuietly(['status' => FacturaStatus::tryFrom($validated['status'])]);
-        \App\Jobs\DriveSyncFactura::dispatch($factura);
+        defer(fn () => $this->saveToDrive($factura));
         return redirect()->back()->with('success', 'Estado modificado correctamente.');
     }
 
@@ -242,7 +242,7 @@ class FacturaController extends Controller
     {
         $factura->updateQuietly(['status' => FacturaStatus::PENDING]);
 
-        \App\Jobs\DriveSyncFactura::dispatch($factura);
+        defer(fn () => $this->saveToDrive($factura));
 
         return redirect()->route('admin.facturas.index')->with('success', 'Factura reactivada correctamente.');
     }
@@ -290,7 +290,7 @@ class FacturaController extends Controller
             ]);
         }
 
-        \App\Jobs\DriveSyncFactura::dispatch($nuevaFactura);
+        defer(fn () => clone $nuevaFactura->loadMissing('cliente') && $this->saveToDrive($nuevaFactura));
 
         return redirect()->route('admin.facturas.edit', $nuevaFactura->id)->with('success', 'Factura duplicada correctamente. Revisa los datos antes de guardarla.');
     }
