@@ -8,9 +8,10 @@ import SecondaryButton from '@/Components/SecondaryButton.vue'
 import TextInput from '@/Components/TextInput.vue'
 import TextArea from '@/Components/TextArea.vue'
 import InputLabel from '@/Components/InputLabel.vue'
-import Modal from '@/Components/Modal.vue'
+import ConfirmModal from '@/Components/ConfirmModal.vue'
 import { ref } from 'vue'
-import { ArrowDownTrayIcon, PaperAirplaneIcon, PencilIcon, ArrowLeftIcon } from '@heroicons/vue/24/outline'
+import { router } from '@inertiajs/vue3'
+import { ArrowDownTrayIcon, PaperAirplaneIcon, PencilIcon, ArrowLeftIcon, DocumentDuplicateIcon } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
   factura: Object,
@@ -32,6 +33,19 @@ const sendEmail = () => {
 }
 
 const formatCurrency = (val) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(val || 0)
+
+const showDuplicateModal = ref(false)
+
+const confirmDuplicate = () => {
+    showDuplicateModal.value = true
+}
+
+const executeDuplicate = () => {
+    router.post(route('admin.facturas.duplicate', props.factura.id), {}, {
+        preserveScroll: true,
+        onSuccess: () => { showDuplicateModal.value = false; }
+    })
+}
 
 
 </script>
@@ -64,6 +78,10 @@ const formatCurrency = (val) => new Intl.NumberFormat('es-ES', { style: 'currenc
                 <PaperAirplaneIcon class="w-4 h-4 mr-2 inline" />
                 Enviar por Correo
               </PrimaryButton>
+              <button @click="confirmDuplicate" class="inline-flex items-center px-4 py-2 bg-orange-600 dark:bg-orange-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-orange-700 dark:hover:bg-orange-600 focus:bg-orange-700 dark:focus:bg-orange-600 active:bg-orange-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-800 transition ease-in-out duration-150">
+                  <DocumentDuplicateIcon class="w-4 h-4 mr-2 inline" />
+                  Duplicar
+              </button>
               <Link :href="route('admin.facturas.edit', factura.id)">
                 <SecondaryButton>
                   <PencilIcon class="w-4 h-4 mr-2 inline" />

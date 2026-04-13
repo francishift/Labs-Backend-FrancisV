@@ -111,6 +111,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/facturas/{factura}/export-pdf', [\App\Http\Controllers\Admin\FacturaController::class, 'exportPdf'])->name('admin.facturas.pdf');
         Route::post('/admin/facturas/{factura}/send-pdf', [\App\Http\Controllers\Admin\FacturaController::class, 'sendPdfEmail'])->name('admin.facturas.send-pdf');
         Route::patch('/admin/facturas/{factura}/status', [\App\Http\Controllers\Admin\FacturaController::class, 'updateStatus'])->name('admin.facturas.update-status');
+        Route::post('/admin/facturas/{factura}/duplicate', [\App\Http\Controllers\Admin\FacturaController::class, 'duplicate'])->name('admin.facturas.duplicate');
     });
 
     // Rutas accesibles por Admin y Coordinador

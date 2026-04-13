@@ -247,6 +247,54 @@ class FacturaController extends Controller
         return redirect()->route('admin.facturas.index')->with('success', 'Factura reactivada correctamente.');
     }
 
+    public function duplicate(Factura $factura)
+    {
+        $factura->load('lineas');
+
+        $lastFactura = Factura::where('number', 'like', 'FV-%')
+            ->orderByRaw('CAST(SUBSTRING(number, 4) AS UNSIGNED) DESC')
+            ->first();
+
+        $nextNum = 1;
+        if ($lastFactura && preg_match('/^FV-(\d+)$/', $lastFactura->number, $matches)) {
+            $nextNum = intval($matches[1]) + 1;
+        }
+        $number = sprintf("FV-%d", $nextNum);
+
+        $defaultDueDate = strtotime('+' . \App\Models\Configuracion::get('default_vencimiento_dias', 30) . ' days');
+
+        $nuevaFactura = Factura::create([
+            'number' => $number,
+            'client_id' => $factura->client_id,
+            'proyecto_id' => $factura->proyecto_id,
+            'date' => time(),
+            'due_date' => $defaultDueDate,
+            'status' => FacturaStatus::PENDING,
+            'notes' => $factura->notes,
+            'description' => $factura->description,
+            'subtotal' => $factura->subtotal,
+            'tax_amount' => $factura->tax_amount,
+            'irpf_amount' => $factura->irpf_amount,
+            'total' => $factura->total,
+        ]);
+
+        foreach ($factura->lineas as $linea) {
+            $nuevaFactura->lineas()->create([
+                'concepto' => $linea->concepto,
+                'descripcion' => $linea->descripcion,
+                'cantidad' => $linea->cantidad,
+                'precio_unitario' => $linea->precio_unitario,
+                'porcentaje_iva' => $linea->porcentaje_iva,
+                'porcentaje_irpf' => $linea->porcentaje_irpf,
+                'total_linea' => $linea->total_linea,
+            ]);
+        }
+
+        \App\Jobs\DriveSyncFactura::dispatch($nuevaFactura);
+
+        return redirect()->route('admin.facturas.edit', $nuevaFactura->id)->with('success', 'Factura duplicada correctamente. Revisa los datos antes de guardarla.');
+    }
+
     private function syncLineas(Factura $factura, array $lineas)
     {
         $factura->lineas()->delete();

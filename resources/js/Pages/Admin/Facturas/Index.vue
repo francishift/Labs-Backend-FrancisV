@@ -14,7 +14,7 @@ import SearchableSelect from '@/Components/SearchableSelect.vue'
 import ConfirmModal from '@/Components/ConfirmModal.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import debounce from 'lodash/debounce'
-import { PlusIcon, EyeIcon, PencilIcon, PencilSquareIcon, NoSymbolIcon, CheckCircleIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
+import { PlusIcon, EyeIcon, PencilIcon, PencilSquareIcon, NoSymbolIcon, CheckCircleIcon, ArrowPathIcon, DocumentDuplicateIcon } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
   facturas: Object,
@@ -98,7 +98,22 @@ const formatCurrency = (val) => new Intl.NumberFormat('es-ES', { style: 'currenc
 
 const showCancelModal = ref(false)
 const showReactivateModal = ref(false)
+const showDuplicateModal = ref(false)
 const currentBudget = ref(null)
+
+const confirmDuplicate = (factura) => {
+    currentBudget.value = factura
+    showDuplicateModal.value = true
+}
+
+const executeDuplicate = () => {
+    if (currentBudget.value) {
+        router.post(route('admin.facturas.duplicate', currentBudget.value.id), {}, {
+            preserveScroll: true,
+            onSuccess: () => { showDuplicateModal.value = false; currentBudget.value = null; }
+        })
+    }
+}
 
 const confirmCancel = (budget) => {
     currentBudget.value = budget
@@ -334,6 +349,9 @@ onMounted(() => {
                   <Link v-if="item.status != 2" :href="route('admin.facturas.edit', item.id)" class="text-blue-500/70 hover:text-blue-600 dark:text-blue-400/70 dark:hover:text-blue-400 transition-colors" title="Editar Factura" @click.stop>
                       <PencilSquareIcon class="w-5 h-5 inline" />
                   </Link>
+                  <button v-if="item.status != 2" @click.stop="confirmDuplicate(item)" class="text-orange-500/70 hover:text-orange-600 dark:text-orange-400/70 dark:hover:text-orange-400 transition-colors" title="Duplicar Factura">
+                      <DocumentDuplicateIcon class="w-5 h-5 inline" />
+                  </button>
                   <button v-if="item.status != 2" @click.stop="confirmCancel(item)" class="text-red-500/70 hover:text-red-600 dark:text-red-400/70 dark:hover:text-red-400 transition-colors" title="Anular Factura">
                       <NoSymbolIcon class="w-5 h-5 inline" />
                   </button>
@@ -349,7 +367,16 @@ onMounted(() => {
       </Card>
     </div>
 
-    <!-- Modales de Confirmación -->
+    <!-- Modals -->
+    <ConfirmModal 
+        v-model="showDuplicateModal" 
+        title="Duplicar Factura" 
+        message="¿Estás seguro de que deseas duplicar esta factura? Se creará una copia en estado Pendiente y se te redigirá a su vista de edición para que puedas ajustar cualquier dato antes de enviarla."
+        confirm-text="Sí, duplicar"
+        cancel-text="Cancelar"
+        type="warning"
+        @confirm="executeDuplicate"
+    />
     <ConfirmModal
       :show="showCancelModal"
       title="Anular Factura"
