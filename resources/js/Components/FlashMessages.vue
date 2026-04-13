@@ -9,8 +9,14 @@ const { messages, success, error, remove } = useFlash()
 watch(
   () => page.props.flash,
   (f) => {
-    if (f?.success) success(f.success)
-    if (f?.error) error(f.error)
+    if (f?.success) {
+        success(f.success)
+        f.success = null
+    }
+    if (f?.error) {
+        error(f.error)
+        f.error = null
+    }
   },
   { deep: true, immediate: true }
 )
