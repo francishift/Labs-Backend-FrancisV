@@ -8,6 +8,8 @@ class Presupuesto extends Model
 {
     protected $table = 'presupuestos';
 
+    protected $appends = ['contact_name'];
+
     protected $fillable = [
         'client_id',
         'date',
@@ -47,5 +49,13 @@ class Presupuesto extends Model
     public function cliente()
     {
         return $this->belongsTo(Client::class, 'client_id');
+    }
+
+    public function getContactNameAttribute()
+    {
+        return $this->cliente->name 
+            ?? $this->raw_data['contactName'] 
+            ?? $this->raw_data['contact'] 
+            ?? 'Cliente Desconocido';
     }
 }

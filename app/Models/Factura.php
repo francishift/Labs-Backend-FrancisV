@@ -8,6 +8,8 @@ class Factura extends Model
 {
     protected $table = 'facturas';
 
+    protected $appends = ['contact_name'];
+
     protected $fillable = [
         'number',
         'client_id',
@@ -49,5 +51,13 @@ class Factura extends Model
     public function lineas()
     {
         return $this->hasMany(FacturaLinea::class);
+    }
+
+    public function getContactNameAttribute()
+    {
+        return $this->cliente->name 
+            ?? $this->raw_data['contactName'] 
+            ?? $this->raw_data['contact'] 
+            ?? 'Cliente Desconocido';
     }
 }
