@@ -13,17 +13,17 @@ import { ref } from 'vue'
 import { ArrowDownTrayIcon, PaperAirplaneIcon, PencilIcon, ArrowLeftIcon } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
-  presupuesto: Object,
+  factura: Object,
 })
 
 const emailModal = ref(false)
 const emailForm = useForm({
-    email: props.presupuesto.cliente?.email || '',
+    email: props.factura.cliente?.email || '',
     message: ''
 })
 
 const sendEmail = () => {
-    emailForm.post(route('admin.presupuestos.send-pdf', props.presupuesto.id), {
+    emailForm.post(route('admin.facturas.send-pdf', props.factura.id), {
         preserveScroll: true,
         onSuccess: () => {
             emailModal.value = false;
@@ -37,24 +37,24 @@ const formatCurrency = (val) => new Intl.NumberFormat('es-ES', { style: 'currenc
 </script>
 
 <template>
-  <Head :title="'Presupuesto ' + presupuesto.number" />
+  <Head :title="'Factura ' + factura.number" />
 
   <AuthenticatedLayout>
     <template #header>
-      <PageHeader :title="'Presupuesto: ' + (presupuesto.number || 'Sin Número')">
+      <PageHeader :title="'Factura: ' + (factura.number || 'Sin Número')">
         <template #actions>
           <div class="flex items-center gap-4">
-            <span v-if="presupuesto.status == 2" class="px-3 py-1 font-bold text-white bg-red-600 rounded-md">
+            <span v-if="factura.status == 2" class="px-3 py-1 font-bold text-white bg-red-600 rounded-md">
               ANULADO
             </span>
           <div class="flex flex-wrap gap-2">
-              <Link :href="route('admin.presupuestos.index')">
+              <Link :href="route('admin.facturas.index')">
                   <SecondaryButton>
                       <ArrowLeftIcon class="w-4 h-4 mr-2 inline" />
                       Volver a Todos
                   </SecondaryButton>
               </Link>
-              <a :href="route('admin.presupuestos.pdf', { presupuesto: presupuesto.id, download: 1 })">
+              <a :href="route('admin.facturas.pdf', { factura: factura.id, download: 1 })">
                 <SecondaryButton>
                   <ArrowDownTrayIcon class="w-4 h-4 mr-2 inline" />
                   Descargar PDF
@@ -64,7 +64,7 @@ const formatCurrency = (val) => new Intl.NumberFormat('es-ES', { style: 'currenc
                 <PaperAirplaneIcon class="w-4 h-4 mr-2 inline" />
                 Enviar por Correo
               </PrimaryButton>
-              <Link :href="route('admin.presupuestos.edit', presupuesto.id)">
+              <Link :href="route('admin.facturas.edit', factura.id)">
                 <SecondaryButton>
                   <PencilIcon class="w-4 h-4 mr-2 inline" />
                   Editar
@@ -80,21 +80,21 @@ const formatCurrency = (val) => new Intl.NumberFormat('es-ES', { style: 'currenc
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card class="p-6 md:col-span-2">
                <h3 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">Información del Cliente</h3>
-               <p class="text-gray-700 dark:text-gray-300"><strong class="text-gray-900 dark:text-white">Razón Social:</strong> {{ presupuesto.contact_name }}</p>
-               <p v-if="presupuesto.cliente?.cif_nif" class="text-gray-700 dark:text-gray-300"><strong class="text-gray-900 dark:text-white">CIF/NIF:</strong> {{ presupuesto.cliente.cif_nif }}</p>
-               <p v-if="presupuesto.cliente?.email" class="text-gray-700 dark:text-gray-300"><strong class="text-gray-900 dark:text-white">Email:</strong> {{ presupuesto.cliente.email }}</p>
+               <p class="text-gray-700 dark:text-gray-300"><strong class="text-gray-900 dark:text-white">Razón Social:</strong> {{ factura.contact_name }}</p>
+               <p v-if="factura.cliente?.cif_nif" class="text-gray-700 dark:text-gray-300"><strong class="text-gray-900 dark:text-white">CIF/NIF:</strong> {{ factura.cliente.cif_nif }}</p>
+               <p v-if="factura.cliente?.email" class="text-gray-700 dark:text-gray-300"><strong class="text-gray-900 dark:text-white">Email:</strong> {{ factura.cliente.email }}</p>
           </Card>
           
           <Card class="p-6 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/20">
                <h3 class="text-emerald-800 dark:text-emerald-500 font-bold mb-4">Resumen</h3>
                <p class="text-gray-600 dark:text-gray-400">Total a Pagar</p>
-               <p class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{{ formatCurrency(presupuesto.total) }}</p>
+               <p class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{{ formatCurrency(factura.total) }}</p>
           </Card>
       </div>
       
       <Card class="p-0 overflow-hidden h-[800px]">
           <!-- PDF Viewer iframe -->
-          <iframe :src="route('admin.presupuestos.pdf', presupuesto.id)" class="w-full h-full border-0"></iframe>
+          <iframe :src="route('admin.facturas.pdf', factura.id)" class="w-full h-full border-0"></iframe>
       </Card>
     </div>
 
@@ -104,7 +104,7 @@ const formatCurrency = (val) => new Intl.NumberFormat('es-ES', { style: 'currenc
                 Enviar PDF por Correo
             </h2>
             <p class="mt-1 text-sm text-gray-600 dark:text-gray-400 mb-4">
-                El presupuesto se enviará a esta dirección como archivo adjunto.
+                El factura se enviará a esta dirección como archivo adjunto.
             </p>
             <form @submit.prevent="sendEmail">
                 <div class="mb-4">
@@ -113,7 +113,7 @@ const formatCurrency = (val) => new Intl.NumberFormat('es-ES', { style: 'currenc
                 </div>
                 <div class="mb-4">
                     <InputLabel value="Mensaje adjunto (opcional)" />
-                    <TextArea v-model="emailForm.message" class="w-full mt-1" rows="4" placeholder="Estimado cliente, adjunto le enviamos el presupuesto solicitado..." />
+                    <TextArea v-model="emailForm.message" class="w-full mt-1" rows="4" placeholder="Estimado cliente, adjunto le enviamos el factura solicitado..." />
                 </div>
                 <div class="flex justify-end gap-3 mt-4">
                     <SecondaryButton @click="emailModal = false" type="button">Cancelar</SecondaryButton>

@@ -277,7 +277,7 @@
 
     @if(is_array($presupuestos) ? count($presupuestos) > 0 : ($presupuestos && $presupuestos->count() > 0))
     <div class="keep-together">
-        <div class="label">Presupuestos Holded Recientes</div>
+        <div class="label">Presupuestos Recientes</div>
         <table class="data-table">
             <thead>
                 <tr>

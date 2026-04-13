@@ -26,14 +26,11 @@ class Client extends Model
         'zip_code',
         'province',
         'country',
-        'contact',
         'excel_created_at',
-        'secondary_contacts',
     ];
 
     protected $casts = [
         'excel_created_at' => 'datetime',
-        'secondary_contacts' => 'array',
     ];
 
     public function proyectos()
@@ -45,6 +42,12 @@ class Client extends Model
     {
         return $this->hasMany(Mantenimiento::class);
     }
+
+    public function facturas()
+    {
+        return $this->hasMany(Factura::class, 'client_id');
+    }
+
 
     /**
      * Presupuesto total de proyectos en proceso.

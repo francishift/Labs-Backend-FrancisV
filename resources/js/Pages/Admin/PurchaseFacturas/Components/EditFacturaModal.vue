@@ -6,6 +6,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue'
 import SecondaryButton from '@/Components/SecondaryButton.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import InputError from '@/Components/InputError.vue'
+import { formatDateForInput } from '@/Utils/date'
 
 const props = defineProps({
     show: Boolean,
@@ -37,16 +38,9 @@ watch([() => props.show, () => props.factura], ([show, newFactura]) => {
         editForm.number = newFactura.number
         editForm.provider_name = newFactura.provider_name
         
-        // CORRECCIÓN ZONA HORARIA:
-        // Evitamos usar `new Date(date).toISOString()` que convierte la fecha local a UTC
-        // y que provoca que fechas a medianoche se atrasen un día (ej. en España DST/ECT).
+        // Usamos utilidad de fecha para evitar problemas de zona horaria con la conversión a fecha local.
         if (newFactura.date) {
-            const d = new Date(newFactura.date)
-            // Extrae el año, mes y día de la zona horaria en la que se instanció la fecha
-            const year = d.getFullYear()
-            const month = String(d.getMonth() + 1).padStart(2, '0')
-            const day = String(d.getDate()).padStart(2, '0')
-            editForm.date = `${year}-${month}-${day}`
+            editForm.date = formatDateForInput(newFactura.date);
         } else {
             editForm.date = ''
         }

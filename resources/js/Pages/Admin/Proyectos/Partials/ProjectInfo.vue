@@ -88,16 +88,16 @@ const getStatusVariant = (status) => {
                         v-for="factura in proyecto.facturas" 
                         :key="factura.id" 
                         :href="route('admin.visor-pdf', { 
-                            url: route('admin.holded.facturas.pdf', { id: factura.holded_id }),
-                            title: `Factura: ${factura.raw_data?.docNumber || factura.holded_id}`,
+                            url: route('admin.facturas.pdf', factura.id),
+                            title: `Factura: ${factura.number}`,
                             backUrl: route('admin.proyectos.show', proyecto.id)
                         })"
                         class="flex items-center justify-between p-2 bg-gray-50 dark:bg-zinc-800 rounded border border-gray-200 dark:border-zinc-700 hover:bg-emerald-50 dark:hover:bg-zinc-700 transition-colors cursor-pointer group"
-                        title="Ver factura PDF"
+                        :title="'Ver PDF Factura ' + factura.number"
                     >
                         <div class="flex flex-col">
                             <span class="text-sm font-medium text-gray-900 dark:text-zinc-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
-                                {{ factura.raw_data?.docNumber || factura.holded_id }}
+                                {{ factura.number }}
                             </span>
                             <span class="text-xs text-gray-500 dark:text-zinc-400">
                                 {{ formatDate(factura.date * 1000) }} • {{ formatCurrency(factura.total) }}

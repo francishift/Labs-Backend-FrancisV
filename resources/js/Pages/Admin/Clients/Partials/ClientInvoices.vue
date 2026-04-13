@@ -16,22 +16,19 @@ const props = defineProps({
 const { formatCurrency, formatDate } = useFormatters()
 
 const getStatusLabel = (item) => {
-  const pending = parseFloat(item.raw_data?.paymentsPending || 0)
-  const paid = parseFloat(item.raw_data?.paymentsTotal || 0)
-
-  if (pending === 0) return 'Pagada'
-  if (paid === 0) return 'Pendiente'
-  return 'Parcial'
+  if (item.status === 0) return 'Pendiente'
+  if (item.status === 1) return 'Pagada'
+  if (item.status === 2) return 'Parcial'
+  if (item.status === 3) return 'Anulada'
+  return 'Desconocido'
 }
 
 const getStatusColor = (item) => {
-  const label = getStatusLabel(item)
-  switch (label) {
-      case 'Pagada': return 'emerald'
-      case 'Pendiente': return 'rose'
-      case 'Parcial': return 'blue'
-      default: return 'zinc'
-  }
+  if (item.status === 0) return 'rose'
+  if (item.status === 1) return 'emerald'
+  if (item.status === 2) return 'blue'
+  if (item.status === 3) return 'zinc'
+  return 'zinc'
 }
 </script>
 
@@ -40,7 +37,7 @@ const getStatusColor = (item) => {
         <div class="p-4 border-b border-gray-100 dark:border-zinc-700 bg-gray-50/50 dark:bg-zinc-800/50 flex items-center justify-between">
             <h3 class="font-bold text-gray-900 dark:text-white flex items-center gap-2">
                 <DocumentTextIcon class="h-5 w-5 text-emerald-500" />
-                Facturas Holded
+                Facturas Ventas
             </h3>
             <Badge color="emerald">{{ facturas.length }}</Badge>
         </div>
@@ -49,7 +46,7 @@ const getStatusColor = (item) => {
                 <div class="flex justify-between items-start">
                     <div>
                         <p class="font-bold text-gray-900 dark:text-white text-sm">
-                            {{ factura.raw_data?.docNumber || 'Nº Desconocido' }}
+                            {{ factura.number }}
                         </p>
                         <p class="text-xs text-gray-500 dark:text-zinc-400 mt-1">
                             {{ formatDate(factura.date * 1000) }}
@@ -62,8 +59,8 @@ const getStatusColor = (item) => {
                         <p class="font-black text-gray-900 dark:text-white leading-tight">{{ formatCurrency(factura.total) }}</p>
                         <Link 
                             :href="route('admin.visor-pdf', { 
-                                url: route('admin.holded.facturas.pdf', factura.holded_id),
-                                title: `Factura: ${factura.raw_data?.docNumber || factura.holded_id}`,
+                                url: route('admin.facturas.pdf', factura.id),
+                                title: `Factura: ${factura.number}`,
                                 backUrl: currentUrl
                             })" 
                             class="inline-flex items-center gap-1.5 text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-200 transition-colors mt-3 px-2 py-1 rounded-md bg-emerald-50 dark:bg-emerald-900/30"
@@ -75,7 +72,7 @@ const getStatusColor = (item) => {
                 </div>
             </div>
             <div v-if="facturas.length === 0" class="p-8 text-center text-gray-500 italic">
-                No hay facturas sincronizadas.
+                No hay facturas asociadas a este cliente.
             </div>
         </div>
     </Card>

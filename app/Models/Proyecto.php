@@ -232,9 +232,7 @@ class Proyecto extends Model
             'costeSoftware' => $costeSoftware,
             'grandTotal' => $grandTotal,
             'totalFacturado' => $this->facturas->sum('total'),
-            'totalFacturadoNeto' => $this->facturas->sum(function ($factura) {
-                return $factura->raw_data['subtotal'] ?? $factura->total;
-            }),
+            'totalFacturadoNeto' => $this->facturas->sum('subtotal'),
         ];
     }
 }

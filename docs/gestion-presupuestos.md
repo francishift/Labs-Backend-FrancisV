@@ -1,35 +1,27 @@
 # Gestión de Presupuestos
 
-La gestión de **Presupuestos** ("estimates" en Holded) dentro de Labs Backend está diseñada con un enfoque paralelo al de las [Facturas de Ventas](gestion-facturas-ventas.md), buscando minimizar la dependencia continua de la API externa y garantizando un rápido acceso a la información mediante almacenamiento y procesamiento local.
+La gestión de **Presupuestos** dentro de Labs Backend está diseñada con un enfoque idéntico al de las [Facturas de Ventas](gestion-facturas-ventas.md), uniendo almacenamiento robusto local y un rápido procesamiento.
 
-## 🔄 Sincronización Automática con Holded
+## 🔄 Flujo de Gestión Natural
 
-Cuando se accede a la sección de presupuestos, la aplicación no consulta todos los recursos a Holded en tiempo real para mostrarlos. El flujo es el siguiente:
+Los presupuestos son el eslabón fundamental de conversión en el negocio, pudiendo enlazarse estructuralmente al inicio de un futuro "Proyecto". 
 
-### 1. Sincronización a Base de Datos Local
-Cada vez que se carga el listado (generalmente acotado por un rango de fechas), el sistema a través del `HoldedService` realiza una petición a Holded solicitando sincronizar los documentos de tipo `estimate`.
-Esta información se almacena y actualiza en la tabla local `presupuestos` (modelo `Presupuesto.php`). 
+### 1. Modelado Transaccional y Formularios Modernos
+La UI se sustenta sobre el ecosistema Vue 3. La creación o edición del listado utiliza un controlador que gestiona líneas asíncronas reactivas (Precio x Cantidad x IVA) interactuando con el usuario antes de invocar la persistencia al Backend. Todo se valida a nivel JSON contra el framework interno, persistiendo luego en su propia tabla relacional estricta MySQL local (`presupuestos`).
 
-2. **Lectura y Búsqueda de Alto Rendimiento:**
-   Una vez sincronizados, los datos se sirven a la interfaz directamente desde la base de datos local de MySQL:
-   - El buscador opera sobre la base local buscando por el nombre del contacto, el ID de Holded o el número de serie del documento (que se extrae del campo JSON `raw_data`).
-   - Esto reduce drásticamente los tiempos de carga de la tabla, paginando los resultados velozmente.
-
-### 3. Filtros y Estados de Interfaz
-El listado de presupuestos incluye **filtros rápidos** reactivos integrados con **Inertia.js** para garantizar que los estados elegidos (ej. "Este trimestre", "Últimos 12 meses", selectores de Cliente) permanezcan visualmente exactos tras la recarga y paginación bidireccional, evitando borrados inesperados gracias a la fusión asimétrica del `quickFilter`. Todos los paneles de filtros unifican además un botón global de **"Limpiar"**, representado mediante un icono circular que devuelve el listado al estado por defecto.
+### 2. Filtros de Alto Rendimiento
+Una vez generados, los presupuestos pueden ser filtrados o listados mediante agregaciones nativas (búsqueda LIKE, indexaciones WHERE por cliente o rango de fecha) impulsado por Query Builder, consiguiendo en milisegundos un pantallazo estadístico anual y general de operaciones PENDIENTES o APROBADAS, ignorando de la sumatoria los importes ANULADOS (los cuales no suponen volumen de negocio real).
 
 ## 📁 Descarga de PDFs y Respaldo Inteligente en Google Drive
 
-El sistema de descarga de presupuestos cuenta con una estrategia de "fallback" (respaldo) continuo para proteger los documentos a largo plazo:
+El sistema de descarga y guardado cuenta con una arquitectura de sincronización segura documental a largo plazo:
 
-1. **Intento desde Google Drive (Caché):** Cuando un usuario solicita descargar el PDF de un presupuesto, el sistema verifica primero si existe el ID del archivo de Google Drive (`google_drive_file_id`) guardado localmente. Si es así, se descarga el archivo PDF directamente de Google Drive, ahorrando llamadas a Holded.
-2. **Petición a Holded:** Si el ID no existe en la base de datos (por ser la primera vez que se descarga o aún no está respaldado), la plataforma solicita el documento en base64 a la API de Holded.
-3. **Respaldo Automático:** Una vez obtenido de Holded, el backend **crea automáticamente la carpeta del año correspondiente** en el Google Drive de Presupuestos (vía variable de entorno `GOOGLE_DRIVE_FOLDER_ID_PRESUPUESTOS`), sube el PDF y **guarda el nuevo ID** en la base de datos local. Las futuras consultas de este archivo saltarán directamente al paso 1.
+1. **Auto-Generación Documental Expresiva:** Cada vez que la información es mutada o el presupuesto creado, DOMPDF entra en acción compilando la plantilla oficial (`presupuesto.blade.php`), insertos (Observaciones con retenciones de salto de página) y marca de agua `(CANCELED/REJECTED)` de ser caso.
+2. **Subida Estructurada a Google Drive:** Laravel establece enlace mediante Service Account con Googe Workspace, crea dinámicamente la carpeta jerárquica del año actual (si es que no existía) dentro del repositorio remoto root y ubica formalmente el nuevo PDF.
+3. **Persistencia del Hash:** El sistema asocia el `google_drive_file_id` devuelto por la Request al registro interno de Laravel. Resultando que las futuras cargas y emisiones manuales eviten la carga inútil del servidor y entreguen un link de streaming nativo directo desde los servidores de Google.
 
 ## 🔗 Relación de Presupuestos y Proyectos
 
-A nivel estructural, un presupuesto está diseñado para ser el origen de un **Proyecto**:
+A nivel estructural, un presupuesto está diseñado para ser el origen opcional de un **Proyecto**:
 - El modelo `Presupuesto` cuenta con una relación que indica que un presupuesto puede originar múltiples proyectos (`$this->hasMany(Proyecto::class, 'presupuesto_id');`).
-- Esto permite mantener una trazabilidad desde que se emite la propuesta comercial, hasta que el proyecto se entrega y posteriormente se factura.
-
-Para más detalles técnicos, revisar la implementación del controlador principal en `app/Http/Controllers/Admin/Holded/PresupuestoController.php`.
+- Esto permite mantener una trazabilidad global unificada (Status: Aprobado -> Conversión Proyecto -> Terminado -> Factura) garantizada por las foreign keys MySQL interconectadas.

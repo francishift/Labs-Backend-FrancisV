@@ -41,7 +41,7 @@ class ProyectoCrudTest extends TestCase
     {
         $extension = Extension::factory()->create();
         $factura = Factura::create([
-            'holded_id' => 'abcde123',
+
             'contact' => 'abc',
             'date' => time(),
             'subtotal' => 10,

@@ -13,6 +13,7 @@ import SearchableSelect from '@/Components/SearchableSelect.vue'
 import { PlusIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
+import { formatDateForInput } from '@/Utils/date'
 
 const props = defineProps({
   presupuesto: Object,
@@ -22,30 +23,26 @@ const props = defineProps({
   defaultIrpf: Number,
 })
 
-const getFormattedDate = (timestamp) => {
-    if (!timestamp) return new Date().toISOString().split('T')[0];
-    const d = typeof timestamp === 'number' ? new Date(timestamp * 1000) : new Date(timestamp);
-    if (isNaN(d.getTime())) return new Date().toISOString().split('T')[0];
-    return d.toISOString().split('T')[0];
-}
+
 
 const form = useForm({
   client_id: props.presupuesto.client_id || '',
   contact_name: props.presupuesto.contact_name || '',
-  date: getFormattedDate(props.presupuesto.date),
-  due_date: props.presupuesto.due_date ? getFormattedDate(props.presupuesto.due_date) : '',
+  date: formatDateForInput(props.presupuesto.date),
+  due_date: formatDateForInput(props.presupuesto.due_date),
   status: props.presupuesto.status !== undefined ? props.presupuesto.status : 0,
   notes: props.presupuesto.notes || '',
   description: props.presupuesto.description || '',
   lineas: props.presupuesto.lineas && props.presupuesto.lineas.length > 0 
     ? props.presupuesto.lineas.map(l => ({
         concepto: l.concepto,
+        descripcion: l.descripcion || '',
         cantidad: Number(l.cantidad),
         precio_unitario: Number(l.precio_unitario),
         porcentaje_iva: Number(l.porcentaje_iva),
         porcentaje_irpf: Number(l.porcentaje_irpf)
     }))
-    : [{ concepto: '', cantidad: 1, precio_unitario: 0, porcentaje_iva: props.defaultIva !== undefined ? props.defaultIva : 21, porcentaje_irpf: props.defaultIrpf !== undefined ? props.defaultIrpf : 0 }]
+    : [{ concepto: '', descripcion: '', cantidad: 1, precio_unitario: 0, porcentaje_iva: props.defaultIva !== undefined ? props.defaultIva : 21, porcentaje_irpf: props.defaultIrpf !== undefined ? props.defaultIrpf : 0 }]
 })
 
 const showHtml = ref(false)
@@ -69,6 +66,7 @@ watch(() => form.client_id, (newClientId) => {
 const addLinea = () => {
     form.lineas.push({
         concepto: '',
+        descripcion: '',
         cantidad: 1,
         precio_unitario: 0,
         porcentaje_iva: props.defaultIva !== undefined ? props.defaultIva : 21,
@@ -101,7 +99,11 @@ const total = computed(() => {
 const formatCurrency = (val) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(val || 0)
 
 const submit = () => {
-    form.patch(route('admin.presupuestos.update', props.presupuesto.id))
+    form.patch(route('admin.presupuestos.update', props.presupuesto.id), { replace: true })
+}
+
+const goBack = () => {
+    window.history.back()
 }
 </script>
 
@@ -112,9 +114,7 @@ const submit = () => {
     <template #header>
       <PageHeader :title="'Editar Presupuesto: ' + (presupuesto.number || '')">
         <template #actions>
-          <Link :href="route('admin.presupuestos.index')">
-            <SecondaryButton>Cancelar</SecondaryButton>
-          </Link>
+          <SecondaryButton @click="goBack">Cancelar</SecondaryButton>
         </template>
       </PageHeader>
     </template>
@@ -175,7 +175,7 @@ const submit = () => {
                 <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Líneas de Presupuesto</h3>
                 
                 <div class="space-y-4">
-                    <div v-for="(linea, index) in form.lineas" :key="index" class="p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg border border-gray-200 dark:border-zinc-700 flex flex-col md:flex-row gap-4 items-start md:items-center relative">
+                    <div v-for="(linea, index) in form.lineas" :key="index" class="p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg border border-gray-200 dark:border-zinc-700 flex flex-col gap-2 relative">
                         <div class="flex-grow grid grid-cols-1 md:grid-cols-12 gap-4 w-full">
                             <div class="md:col-span-5">
                                 <InputLabel value="Concepto" v-if="index === 0" />
@@ -205,6 +205,11 @@ const submit = () => {
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Segunda fila: Descripción de la línea -->
+                        <div class="w-full mt-3">
+                            <textarea v-model="linea.descripcion" placeholder="Descripción extendida del concepto (opcional)..." rows="2" class="w-full text-sm border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 dark:text-zinc-300 focus:border-indigo-500 rounded-md shadow-sm"></textarea>
+                        </div>
                     </div>
                 </div>
 
@@ -216,10 +221,10 @@ const submit = () => {
                 </div>
             </div>
 
-            <!-- Descripción del proyecto -->
+            <!-- Observaciones -->
             <div>
                 <div class="flex justify-between items-center mb-1">
-                    <InputLabel value="Descripción del Proyecto (Opcional)" />
+                    <InputLabel value="Observaciones (Opcional)" />
                     <button type="button" @click="showHtml = !showHtml" class="text-xs text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-200 hover:underline">
                         {{ showHtml ? 'Ver Editor Visual' : 'Editar Código HTML' }}
                     </button>

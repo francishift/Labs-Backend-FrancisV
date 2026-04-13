@@ -9,11 +9,10 @@ class Factura extends Model
     protected $table = 'facturas';
 
     protected $fillable = [
-        'holded_id',
-        'contact_id',
-        'contact_name',
-        'contact',
+        'number',
+        'client_id',
         'date',
+        'due_date',
         'total',
         'subtotal',
         'tax_amount',
@@ -22,18 +21,33 @@ class Factura extends Model
         'raw_data',
         'google_drive_file_id',
         'proyecto_id',
+        'notes',
+        'description',
     ];
 
     protected $casts = [
         'raw_data' => 'array',
         'date' => 'integer',
+        'due_date' => 'integer',
         'total' => 'decimal:2',
         'subtotal' => 'decimal:2',
         'tax_amount' => 'decimal:2',
         'irpf_amount' => 'decimal:2',
+        'status' => \App\Enums\FacturaStatus::class,
     ];
+
     public function proyecto()
     {
         return $this->belongsTo(Proyecto::class);
+    }
+
+    public function cliente()
+    {
+        return $this->belongsTo(Client::class, 'client_id');
+    }
+
+    public function lineas()
+    {
+        return $this->hasMany(FacturaLinea::class);
     }
 }

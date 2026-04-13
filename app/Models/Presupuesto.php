@@ -9,10 +9,7 @@ class Presupuesto extends Model
     protected $table = 'presupuestos';
 
     protected $fillable = [
-        'holded_id',
         'client_id',
-        'contact_name',
-        'contact',
         'date',
         'due_date',
         'total',

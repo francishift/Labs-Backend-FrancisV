@@ -9,7 +9,6 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
 use Google\Service\Drive\DriveFile;
-use App\Services\HoldedApiService;
 use App\Services\GeminiInvoiceService;
 use Illuminate\Support\Facades\Log;
 use App\Services\GoogleDriveService; // Added this line

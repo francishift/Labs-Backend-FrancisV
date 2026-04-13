@@ -13,45 +13,41 @@ import SearchableSelect from '@/Components/SearchableSelect.vue'
 import { PlusIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
-import { getTodayDate } from '@/Utils/date'
+import { formatDateForInput } from '@/Utils/date'
 
 const props = defineProps({
+  factura: Object,
   clientes: Array,
+  proyectos: Array,
+  statuses: Array,
   defaultIva: Number,
   defaultIrpf: Number,
-  defaultVencimientoDias: Number,
 })
 
 
-const getDefaultDueDate = () => {
-    const d = new Date()
-    const days = props.defaultVencimientoDias !== undefined ? props.defaultVencimientoDias : 30
-    d.setDate(d.getDate() + days)
-    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
-}
 
 const form = useForm({
-  client_id: '',
-  contact_name: '',
-  date: getTodayDate(),
-  due_date: getDefaultDueDate(),
-  notes: '',
-  description: '',
-  lineas: [
-      {
-          concepto: '',
-          descripcion: '',
-          cantidad: 1,
-          precio_unitario: 0,
-          porcentaje_iva: props.defaultIva !== undefined ? props.defaultIva : 21,
-          porcentaje_irpf: props.defaultIrpf !== undefined ? props.defaultIrpf : 0
-      }
-  ]
+  client_id: props.factura.client_id || '',
+  proyecto_id: props.factura.proyecto_id || '',
+  contact_name: props.factura.contact_name || '',
+  date: formatDateForInput(props.factura.date),
+  due_date: formatDateForInput(props.factura.due_date),
+  status: props.factura.status !== undefined ? props.factura.status : 0,
+  notes: props.factura.notes || '',
+  description: props.factura.description || '',
+  lineas: props.factura.lineas && props.factura.lineas.length > 0 
+    ? props.factura.lineas.map(l => ({
+        concepto: l.concepto,
+        descripcion: l.descripcion || '',
+        cantidad: Number(l.cantidad),
+        precio_unitario: Number(l.precio_unitario),
+        porcentaje_iva: Number(l.porcentaje_iva),
+        porcentaje_irpf: Number(l.porcentaje_irpf)
+    }))
+    : [{ concepto: '', descripcion: '', cantidad: 1, precio_unitario: 0, porcentaje_iva: props.defaultIva !== undefined ? props.defaultIva : 21, porcentaje_irpf: props.defaultIrpf !== undefined ? props.defaultIrpf : 0 }]
 })
 
 const showHtml = ref(false)
-
-const selectedClient = ref(null)
 
 const clientesOpciones = computed(() => {
     return props.clientes.map(c => ({
@@ -105,9 +101,7 @@ const total = computed(() => {
 const formatCurrency = (val) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(val || 0)
 
 const submit = () => {
-    form.post(route('admin.presupuestos.store'), {
-        preserveScroll: true,
-    })
+    form.patch(route('admin.facturas.update', props.factura.id), { replace: true })
 }
 
 const goBack = () => {
@@ -116,11 +110,11 @@ const goBack = () => {
 </script>
 
 <template>
-  <Head title="Crear Presupuesto" />
+  <Head :title="'Editar Factura '+factura.number" />
 
   <AuthenticatedLayout>
     <template #header>
-      <PageHeader title="Crear Nuevo Presupuesto">
+      <PageHeader :title="'Editar Factura: ' + (factura.number || '')">
         <template #actions>
           <SecondaryButton @click="goBack">Cancelar</SecondaryButton>
         </template>
@@ -131,8 +125,7 @@ const goBack = () => {
       <Card class="p-4 sm:p-6 max-w-5xl mx-auto">
         <form @submit.prevent="submit" class="space-y-8">
             
-            <!-- Datos Iniciales -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pb-6 border-b border-gray-200 dark:border-zinc-700">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 pb-6 border-b border-gray-200 dark:border-zinc-700">
                 <div>
                     <InputLabel for="client" value="Cliente" />
                     <SearchableSelect
@@ -146,37 +139,65 @@ const goBack = () => {
                     <InputError class="mt-2" :message="form.errors.client_id" />
                 </div>
                 <div>
-                    <InputLabel for="date" value="Fecha del Presupuesto" />
-                    <TextInput 
-                        id="date" 
-                        type="date" 
-                        class="mt-1 block w-full" 
-                        v-model="form.date" 
-                        required 
-                    />
-                    <InputError class="mt-2" :message="form.errors.date" />
+                    <InputLabel for="proyecto" value="Proyecto (Opcional)" />
+                    <select
+                        id="proyecto"
+                        v-model="form.proyecto_id"
+                        class="mt-1 block w-full border-gray-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 focus:border-indigo-500 rounded-md shadow-sm h-[42px]"
+                    >
+                        <option value="">Ninguno</option>
+                        <option v-for="proyecto in proyectos" :key="proyecto.id" :value="proyecto.id">
+                            {{ proyecto.proyecto }}
+                        </option>
+                    </select>
+                    <InputError class="mt-2" :message="form.errors.proyecto_id" />
+                </div>
+                <div class="grid grid-cols-2 gap-6 w-full md:col-span-2">
+                    <div>
+                        <InputLabel for="date" value="Fecha de la Factura" />
+                        <TextInput 
+                            id="date" 
+                            type="date" 
+                            class="mt-1 block w-full" 
+                            v-model="form.date" 
+                            required 
+                        />
+                        <InputError class="mt-2" :message="form.errors.date" />
+                    </div>
+                    <div>
+                        <InputLabel for="due_date" value="Fecha de Vencimiento" />
+                        <TextInput 
+                            id="due_date" 
+                            type="date" 
+                            class="mt-1 block w-full" 
+                            v-model="form.due_date" 
+                        />
+                        <InputError class="mt-2" :message="form.errors.due_date" />
+                    </div>
                 </div>
                 <div>
-                    <InputLabel for="due_date" value="Fecha de Vencimiento" />
-                    <TextInput 
-                        id="due_date" 
-                        type="date" 
-                        class="mt-1 block w-full" 
-                        v-model="form.due_date" 
-                    />
-                    <InputError class="mt-2" :message="form.errors.due_date" />
+                    <InputLabel for="status" value="Estado" />
+                    <select 
+                        id="status" 
+                        v-model="form.status" 
+                        class="mt-1 block w-full border-gray-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 focus:border-emerald-500 dark:focus:border-emerald-600 focus:ring-emerald-500 dark:focus:ring-emerald-600 rounded-md shadow-sm h-[42px]"
+                    >
+                        <option v-for="s in statuses" :key="s.id" :value="s.id">{{ s.name }}</option>
+                    </select>
+                    <InputError class="mt-2" :message="form.errors.status" />
                 </div>
             </div>
+
             <!-- Repetidor de Líneas -->
             <div>
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Líneas de Presupuesto</h3>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Líneas de Factura</h3>
                 
                 <div class="space-y-4">
                     <div v-for="(linea, index) in form.lineas" :key="index" class="p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg border border-gray-200 dark:border-zinc-700 flex flex-col gap-2 relative">
                         <div class="flex-grow grid grid-cols-1 md:grid-cols-12 gap-4 w-full">
                             <div class="md:col-span-5">
                                 <InputLabel value="Concepto" v-if="index === 0" />
-                                <TextInput v-model="linea.concepto" type="text" class="w-full mt-1" required placeholder="Ej. Diseño web..." />
+                                <TextInput v-model="linea.concepto" type="text" class="w-full mt-1" required />
                                 <InputError class="mt-2" :message="form.errors[`lineas.${index}.concepto`]" />
                             </div>
                             <div class="md:col-span-2">
@@ -195,7 +216,7 @@ const goBack = () => {
                                 <InputLabel value="IRPF %" v-if="index === 0" />
                                 <div class="flex items-center gap-2 mt-1">
                                     <TextInput v-model="linea.porcentaje_irpf" type="number" min="0" max="100" class="w-full text-center" />
-                                    <!-- Delete Button inside row for Desktop, positioned tight -->
+                                    <!-- Delete Button -->
                                     <button v-if="form.lineas.length > 1" type="button" @click="removeLinea(index)" class="text-red-500 hover:text-red-700 bg-white dark:bg-zinc-900 border border-gray-300 dark:border-zinc-700 rounded-md p-2">
                                         <TrashIcon class="w-5 h-5" />
                                     </button>
@@ -249,7 +270,6 @@ const goBack = () => {
                         id="notes" 
                         v-model="form.notes"
                         class="mt-1 block w-full border-gray-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm h-32"
-                        placeholder="Las condiciones de pago son..."
                     ></textarea>
                 </div>
 
@@ -279,7 +299,7 @@ const goBack = () => {
 
             <div class="flex justify-end pt-6 border-t border-gray-200 dark:border-zinc-700">
                 <PrimaryButton :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                    {{ form.processing ? 'Guardando...' : 'Crear y Guardar PDF' }}
+                    {{ form.processing ? 'Guardando...' : 'Actualizar y Guardar PDF' }}
                 </PrimaryButton>
             </div>
 

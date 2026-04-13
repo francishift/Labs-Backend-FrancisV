@@ -100,13 +100,17 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/admin/presupuestos/{presupuesto}/status', [\App\Http\Controllers\Admin\PresupuestoController::class, 'updateStatus'])->name('admin.presupuestos.update-status');
 
 
-        // Holded
-        Route::prefix('admin/holded')->name('admin.holded.')->group(function () {
-
-            Route::get('/facturas', [\App\Http\Controllers\Admin\Holded\FacturaController::class, 'index'])->name('facturas.index');
-            Route::post('/facturas/sync-drive', [\App\Http\Controllers\Admin\Holded\FacturaController::class, 'syncDrive'])->name('facturas.sync-drive');
-            Route::get('/facturas/{id}/pdf', [\App\Http\Controllers\Admin\Holded\FacturaController::class, 'downloadPdf'])->name('facturas.pdf');
-        });
+        // Facturas de Ventas Nativas
+        Route::get('/admin/facturas', [\App\Http\Controllers\Admin\FacturaController::class, 'index'])->name('admin.facturas.index');
+        Route::get('/admin/facturas/create', [\App\Http\Controllers\Admin\FacturaController::class, 'create'])->name('admin.facturas.create');
+        Route::post('/admin/facturas', [\App\Http\Controllers\Admin\FacturaController::class, 'store'])->name('admin.facturas.store');
+        Route::get('/admin/facturas/{factura}', [\App\Http\Controllers\Admin\FacturaController::class, 'show'])->name('admin.facturas.show');
+        Route::get('/admin/facturas/{factura}/edit', [\App\Http\Controllers\Admin\FacturaController::class, 'edit'])->name('admin.facturas.edit');
+        Route::patch('/admin/facturas/{factura}', [\App\Http\Controllers\Admin\FacturaController::class, 'update'])->name('admin.facturas.update');
+        Route::delete('/admin/facturas/{factura}', [\App\Http\Controllers\Admin\FacturaController::class, 'destroy'])->name('admin.facturas.destroy');
+        Route::get('/admin/facturas/{factura}/export-pdf', [\App\Http\Controllers\Admin\FacturaController::class, 'exportPdf'])->name('admin.facturas.pdf');
+        Route::post('/admin/facturas/{factura}/send-pdf', [\App\Http\Controllers\Admin\FacturaController::class, 'sendPdfEmail'])->name('admin.facturas.send-pdf');
+        Route::patch('/admin/facturas/{factura}/status', [\App\Http\Controllers\Admin\FacturaController::class, 'updateStatus'])->name('admin.facturas.update-status');
     });
 
     // Rutas accesibles por Admin y Coordinador

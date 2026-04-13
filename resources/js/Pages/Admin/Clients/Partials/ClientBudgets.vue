@@ -15,20 +15,22 @@ const props = defineProps({
 
 const { formatCurrency, formatDate } = useFormatters()
 
-const getHoldedStatusColor = (status) => {
+const getStatusColor = (status) => {
     const colors = {
         '0': 'amber', // Pendiente
-        '1': 'emerald', // Aceptado
-        '2': 'rose', // Rechazado
+        '1': 'emerald', // Aprobado
+        '2': 'zinc', // Anulado
+        '3': 'rose', // Rechazado
     }
     return colors[status] || 'zinc'
 }
 
-const getHoldedStatusLabel = (status) => {
+const getStatusLabel = (status) => {
     const labels = {
         '0': 'Pendiente',
-        '1': 'Aceptado',
-        '2': 'Rechazado',
+        '1': 'Aprobado',
+        '2': 'Anulado',
+        '3': 'Rechazado',
     }
     return labels[status] || 'Desconocido'
 }
@@ -52,8 +54,8 @@ const getHoldedStatusLabel = (status) => {
                         <p class="text-xs text-gray-500 dark:text-zinc-400 mt-1">
                             {{ formatDate(presu.date * 1000) }}
                         </p>
-                        <Badge :color="getHoldedStatusColor(presu.status)" size="xs" class="mt-2">
-                            {{ getHoldedStatusLabel(presu.status) }}
+                        <Badge :color="getStatusColor(presu.status)" size="xs" class="mt-2">
+                            {{ getStatusLabel(presu.status) }}
                         </Badge>
                     </div>
                     <div class="text-right">
@@ -73,7 +75,7 @@ const getHoldedStatusLabel = (status) => {
                 </div>
             </div>
             <div v-if="presupuestos.length === 0" class="p-8 text-center text-gray-500 italic">
-                No hay presupuestos sincronizados.
+                No hay presupuestos asociados a este cliente.
             </div>
         </div>
     </Card>

@@ -8,18 +8,13 @@ use App\Imports\ClientImport;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Inertia\Inertia;
-use App\Services\HoldedService;
 use App\Models\Presupuesto;
 
 class ClientController extends Controller
 {
-    protected HoldedService $holdedService;
-
-    public function __construct(HoldedService $holdedService)
+    public function __construct()
     {
-        $this->holdedService = $holdedService;
     }
-
     public function index(Request $request)
     {
         $clients = Client::query()
@@ -53,7 +48,7 @@ class ClientController extends Controller
             'zip_code' => 'nullable|string|max:10',
             'province' => 'nullable|string|max:100',
             'country' => 'nullable|string|max:100',
-            'contact' => 'nullable|string|max:255',
+
             'secondary_contacts' => 'nullable|string',
             'excel_created_at' => 'nullable|date',
         ]);
@@ -83,7 +78,7 @@ class ClientController extends Controller
             'zip_code' => 'nullable|string|max:10',
             'province' => 'nullable|string|max:100',
             'country' => 'nullable|string|max:100',
-            'contact' => 'nullable|string|max:255',
+
             'secondary_contacts' => 'nullable|string',
             'excel_created_at' => 'nullable|date',
         ]);
@@ -137,30 +132,13 @@ class ClientController extends Controller
             'mantenimientos.extensiones:id,nombre,precio,tipo_licencia'
         ]);
 
-        // Obtener presupuestos y facturas de Holded asociados a este cliente
-        $contactIds = array_filter([
-            $client->contact,
-            ...($client->secondary_contacts ?? [])
-        ]);
+        $presupuestos = Presupuesto::where('client_id', $client->id)
+            ->orderBy('date', 'desc')
+            ->get();
 
-        $presupuestos = [];
-        $facturas = [];
-
-        if (!empty($contactIds)) {
-            $presupuestos = Presupuesto::where(function($q) use ($contactIds, $client) {
-                    $q->where('client_id', $client->id)
-                      ->orWhereIn('contact', $contactIds);
-                })
-                ->orderBy('date', 'desc')
-                ->get();
-
-            $facturas = \App\Models\Factura::where(function($q) use ($contactIds) {
-                    $q->whereIn('contact_id', $contactIds)
-                      ->orWhereIn('contact', $contactIds);
-                })
-                ->orderBy('date', 'desc')
-                ->get();
-        }
+        $facturas = \App\Models\Factura::where('client_id', $client->id)
+            ->orderBy('date', 'desc')
+            ->get();
 
         // Paginación entre clientes
         $allClientIds = Client::query()
@@ -217,13 +195,10 @@ class ClientController extends Controller
             'mantenimientos.extensiones'
         ]);
 
-        // Presupuestos de Holded
-        $presupuestos = [];
-        if ($client->contact) {
-            $presupuestos = Presupuesto::where('contact', $client->contact)
-                ->orderBy('date', 'desc')
-                ->get();
-        }
+        // Presupuestos Nativos
+        $presupuestos = Presupuesto::where('client_id', $client->id)
+            ->orderBy('date', 'desc')
+            ->get();
 
         $logoPath = public_path('img/logo.png');
         $logoBase64 = '';
@@ -248,22 +223,12 @@ class ClientController extends Controller
 
     public function getPresupuestos(Client $client)
     {
-        if (!$client->contact && empty($client->secondary_contacts)) {
-            return response()->json([]);
-        }
-
         try {
-            $contactIds = array_filter([
-                $client->contact,
-                ...($client->secondary_contacts ?? [])
-            ]);
-
-            // Buscar de manera robusta usando la clave foránea nativa
             $presupuestos = Presupuesto::with('cliente:id,name')->where('client_id', $client->id)
                 ->orderBy('date', 'desc')
-                ->get(['id', 'client_id', 'holded_id', 'total', 'date', 'raw_data', 'number'])
+                ->get(['id', 'client_id', 'total', 'date', 'number'])
                 ->map(function ($p) {
-                    $docName = $p->number ?? ($p->raw_data['docNumber'] ?? $p->holded_id ?? 'Propuesta N/A');
+                    $docName = $p->number ?? 'Propuesta N/A';
                     $clientName = $p->cliente ? $p->cliente->name : 'Sin Cliente';
                     $timestamp = is_numeric($p->date) ? $p->date : strtotime($p->date);
                     return [
@@ -281,27 +246,15 @@ class ClientController extends Controller
 
     public function getFacturas(Client $client)
     {
-        if (!$client->contact && empty($client->secondary_contacts)) {
-            return response()->json([]);
-        }
-
         try {
-            $contactIds = array_filter([
-                $client->contact,
-                ...($client->secondary_contacts ?? [])
-            ]);
 
-            // Search by contact ID in 'contact_id' column OR 'contact' column (handling legacy syncs)
-            $facturas = \App\Models\Factura::where(function($q) use ($contactIds) {
-                    $q->whereIn('contact_id', $contactIds)
-                      ->orWhereIn('contact', $contactIds);
-                })
+            $facturas = \App\Models\Factura::where('client_id', $client->id)
                 ->orderBy('date', 'desc')
-                ->get(['id', 'holded_id', 'total', 'date', 'raw_data', 'proyecto_id'])
+                ->get(['id', 'number', 'total', 'date', 'proyecto_id'])
                 ->map(function ($f) {
                     return [
                         'id' => $f->id,
-                        'name' => ($f->raw_data['docNumber'] ?? $f->holded_id) . ' - ' . date('d/m/Y', $f->date) . ' (' . number_format($f->total, 2) . '€)',
+                        'name' => $f->number . ' - ' . date('d/m/Y', $f->date) . ' (' . number_format($f->total, 2) . '€)',
                         'proyecto_id' => $f->proyecto_id,
                     ];
                 });

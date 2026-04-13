@@ -21,7 +21,7 @@ class FinanceService
     {
         $query = Factura::query();
 
-        // Las fechas en Holded se guardan como timestamp en la columna 'date'
+        // Las fechas se guardan nativamente como timestamp en la columna 'date'
         if ($quarter) {
             $startMonth = ($quarter - 1) * 3 + 1;
             $endMonth = $startMonth + 2;

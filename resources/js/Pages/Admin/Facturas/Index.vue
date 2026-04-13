@@ -17,7 +17,7 @@ import debounce from 'lodash/debounce'
 import { PlusIcon, EyeIcon, PencilIcon, PencilSquareIcon, NoSymbolIcon, CheckCircleIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
-  presupuestos: Object,
+  facturas: Object,
   clients: Array,
   filters: Object,
   totals: Object,
@@ -73,7 +73,7 @@ watch(
     filterForm,
     debounce(function () {
         router.get(
-            route('admin.presupuestos.index'),
+            route('admin.facturas.index'),
             pickBy(filterForm.value, (value) => value !== '' && value !== null && value !== undefined),
             { preserveState: true, preserveScroll: true, replace: true }
         )
@@ -82,7 +82,7 @@ watch(
 )
 
 const resetFilters = () => {
-    router.get(route('admin.presupuestos.index'))
+    router.get(route('admin.facturas.index'))
 }
 
 const formatDate = (timestamp) => {
@@ -107,7 +107,7 @@ const confirmCancel = (budget) => {
 
 const executeCancel = () => {
     if (currentBudget.value) {
-        router.delete(route('admin.presupuestos.destroy', currentBudget.value.id), {
+        router.delete(route('admin.facturas.destroy', currentBudget.value.id), {
             preserveScroll: true,
             onSuccess: () => { showCancelModal.value = false; currentBudget.value = null; }
         })
@@ -121,7 +121,7 @@ const confirmReactivate = (budget) => {
 
 const executeReactivate = () => {
     if (currentBudget.value) {
-        router.patch(route('admin.presupuestos.reactivate', currentBudget.value.id), {}, {
+        router.patch(route('admin.facturas.reactivate', currentBudget.value.id), {}, {
             preserveScroll: true,
             onSuccess: () => { showReactivateModal.value = false; currentBudget.value = null; }
         })
@@ -129,7 +129,7 @@ const executeReactivate = () => {
 }
 
 const updateStatusInline = (id, e) => {
-    router.patch(route('admin.presupuestos.update-status', id), { status: e.target.value }, {
+    router.patch(route('admin.facturas.update-status', id), { status: e.target.value }, {
         preserveScroll: true
     })
 }
@@ -152,21 +152,21 @@ const setDateRange = (rangeType) => {
 
 onMounted(() => {
     // Forzar recarga silenciosa de datos por si venimos de 'volver' (caché)
-    router.reload({ only: ['presupuestos', 'totals'] })
+    router.reload({ only: ['facturas', 'totals'] })
 })
 </script>
 
 <template>
-  <Head title="Presupuestos" />
+  <Head title="Facturas" />
 
   <AuthenticatedLayout>
     <template #header>
-      <PageHeader title="Presupuestos">
+      <PageHeader title="Facturas">
         <template #actions>
-          <Link :href="route('admin.presupuestos.create')">
+          <Link :href="route('admin.facturas.create')">
             <PrimaryButton>
               <PlusIcon class="w-4 h-4 mr-2 float-left" />
-              Crear Presupuesto
+              Crear Factura
             </PrimaryButton>
           </Link>
         </template>
@@ -292,7 +292,7 @@ onMounted(() => {
         <!-- Table -->
         <DataTable
             :columns="columns"
-            :items="presupuestos.data"
+            :items="facturas.data"
             :sort-key="filterForm.sort"
             :sort-dir="filterForm.direction"
             @sort="sort"
@@ -328,23 +328,23 @@ onMounted(() => {
             
             <template #cell-acciones="{ item }">
                 <div class="space-x-4 w-full flex justify-center items-center">
-                  <Link :href="route('admin.presupuestos.show', item.id)" class="text-emerald-500/70 hover:text-emerald-600 dark:text-emerald-400/70 dark:hover:text-emerald-400 transition-colors" title="Ver Propuesta / PDF" @click.stop>
+                  <Link :href="route('admin.facturas.show', item.id)" class="text-emerald-500/70 hover:text-emerald-600 dark:text-emerald-400/70 dark:hover:text-emerald-400 transition-colors" title="Ver Propuesta / PDF" @click.stop>
                       <EyeIcon class="w-5 h-5 inline" />
                   </Link>
-                  <Link v-if="item.status != 2" :href="route('admin.presupuestos.edit', item.id)" class="text-blue-500/70 hover:text-blue-600 dark:text-blue-400/70 dark:hover:text-blue-400 transition-colors" title="Editar Presupuesto" @click.stop>
+                  <Link v-if="item.status != 2" :href="route('admin.facturas.edit', item.id)" class="text-blue-500/70 hover:text-blue-600 dark:text-blue-400/70 dark:hover:text-blue-400 transition-colors" title="Editar Factura" @click.stop>
                       <PencilSquareIcon class="w-5 h-5 inline" />
                   </Link>
-                  <button v-if="item.status != 2" @click.stop="confirmCancel(item)" class="text-red-500/70 hover:text-red-600 dark:text-red-400/70 dark:hover:text-red-400 transition-colors" title="Anular Presupuesto">
+                  <button v-if="item.status != 2" @click.stop="confirmCancel(item)" class="text-red-500/70 hover:text-red-600 dark:text-red-400/70 dark:hover:text-red-400 transition-colors" title="Anular Factura">
                       <NoSymbolIcon class="w-5 h-5 inline" />
                   </button>
-                  <button v-if="item.status == 2" @click.stop="confirmReactivate(item)" class="text-teal-500/70 hover:text-teal-600 dark:text-teal-400/70 dark:hover:text-teal-400 transition-colors" title="Aprobar / Reactivar Presupuesto">
+                  <button v-if="item.status == 2" @click.stop="confirmReactivate(item)" class="text-teal-500/70 hover:text-teal-600 dark:text-teal-400/70 dark:hover:text-teal-400 transition-colors" title="Aprobar / Reactivar Factura">
                       <CheckCircleIcon class="w-5 h-5 inline" />
                   </button>
                 </div>
             </template>
         </DataTable>
 
-        <Pagination :links="presupuestos.links" class="mt-6" v-if="presupuestos.links?.length > 3" />
+        <Pagination :links="facturas.links" class="mt-6" v-if="facturas.links?.length > 3" />
 
       </Card>
     </div>
@@ -352,8 +352,8 @@ onMounted(() => {
     <!-- Modales de Confirmación -->
     <ConfirmModal
       :show="showCancelModal"
-      title="Anular Presupuesto"
-      :content="`¿Estás seguro de anular el presupuesto '${currentBudget?.number}'? El registro se mantendrá, pero será marcado como anulado.`"
+      title="Anular Factura"
+      :content="`¿Estás seguro de anular el factura '${currentBudget?.number}'? El registro se mantendrá, pero será marcado como anulado.`"
       confirm-text="Sí, anular"
       cancel-text="Cancelar"
       @close="showCancelModal = false"
@@ -362,8 +362,8 @@ onMounted(() => {
 
     <ConfirmModal
       :show="showReactivateModal"
-      title="Reactivar Presupuesto"
-      :content="`¿Estás seguro de reactivar el presupuesto '${currentBudget?.number}'? Volverá al estado Activo normal.`"
+      title="Reactivar Factura"
+      :content="`¿Estás seguro de reactivar el factura '${currentBudget?.number}'? Volverá al estado Activo normal.`"
       confirm-text="Sí, reactivar"
       cancel-text="Cancelar"
       @close="showReactivateModal = false"

@@ -273,7 +273,7 @@ const modules = computed(() => {
         {
             name: 'F. Venta',
             icon: BanknotesIcon,
-            route: 'admin.holded.facturas.index',
+            route: 'admin.facturas.index',
             roles: ['admin'],
         },
         {

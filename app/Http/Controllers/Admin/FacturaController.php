@@ -4,22 +4,22 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Presupuesto;
+use App\Models\Factura;
 use App\Models\Client;
 use Inertia\Inertia;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Storage;
 use Google\Service\Drive\DriveFile;
 use Illuminate\Support\Facades\Mail;
-use App\Mail\PresupuestoPdfMail;
+use App\Mail\FacturaPdfMail;
 use App\Models\Configuracion;
-use App\Enums\PresupuestoStatus;
+use App\Enums\FacturaStatus;
 
-class PresupuestoController extends Controller
+class FacturaController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Presupuesto::with('cliente');
+        $query = Factura::with('cliente');
 
         // Búsqueda general
         if ($request->has('search') && !empty($request->get('search'))) {
@@ -40,9 +40,9 @@ class PresupuestoController extends Controller
             $query->where('status', (int) $request->get('status'));
         }
 
-        // Filtros de Fecha (por defecto, últimos 12 meses)
-        $dateFrom = $request->has('date_from') ? $request->get('date_from') : now()->subYear()->toDateString();
-        $dateTo = $request->has('date_to') ? $request->get('date_to') : now()->toDateString();
+        // Filtros de Fecha (por defecto, año actual)
+        $dateFrom = $request->has('date_from') ? $request->get('date_from') : now()->startOfYear()->toDateString();
+        $dateTo = $request->has('date_to') ? $request->get('date_to') : now()->endOfYear()->toDateString();
 
         if (!empty($dateFrom)) {
             $query->where('date', '>=', strtotime($dateFrom));
@@ -51,12 +51,11 @@ class PresupuestoController extends Controller
             $query->where('date', '<=', strtotime($dateTo . ' 23:59:59'));
         }
 
-        // Solo sumar Pendientes y Aprobados
+        // Solo sumar Pagadas y Parciales (o pendientes, normalmente sumar todo o filtrar pendientes)
         $totalsQuery = clone $query;
-        $totalsQuery->whereIn('status', [PresupuestoStatus::PENDING->value, PresupuestoStatus::APPROVED->value]);
         
         $totals = [
-            'net_amount' => (float) $totalsQuery->sum('subtotal'),
+            'subtotal' => (float) $totalsQuery->sum('subtotal'),
             'tax_amount' => (float) $totalsQuery->sum('tax_amount'),
             'total' => (float) $totalsQuery->sum('total'),
         ];
@@ -73,24 +72,28 @@ class PresupuestoController extends Controller
             $direction = 'desc';
         }
 
-        $presupuestos = $query->orderBy($sort, $direction)
+        $facturas = $query->orderBy($sort, $direction)
             ->paginate(15)
             ->withQueryString()
-            ->through(fn ($presupuesto) => [
-                'id' => $presupuesto->id,
-                'number' => $presupuesto->number,
-                'date' => $presupuesto->date,
-                'total' => $presupuesto->total,
-                'status' => $presupuesto->status,
-                'contact_name' => collect([$presupuesto->cliente])->filter()->first()?->name ?? 'Sin Cliente',
+            ->through(fn ($factura) => [
+                'id' => $factura->id,
+                'number' => $factura->number,
+                'date' => $factura->date,
+                'due_date' => $factura->due_date,
+                'subtotal' => $factura->subtotal,
+                'tax_amount' => $factura->tax_amount,
+                'irpf_amount' => $factura->irpf_amount,
+                'total' => $factura->total,
+                'status' => $factura->status,
+                'contact_name' => collect([$factura->cliente])->filter()->first()?->name ?? 'Sin Cliente',
             ]);
 
         $clientsOptions = Client::select('name')->orderBy('name')->pluck('name');
 
-        return Inertia::render('Admin/Presupuestos/Index', [
-            'presupuestos' => $presupuestos,
+        return Inertia::render('Admin/Facturas/Index', [
+            'facturas' => $facturas,
             'clients' => $clientsOptions,
-            'statuses' => PresupuestoStatus::options(),
+            'statuses' => FacturaStatus::options(),
             'totals' => $totals,
             'filters' => array_merge($request->only(['search', 'client', 'status', 'sort', 'direction']), [
                 'date_from' => $dateFrom,
@@ -102,8 +105,10 @@ class PresupuestoController extends Controller
     public function create()
     {
         $clientes = Client::orderBy('name')->get(['id', 'name', 'cif_nif', 'email']);
-        return Inertia::render('Admin/Presupuestos/Create', [
+        $proyectos = \App\Models\Proyecto::orderBy('proyecto')->get(['id', 'proyecto']);
+        return Inertia::render('Admin/Facturas/Create', [
             'clientes' => $clientes,
+            'proyectos' => $proyectos,
             'defaultIva' => (float) Configuracion::get('default_iva', 21),
             'defaultIrpf' => (float) Configuracion::get('default_irpf', 0),
             'defaultVencimientoDias' => (int) Configuracion::get('default_vencimiento_dias', 30),
@@ -114,6 +119,7 @@ class PresupuestoController extends Controller
     {
         $request->validate([
             'client_id' => 'required|exists:clients,id',
+            'proyecto_id' => 'nullable|exists:proyectos,id',
             'date' => 'required|date',
             'notes' => 'nullable|string',
             'lineas' => 'required|array|min:1',
@@ -127,60 +133,63 @@ class PresupuestoController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $lastPresupuesto = Presupuesto::where('number', 'like', 'PR-%')
+        $lastFactura = Factura::where('number', 'like', 'FV-%')
             ->orderByRaw('CAST(SUBSTRING(number, 4) AS UNSIGNED) DESC')
             ->first();
 
         $nextNum = 1;
-        if ($lastPresupuesto && preg_match('/^PR-(\d+)$/', $lastPresupuesto->number, $matches)) {
+        if ($lastFactura && preg_match('/^FV-(\d+)$/', $lastFactura->number, $matches)) {
             $nextNum = intval($matches[1]) + 1;
         }
-        $number = sprintf("PR-%d", $nextNum);
+        $number = sprintf("FV-%d", $nextNum);
 
-        $presupuesto = Presupuesto::create([
+        $factura = Factura::create([
             'number' => $number,
             'client_id' => $request->client_id,
+            'proyecto_id' => $request->proyecto_id,
             'date' => strtotime($request->date),
-            'due_date' => $request->due_date ? date('Y-m-d', strtotime($request->due_date)) : null,
-            'status' => PresupuestoStatus::PENDING,
+            'due_date' => $request->due_date ? strtotime($request->due_date) : null,
+            'status' => FacturaStatus::PENDING,
             'notes' => $request->notes,
             'description' => $request->description,
         ]);
 
-        $this->syncLineas($presupuesto, $request->lineas);
+        $this->syncLineas($factura, $request->lineas);
+        $this->saveToDrive($factura);
 
-        $this->saveToDrive($presupuesto);
-
-        return redirect()->route('admin.presupuestos.index')->with('success', 'Presupuesto creado con éxito.');
+        return redirect()->route('admin.facturas.index')->with('success', 'Factura creada con éxito.');
     }
 
-    public function show(Presupuesto $presupuesto)
+    public function show(Factura $factura)
     {
-        $presupuesto->load(['lineas', 'cliente']);
+        $factura->load(['lineas', 'cliente']);
         
-        return Inertia::render('Admin/Presupuestos/Show', [
-            'presupuesto' => $presupuesto,
+        return Inertia::render('Admin/Facturas/Show', [
+            'factura' => $factura,
         ]);
     }
 
-    public function edit(Presupuesto $presupuesto)
+    public function edit(Factura $factura)
     {
-        $presupuesto->load('lineas');
+        $factura->load('lineas');
         $clientes = Client::orderBy('name')->get(['id', 'name', 'cif_nif', 'email']);
+        $proyectos = \App\Models\Proyecto::orderBy('proyecto')->get(['id', 'proyecto']);
         
-        return Inertia::render('Admin/Presupuestos/Edit', [
-            'presupuesto' => $presupuesto,
+        return Inertia::render('Admin/Facturas/Edit', [
+            'factura' => $factura,
             'clientes' => $clientes,
-            'statuses' => PresupuestoStatus::options(),
+            'proyectos' => $proyectos,
+            'statuses' => FacturaStatus::options(),
             'defaultIva' => (float) Configuracion::get('default_iva', 21),
             'defaultIrpf' => (float) Configuracion::get('default_irpf', 0),
         ]);
     }
 
-    public function update(Request $request, Presupuesto $presupuesto)
+    public function update(Request $request, Factura $factura)
     {
         $request->validate([
             'client_id' => 'required|exists:clients,id',
+            'proyecto_id' => 'nullable|exists:proyectos,id',
             'date' => 'required|date',
             'notes' => 'nullable|string',
             'lineas' => 'required|array|min:1',
@@ -195,48 +204,48 @@ class PresupuestoController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $presupuesto->update([
+        $factura->update([
             'client_id' => $request->client_id,
+            'proyecto_id' => $request->proyecto_id,
             'date' => strtotime($request->date),
-            'due_date' => $request->due_date ? date('Y-m-d', strtotime($request->due_date)) : null,
-            'status' => $request->has('status') ? PresupuestoStatus::tryFrom((int)$request->status) : $presupuesto->status,
+            'due_date' => $request->due_date ? strtotime($request->due_date) : null,
+            'status' => $request->has('status') ? FacturaStatus::tryFrom((int)$request->status) : $factura->status,
             'notes' => $request->notes,
             'description' => $request->description,
         ]);
 
-        $this->syncLineas($presupuesto, $request->lineas);
-
-        $this->saveToDrive($presupuesto);
+        $this->syncLineas($factura, $request->lineas);
+        $this->saveToDrive($factura);
 
         // Redirigir a vista show
-        return redirect()->route('admin.presupuestos.show', $presupuesto->id)->with('success', 'Presupuesto actualizado con éxito.');
+        return redirect()->route('admin.facturas.show', $factura->id)->with('success', 'Factura actualizada con éxito.');
     }
 
-    public function destroy(Presupuesto $presupuesto)
+    public function destroy(Factura $factura)
     {
-        $presupuesto->updateQuietly(['status' => PresupuestoStatus::CANCELED]);
-        $this->saveToDrive($presupuesto);
-        return redirect()->route('admin.presupuestos.index')->with('success', 'Presupuesto anulado correctamente.');
+        $factura->updateQuietly(['status' => FacturaStatus::CANCELED]);
+        $this->saveToDrive($factura);
+        return redirect()->route('admin.facturas.index')->with('success', 'Factura anulada correctamente.');
     }
 
-    public function updateStatus(Request $request, Presupuesto $presupuesto)
+    public function updateStatus(Request $request, Factura $factura)
     {
         $validated = $request->validate(['status' => 'required|integer']);
-        $presupuesto->updateQuietly(['status' => PresupuestoStatus::tryFrom($validated['status'])]);
-        $this->saveToDrive($presupuesto);
+        $factura->updateQuietly(['status' => FacturaStatus::tryFrom($validated['status'])]);
+        $this->saveToDrive($factura);
         return redirect()->back()->with('success', 'Estado modificado correctamente.');
     }
 
-    public function reactivate(Presupuesto $presupuesto)
+    public function reactivate(Factura $factura)
     {
-        $presupuesto->updateQuietly(['status' => PresupuestoStatus::PENDING]);
-        $this->saveToDrive($presupuesto);
-        return redirect()->route('admin.presupuestos.index')->with('success', 'Presupuesto reactivado correctamente.');
+        $factura->updateQuietly(['status' => FacturaStatus::PENDING]);
+        $this->saveToDrive($factura);
+        return redirect()->route('admin.facturas.index')->with('success', 'Factura reactivada correctamente.');
     }
 
-    private function syncLineas(Presupuesto $presupuesto, array $lineas)
+    private function syncLineas(Factura $factura, array $lineas)
     {
-        $presupuesto->lineas()->delete();
+        $factura->lineas()->delete();
 
         $subtotal = 0;
         $tax_amount = 0;
@@ -254,7 +263,7 @@ class PresupuestoController extends Controller
             $tax_amount += $lineaTotal * ($ivaPct / 100);
             $irpf_amount += $lineaTotal * ($irpfPct / 100);
 
-            $presupuesto->lineas()->create([
+            $factura->lineas()->create([
                 'concepto' => $linea['concepto'],
                 'descripcion' => $linea['descripcion'] ?? null,
                 'cantidad' => $cantidad,
@@ -265,7 +274,7 @@ class PresupuestoController extends Controller
             ]);
         }
 
-        $presupuesto->updateQuietly([
+        $factura->updateQuietly([
             'subtotal' => $subtotal,
             'tax_amount' => $tax_amount,
             'irpf_amount' => $irpf_amount,
@@ -273,16 +282,16 @@ class PresupuestoController extends Controller
         ]);
     }
 
-    public function exportPdf(Presupuesto $presupuesto, Request $request)
+    public function exportPdf(Factura $factura, Request $request)
     {
-        $safeDocNumber = str_replace(['/', '\\'], '-', $presupuesto->number ?? $presupuesto->id);
+        $safeDocNumber = str_replace(['/', '\\'], '-', $factura->number ?? $factura->id);
         $disposition = $request->has('download') ? 'attachment' : 'inline';
 
-        if ($presupuesto->google_drive_file_id) {
+        if ($factura->google_drive_file_id) {
             try {
-                $adapter = Storage::disk('google_presupuestos')->getAdapter();
+                $adapter = Storage::disk('google_facturas')->getAdapter();
                 $service = $adapter->getService();
-                $response = $service->files->get($presupuesto->google_drive_file_id, ['alt' => 'media']);
+                $response = $service->files->get($factura->google_drive_file_id, ['alt' => 'media']);
                 $content = $response->getBody()->getContents();
 
                 return response($content)
@@ -293,30 +302,30 @@ class PresupuestoController extends Controller
             }
         }
 
-        $pdfOutput = $this->generatePdfBytes($presupuesto);
+        $pdfOutput = $this->generatePdfBytes($factura);
 
         return response($pdfOutput)
             ->header('Content-Type', 'application/pdf')
             ->header('Content-Disposition', $disposition . '; filename="' . $safeDocNumber . '.pdf"');
     }
 
-    public function sendPdfEmail(Presupuesto $presupuesto, Request $request)
+    public function sendPdfEmail(Factura $factura, Request $request)
     {
         $request->validate([
             'email' => 'required|email',
             'message' => 'nullable|string'
         ]);
         
-        $pdfOutput = $this->generatePdfBytes($presupuesto);
+        $pdfOutput = $this->generatePdfBytes($factura);
 
-        Mail::to($request->email)->send(new PresupuestoPdfMail($presupuesto, $pdfOutput, $request->message));
+        Mail::to($request->email)->send(new FacturaPdfMail($factura, $pdfOutput, $request->message));
 
-        return back()->with('success', 'Presupuesto enviado por correo electrónico a ' . $request->email);
+        return back()->with('success', 'Factura enviada por correo electrónico a ' . $request->email);
     }
 
-    private function generatePdfBytes(Presupuesto $presupuesto)
+    private function generatePdfBytes(Factura $factura)
     {
-        $presupuesto->load(['lineas', 'cliente']);
+        $factura->load(['lineas', 'cliente']);
         
         $logoPath = public_path('img/logo.png');
         if (!file_exists($logoPath)) {
@@ -340,57 +349,48 @@ class PresupuestoController extends Controller
             'default_vencimiento_dias' => Configuracion::get('default_vencimiento_dias', 30),
         ];
 
-        $pdf = Pdf::loadView('pdf.presupuesto', [
-            'presupuesto' => $presupuesto,
+        // Usamos temp pdf.factura que clonaremos de presupuesto después
+        $pdf = Pdf::loadView('pdf.factura', [
+            'factura' => $factura,
             'logoBase64' => $logoBase64,
             'configList' => $config
         ]);
         return $pdf->output();
     }
 
-    private function saveToDrive(Presupuesto $presupuesto)
+    private function saveToDrive(Factura $factura)
     {
         try {
-            $pdfBinary = $this->generatePdfBytes($presupuesto);
+            $pdfBinary = $this->generatePdfBytes($factura);
             
-            $year = date('Y', is_numeric($presupuesto->date) ? $presupuesto->date : strtotime($presupuesto->date));
-            $rootId = env('GOOGLE_DRIVE_FOLDER_ID_PRESUPUESTOS');
+            $year = date('Y', is_numeric($factura->date) ? $factura->date : strtotime($factura->date));
+            $rootId = env('GOOGLE_DRIVE_FOLDER_ID_FACTURAS');
             
-            $adapter = Storage::disk('google_presupuestos')->getAdapter();
+            $adapter = Storage::disk('google_facturas')->getAdapter();
             $service = $adapter->getService();
+            $rootDriveId = env('GOOGLE_DRIVE_FOLDER_ID_FACTURAS');
 
-            $optParams = [
-                'q' => "'$rootId' in parents and mimeType = 'application/vnd.google-apps.folder' and name = '$year' and trashed = false",
-                'fields' => 'files(id, name)'
-            ];
-            $files = $service->files->listFiles($optParams)->getFiles();
+            $yearFolderId = $this->findOrCreateFolder($service, $year, $rootDriveId);
+            $ventasFolderId = $this->findOrCreateFolder($service, 'VENTAS', $yearFolderId);
+            $month = is_numeric($factura->date) ? date('n', $factura->date) : date('n', strtotime($factura->date));
+            $quarter = ceil($month / 3);
+            $quarterFolderName = "{$quarter}tri";
+            $folderId = $this->findOrCreateFolder($service, $quarterFolderName, $ventasFolderId);
 
-            $folderId = count($files) > 0 ? $files[0]->getId() : $service->files->create(new DriveFile([
-                'name' => $year,
-                'mimeType' => 'application/vnd.google-apps.folder',
-                'parents' => [$rootId]
-            ]), ['fields' => 'id'])->getId();
-
-            $presupuesto->loadMissing('cliente');
-            $clientName = $presupuesto->cliente ? $presupuesto->cliente->name : 'Cliente';
-            // Limpiar caracteres no válidos para nombres de archivo en Drive
+            $factura->loadMissing('cliente');
+            $clientName = $factura->cliente ? $factura->cliente->name : 'Cliente';
+            // Limpiar caracteres no válidos para nombres de archivo en Drive si los hubiera en el nombre de cliente
             $safeClientName = str_replace(['/', '\\'], '-', $clientName);
-            $safeDocNumber = str_replace(['/', '\\'], '-', $presupuesto->number ?? $presupuesto->id);
-            
-            $fileNameSuffix = '';
-            if ($presupuesto->status === PresupuestoStatus::CANCELED) {
-                $fileNameSuffix = ' (Anulado)';
-            } elseif ($presupuesto->status === PresupuestoStatus::REJECTED) {
-                $fileNameSuffix = ' (Rechazado)';
-            }
+            $safeDocNumber = str_replace(['/', '\\'], '-', $factura->number ?? $factura->id);
+            $fileNameSuffix = $factura->status === FacturaStatus::CANCELED ? ' (Anulada)' : '';
             $fileName = "{$safeDocNumber} - {$safeClientName}{$fileNameSuffix}.pdf";
 
-            if ($presupuesto->google_drive_file_id) {
+            if ($factura->google_drive_file_id) {
                 try {
-                    $file = $service->files->get($presupuesto->google_drive_file_id, ['fields' => 'parents, trashed']);
+                    $file = $service->files->get($factura->google_drive_file_id, ['fields' => 'parents, trashed']);
                     if (!$file->getTrashed()) {
                         $previousParents = implode(',', $file->getParents());
-                        $service->files->update($presupuesto->google_drive_file_id, new DriveFile(['name' => $fileName]), [
+                        $service->files->update($factura->google_drive_file_id, new DriveFile(['name' => $fileName]), [
                             'data' => $pdfBinary,
                             'mimeType' => 'application/pdf',
                             'uploadType' => 'multipart',
@@ -431,10 +431,26 @@ class PresupuestoController extends Controller
                 ])->getId();
             }
             
-            $presupuesto->updateQuietly(['google_drive_file_id' => $fileId]);
+            $factura->updateQuietly(['google_drive_file_id' => $fileId]);
             
         } catch (\Exception $e) {
-            \Log::error('Fallo al subir presupuesto nativo a Google Drive: ' . $e->getMessage());
+            \Log::error('Fallo al subir factura nativa a Google Drive: ' . $e->getMessage());
         }
+    }
+
+    private function findOrCreateFolder($service, $name, $parentId)
+    {
+        $optParams = [
+            'q' => "'$parentId' in parents and mimeType = 'application/vnd.google-apps.folder' and name = '$name' and trashed = false",
+            'fields' => 'files(id)'
+        ];
+        $files = $service->files->listFiles($optParams)->getFiles();
+        if (count($files) > 0) return $files[0]->getId();
+
+        $folder = $service->files->create(new DriveFile([
+            'name' => $name, 'mimeType' => 'application/vnd.google-apps.folder', 'parents' => [$parentId]
+        ]), ['fields' => 'id']);
+        
+        return $folder->getId();
     }
 }

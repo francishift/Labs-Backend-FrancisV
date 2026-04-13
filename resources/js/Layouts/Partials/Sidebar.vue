@@ -67,7 +67,7 @@ const navigationGroups = computed(() => [
         items: [
             { name: 'Clientes', href: route('admin.clientes.index'), icon: UserGroupIcon, active: route().current('admin.clientes.*'), role: 'admin' },
             { name: 'Presupuestos', href: route('admin.presupuestos.index'), icon: DocumentTextIcon, active: route().current('admin.presupuestos.*'), role: 'admin' },
-            { name: 'Facturas ventas', href: route('admin.holded.facturas.index'), icon: DocumentTextIcon, active: route().current('admin.holded.facturas.*'), role: 'admin' },
+            { name: 'Facturas ventas', href: route('admin.facturas.index'), icon: DocumentTextIcon, active: route().current('admin.facturas.*'), role: 'admin' },
             { name: 'Facturas compras', href: route('admin.purchase-facturas.index'), icon: DocumentTextIcon, active: route().current('admin.purchase-facturas.*'), role: 'admin' }
         ]
     },

@@ -2,18 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class PresupuestoLinea extends Model
+class FacturaLinea extends Model
 {
-    use HasFactory;
-
-    protected $table = 'presupuesto_lineas';
-
     protected $fillable = [
-        'presupuesto_id',
+        'factura_id',
         'concepto',
         'descripcion',
         'cantidad',
@@ -31,8 +25,8 @@ class PresupuestoLinea extends Model
         'total_linea' => 'decimal:2',
     ];
 
-    public function presupuesto(): BelongsTo
+    public function factura()
     {
-        return $this->belongsTo(Presupuesto::class);
+        return $this->belongsTo(Factura::class);
     }
 }

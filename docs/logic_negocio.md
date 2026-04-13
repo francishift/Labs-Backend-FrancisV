@@ -7,7 +7,7 @@ Especificación técnica de la capa de negocio, cálculos financieros y arquitec
 El ecosistema ACL se rige por `Spatie Laravel-Permission`.
 
 ### 1.1 Jerarquía de Roles
-- **Admin**: Privilegios absolutos (Gestión de Usuarios, Configuraciones Globales, Sincronización Holded).
+- **Admin**: Privilegios absolutos (Gestión de Usuarios, Configuraciones Globales).
 - **Coordinador**: CRUD sobre Clientes, Proyectos, Mantenimientos y Software (S/H). Bloqueo sobre recursos de nivel sistema.
 - **Visor**: Lectura restringida a visualización de métricas de Proyectos y Mantenimientos.
 
@@ -54,14 +54,7 @@ El Modelo `Client` encapsula atributos Accessor delegando las sumatorias complej
 ### 4.3 Output PDF (DomPDF Stream)
 - El endpoint ignora el almacenamiento en disco (`Storage::put`). La respuesta invoca `->output()` inyectando los binarios directamente a memoria para su emisión adjunta por correo (`Mailable`) bajo el Content-Type `application/pdf`.
 
-## 5. API Holded Sync
 
-### 5.1 Clientes
-- La importación resuelve llaves foráneas validando por campo `CIF/NIF` o `Email`.
-- Redundancia de ID: El campo estructurado JSON `secondary_contacts` en la tabla `clients` soporta la vinculación M:1 de entidades fraccionadas provenientes del ERP de Holded.
-
-### 5.2 Facturas de Venta
-- Indexación híbrida `Lazy`. Listado consume API real-time, pero la apertura (`downloadPdf`) mapea el registro remoto, lo persiste en Drive bajo la nomenclatura `{Año}/VENTAS/{Trimestre}tri/` y genera acceso de caché autónomo DB.
 
 ## 6. IA para Facturas de Compra (PurchaseFactura)
 

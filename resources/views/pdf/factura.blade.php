@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Presupuesto: {{ $presupuesto->number }}</title>
+    <title>Presupuesto: {{ $factura->number }}</title>
     <style>
         @font-face {
             font-family: 'Lexend';
@@ -213,21 +213,17 @@
 </head>
 <body>
 
-    @if($presupuesto->status === \App\Enums\PresupuestoStatus::CANCELED || (is_int($presupuesto->status) && $presupuesto->status === 2) || (isset($presupuesto->status->value) && $presupuesto->status->value === 2))
+    @if($factura->status === \App\Enums\FacturaStatus::CANCELED || (is_int($factura->status) && $factura->status === 3) || (isset($factura->status->value) && $factura->status->value === 3))
     <div style="position: absolute; top: 35%; left: 15%; font-size: 90pt; color: rgba(239, 68, 68, 0.15); transform: rotate(-45deg); z-index: -100; white-space: nowrap; font-weight: 800; text-transform: uppercase; border: 15px solid rgba(239, 68, 68, 0.15); padding: 20px; border-radius: 30px;">
-        ANULADO
-    </div>
-    @elseif($presupuesto->status === \App\Enums\PresupuestoStatus::REJECTED || (is_int($presupuesto->status) && $presupuesto->status === 3) || (isset($presupuesto->status->value) && $presupuesto->status->value === 3))
-    <div style="position: absolute; top: 35%; left: 5%; font-size: 90pt; color: rgba(239, 68, 68, 0.15); transform: rotate(-45deg); z-index: -100; white-space: nowrap; font-weight: 800; text-transform: uppercase; border: 15px solid rgba(239, 68, 68, 0.15); padding: 20px; border-radius: 30px;">
-        RECHAZADO
+        ANULADA
     </div>
     @endif
 
     @php
-        $strDate = is_numeric($presupuesto->date) ? $presupuesto->date : strtotime($presupuesto->date);
+        $strDate = is_numeric($factura->date) ? $factura->date : strtotime($factura->date);
         $fecha = date('d/m/Y', $strDate);
-        if ($presupuesto->due_date) {
-            $strDueDate = is_numeric($presupuesto->due_date) ? $presupuesto->due_date : strtotime($presupuesto->due_date);
+        if ($factura->due_date) {
+            $strDueDate = is_numeric($factura->due_date) ? $factura->due_date : strtotime($factura->due_date);
             $vencimiento = date('d/m/Y', $strDueDate);
         } else {
             $defaultDays = $configList['default_vencimiento_dias'] ?? 30;
@@ -236,16 +232,16 @@
         
         $globalIvaPercent = "21%";
         $globalIrpfPercent = "15%";
-        if($presupuesto->lineas->count() > 0) {
-            $globalIvaPercent = number_format($presupuesto->lineas->first()->porcentaje_iva, 0) . '%';
-            $globalIrpfPercent = number_format($presupuesto->lineas->first()->porcentaje_irpf, 0) . '%';
+        if($factura->lineas->count() > 0) {
+            $globalIvaPercent = number_format($factura->lineas->first()->porcentaje_iva, 0) . '%';
+            $globalIrpfPercent = number_format($factura->lineas->first()->porcentaje_irpf, 0) . '%';
         }
     @endphp
 
     <div class="footer">
         <div style="float: right;">Pág. <span class="page-number"></span></div>
         <div>
-            {{ $presupuesto->number }} - {{ number_format($presupuesto->total, 2, ',', '.') }}€ Vencimiento {{ $vencimiento }}<br>
+            {{ $factura->number }} - {{ number_format($factura->total, 2, ',', '.') }}€ Vencimiento {{ $vencimiento }}<br>
             Datos bancarios para pagos:<br>
             {{ $configList['empresa_banco_nombre'] ?? 'Banco' }}: {{ $configList['empresa_banco_iban'] ?? 'ES00 0000 0000 0000 0000 0000' }}
         </div>
@@ -258,12 +254,12 @@
             @endif
         </div>
         <div style="float: left; width: 50%;">
-            <h1 class="header-title">PRESUPUESTO</h1>
+            <h1 class="header-title">FACTURA</h1>
             
             <table class="meta-table">
                 <tr>
                     <td class="meta-label">Número</td>
-                    <td class="meta-value">{{ $presupuesto->number }}</td>
+                    <td class="meta-value">{{ $factura->number }}</td>
                 </tr>
                 <tr>
                     <td class="meta-label">Fecha</td>
@@ -283,15 +279,15 @@
             <div class="box-title">Cliente</div>
             <div class="box-content">
                 @php
-                    $resolvedClient = $presupuesto->cliente;
-                    if (!$resolvedClient && $presupuesto->contact) {
-                        $resolvedClient = \App\Models\Client::where('contact', $presupuesto->contact)
-                            ->orWhereJsonContains('secondary_contacts', $presupuesto->contact)
+                    $resolvedClient = $factura->cliente;
+                    if (!$resolvedClient && $factura->contact) {
+                        $resolvedClient = \App\Models\Client::where('contact', $factura->contact)
+                            ->orWhereJsonContains('secondary_contacts', $factura->contact)
                             ->first();
                     }
                 @endphp
 
-                {{ $presupuesto->contact_name }}<br>
+                {{ $factura->contact_name }}<br>
                 
                 @if($resolvedClient)
                     @if($resolvedClient->address) {{ $resolvedClient->address }}<br>@endif
@@ -299,10 +295,10 @@
                         {{ $resolvedClient->city }} @if($resolvedClient->zip_code)({{ $resolvedClient->zip_code }})@endif, {{ $resolvedClient->province }}<br>
                     @endif
                     @if($resolvedClient->cif_nif) {{ $resolvedClient->cif_nif }}<br>@endif
-                @elseif(isset($presupuesto->raw_data['contactAddress']) && !empty($presupuesto->raw_data['contactAddress']))
-                    {{ $presupuesto->raw_data['contactAddress'] }}<br>
-                    {{ $presupuesto->raw_data['contactCity'] ?? '' }} {{ $presupuesto->raw_data['contactZip'] ?? '' }}, {{ $presupuesto->raw_data['contactProvince'] ?? '' }}<br>
-                    @if(!empty($presupuesto->raw_data['contactCif'])) {{ $presupuesto->raw_data['contactCif'] }}<br>@endif
+                @elseif(isset($factura->raw_data['contactAddress']) && !empty($factura->raw_data['contactAddress']))
+                    {{ $factura->raw_data['contactAddress'] }}<br>
+                    {{ $factura->raw_data['contactCity'] ?? '' }} {{ $factura->raw_data['contactZip'] ?? '' }}, {{ $factura->raw_data['contactProvince'] ?? '' }}<br>
+                    @if(!empty($factura->raw_data['contactCif'])) {{ $factura->raw_data['contactCif'] }}<br>@endif
                 @endif
             </div>
         </div>
@@ -331,7 +327,7 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($presupuesto->lineas as $linea)
+            @foreach($factura->lineas as $linea)
             @php
                 $subtotalLinea = $linea->cantidad * $linea->precio_unitario;
             @endphp
@@ -356,7 +352,7 @@
     </table>
 
     @php
-        $hasDescription = $presupuesto->description && trim(strip_tags(str_replace(['&nbsp;', ' ', "\n", "\r"], '', $presupuesto->description))) !== '';
+        $hasDescription = $factura->description && trim(strip_tags(str_replace(['&nbsp;', ' ', "\n", "\r"], '', $factura->description))) !== '';
     @endphp
 
     <div class="summary-box" style="page-break-inside: avoid;">
@@ -365,15 +361,15 @@
                 <div style="margin-bottom: 20px;">
                     <div class="payment-title" style="margin-bottom: 5px;">Observaciones</div>
                     <div class="desc-content" style="font-size: 8pt; color: #52525b; line-height: 1.4;">
-                        {!! $presupuesto->description !!}
+                        {!! $factura->description !!}
                     </div>
                 </div>
             @endif
 
             <div class="payment-title">Condiciones de pago</div>
-            @if($presupuesto->notes)
+            @if($factura->notes)
                 <div style="font-size: 8.5pt; color: #52525b; margin-bottom: 5px;">
-                    {!! nl2br(e($presupuesto->notes)) !!}
+                    {!! nl2br(e($factura->notes)) !!}
                 </div>
             @endif
             <div class="payment-details">
@@ -385,23 +381,23 @@
         <table class="totals-table">
             <tr>
                 <td>Base Imponible</td>
-                <td class="tot-val">{{ number_format($presupuesto->subtotal, 2, ',', '.') }}€</td>
+                <td class="tot-val">{{ number_format($factura->subtotal, 2, ',', '.') }}€</td>
             </tr>
-            @if($presupuesto->tax_amount > 0)
+            @if($factura->tax_amount > 0)
             <tr>
                 <td>Iva {{ $globalIvaPercent }}</td>
-                <td class="tot-val">{{ number_format($presupuesto->tax_amount, 2, ',', '.') }}€</td>
+                <td class="tot-val">{{ number_format($factura->tax_amount, 2, ',', '.') }}€</td>
             </tr>
             @endif
-            @if($presupuesto->irpf_amount > 0)
+            @if($factura->irpf_amount > 0)
             <tr>
                 <td>Retención {{ $globalIrpfPercent }}</td>
-                <td class="tot-val">-{{ number_format($presupuesto->irpf_amount, 2, ',', '.') }}€</td>
+                <td class="tot-val">-{{ number_format($factura->irpf_amount, 2, ',', '.') }}€</td>
             </tr>
             @endif
             <tr class="grand-total-row">
                 <td style="font-size: 11pt; padding-top: 15px;">Total</td>
-                <td class="grand-total-val" style="padding-top: 15px;">{{ number_format($presupuesto->total, 2, ',', '.') }}€</td>
+                <td class="grand-total-val" style="padding-top: 15px;">{{ number_format($factura->total, 2, ',', '.') }}€</td>
             </tr>
         </table>
         <div class="clear"></div>

@@ -17,6 +17,7 @@ import { getTodayDate } from '@/Utils/date'
 
 const props = defineProps({
   clientes: Array,
+  proyectos: Array,
   defaultIva: Number,
   defaultIrpf: Number,
   defaultVencimientoDias: Number,
@@ -32,6 +33,7 @@ const getDefaultDueDate = () => {
 
 const form = useForm({
   client_id: '',
+  proyecto_id: '',
   contact_name: '',
   date: getTodayDate(),
   due_date: getDefaultDueDate(),
@@ -105,7 +107,7 @@ const total = computed(() => {
 const formatCurrency = (val) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(val || 0)
 
 const submit = () => {
-    form.post(route('admin.presupuestos.store'), {
+    form.post(route('admin.facturas.store'), {
         preserveScroll: true,
     })
 }
@@ -116,11 +118,11 @@ const goBack = () => {
 </script>
 
 <template>
-  <Head title="Crear Presupuesto" />
+  <Head title="Crear Factura" />
 
   <AuthenticatedLayout>
     <template #header>
-      <PageHeader title="Crear Nuevo Presupuesto">
+      <PageHeader title="Crear Nueva Factura">
         <template #actions>
           <SecondaryButton @click="goBack">Cancelar</SecondaryButton>
         </template>
@@ -146,30 +148,46 @@ const goBack = () => {
                     <InputError class="mt-2" :message="form.errors.client_id" />
                 </div>
                 <div>
-                    <InputLabel for="date" value="Fecha del Presupuesto" />
-                    <TextInput 
-                        id="date" 
-                        type="date" 
-                        class="mt-1 block w-full" 
-                        v-model="form.date" 
-                        required 
-                    />
-                    <InputError class="mt-2" :message="form.errors.date" />
+                    <InputLabel for="proyecto" value="Proyecto (Opcional)" />
+                    <select
+                        id="proyecto"
+                        v-model="form.proyecto_id"
+                        class="mt-1 block w-full border-gray-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 focus:border-indigo-500 rounded-md shadow-sm h-[42px]"
+                    >
+                        <option value="">Ninguno</option>
+                        <option v-for="proyecto in proyectos" :key="proyecto.id" :value="proyecto.id">
+                            {{ proyecto.proyecto }}
+                        </option>
+                    </select>
+                    <InputError class="mt-2" :message="form.errors.proyecto_id" />
                 </div>
-                <div>
-                    <InputLabel for="due_date" value="Fecha de Vencimiento" />
-                    <TextInput 
-                        id="due_date" 
-                        type="date" 
-                        class="mt-1 block w-full" 
-                        v-model="form.due_date" 
-                    />
-                    <InputError class="mt-2" :message="form.errors.due_date" />
+                <div class="grid grid-cols-2 gap-6 w-full md:col-span-3">
+                    <div>
+                        <InputLabel for="date" value="Fecha de la Factura" />
+                        <TextInput 
+                            id="date" 
+                            type="date" 
+                            class="mt-1 block w-full" 
+                            v-model="form.date" 
+                            required 
+                        />
+                        <InputError class="mt-2" :message="form.errors.date" />
+                    </div>
+                    <div>
+                        <InputLabel for="due_date" value="Fecha de Vencimiento" />
+                        <TextInput 
+                            id="due_date" 
+                            type="date" 
+                            class="mt-1 block w-full" 
+                            v-model="form.due_date" 
+                        />
+                        <InputError class="mt-2" :message="form.errors.due_date" />
+                    </div>
                 </div>
             </div>
             <!-- Repetidor de Líneas -->
             <div>
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Líneas de Presupuesto</h3>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Líneas de Factura</h3>
                 
                 <div class="space-y-4">
                     <div v-for="(linea, index) in form.lineas" :key="index" class="p-4 bg-gray-50 dark:bg-zinc-800/50 rounded-lg border border-gray-200 dark:border-zinc-700 flex flex-col gap-2 relative">

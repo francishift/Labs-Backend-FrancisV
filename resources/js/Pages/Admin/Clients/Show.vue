@@ -14,8 +14,8 @@ import ClientInfo from './Partials/ClientInfo.vue'
 import ClientStats from './Partials/ClientStats.vue'
 import ClientProjects from './Partials/ClientProjects.vue'
 import ClientMaintenance from './Partials/ClientMaintenance.vue'
-import ClientHoldedBudgets from './Partials/ClientHoldedBudgets.vue'
-import ClientHoldedInvoices from './Partials/ClientHoldedInvoices.vue'
+import ClientBudgets from './Partials/ClientBudgets.vue'
+import ClientInvoices from './Partials/ClientInvoices.vue'
 import ClientExtensions from './Partials/ClientExtensions.vue'
 
 import { 
@@ -117,10 +117,10 @@ const clientExtensions = computed(() => {
                 <ClientMaintenance :maintenance="client.mantenimientos" />
             </div>
 
-            <!-- Holded Integration Grid -->
+            <!-- Invoices & Budgets Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <ClientHoldedBudgets :presupuestos="presupuestos" :current-url="currentUrl" />
-                <ClientHoldedInvoices :facturas="facturas" :current-url="currentUrl" />
+                <ClientBudgets :presupuestos="presupuestos" :current-url="currentUrl" />
+                <ClientInvoices :facturas="facturas" :current-url="currentUrl" />
             </div>
 
             <!-- Extensions Section -->

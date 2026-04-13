@@ -66,7 +66,6 @@ class PresupuestoNativeTest extends TestCase
 
         $payload = [
             'client_id' => $client->id,
-            'contact_name' => 'Contacto Demo',
             'date' => '2024-05-10',
             'due_date' => '2024-06-10',
             'lineas' => [
@@ -100,7 +99,6 @@ class PresupuestoNativeTest extends TestCase
         
         $this->assertDatabaseHas('presupuestos', [
             'client_id' => $client->id,
-            'contact_name' => 'Contacto Demo',
             'subtotal' => 200,
             'tax_amount' => 21,
             'irpf_amount' => 15,
@@ -114,7 +112,6 @@ class PresupuestoNativeTest extends TestCase
 
         $payload = [
             'client_id' => $client->id,
-            'contact_name' => 'Contacto Demo',
             'date' => '2024-05-10',
             // Omitimos lineas intencionalmente
         ];
@@ -130,7 +127,6 @@ class PresupuestoNativeTest extends TestCase
 
         $payload = [
             'client_id' => $client->id,
-            'contact_name' => 'Contacto Demo',
             'date' => '2024-05-10',
             'lineas' => [
                 [

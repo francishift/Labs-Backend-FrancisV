@@ -62,7 +62,7 @@ watch(
     debounce(function () {
         router.get(
             route('admin.purchase-facturas.index'),
-            pickBy(filterForm.value),
+            pickBy(filterForm.value, (value) => value !== '' && value !== null && value !== undefined),
             { preserveState: true, preserveScroll: true, replace: true }
         )
     }, 500),
