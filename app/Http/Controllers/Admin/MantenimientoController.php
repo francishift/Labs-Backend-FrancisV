@@ -252,11 +252,14 @@ class MantenimientoController extends Controller
             'hidePrices' => $hidePrices,
         ]);
 
+        $monthName = $month === 'all' ? 'Anual' : ucfirst(\Carbon\Carbon::create()->month($month)->locale('es')->monthName);
+        $fileName = "Mantenimiento-{$monthName}-{$year}.pdf";
+
         if ($request->has('download')) {
-            return $pdf->download("Mantenimiento-{$mantenimiento->id}.pdf");
+            return $pdf->download($fileName);
         }
 
-        return $pdf->stream("Mantenimiento-{$mantenimiento->id}.pdf");
+        return $pdf->stream($fileName);
     }
 
     public function sendPdfEmail(Request $request, Mantenimiento $mantenimiento)

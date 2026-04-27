@@ -138,11 +138,19 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/admin/software-hosting/{software}', [SoftwareController::class, 'update'])->name('admin.softwares.update');
         Route::delete('/admin/software-hosting/{software}', [SoftwareController::class, 'destroy'])->name('admin.softwares.destroy');
 
-        Route::get('/admin/notas', [NotaController::class, 'index'])->name('admin.notas.index');
-        Route::post('/admin/notas', [NotaController::class, 'store'])->name('admin.notas.store');
-        Route::get('/admin/notas/{nota}/edit', [NotaController::class, 'edit'])->name('admin.notas.edit');
-        Route::patch('/admin/notas/{nota}', [NotaController::class, 'update'])->name('admin.notas.update');
-        Route::delete('/admin/notas/{nota}', [NotaController::class, 'destroy'])->name('admin.notas.destroy');
+        Route::get('/admin/calendar', [\App\Http\Controllers\Admin\CalendarController::class, 'index'])->name('admin.calendar.index');
+        Route::get('/admin/calendar/events', [\App\Http\Controllers\Admin\CalendarController::class, 'events'])->name('admin.calendar.events');
+        Route::post('/admin/calendar', [\App\Http\Controllers\Admin\CalendarController::class, 'store'])->name('admin.calendar.store');
+        Route::put('/admin/calendar/{id}', [\App\Http\Controllers\Admin\CalendarController::class, 'update'])->name('admin.calendar.update');
+        Route::delete('/admin/calendar/{id}', [\App\Http\Controllers\Admin\CalendarController::class, 'destroy'])->name('admin.calendar.destroy');
+
+        // Notificaciones
+        Route::get('/admin/notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('admin.notifications.index');
+        Route::get('/admin/api/notifications/unread', [\App\Http\Controllers\Admin\NotificationController::class, 'fetchUnread'])->name('admin.notifications.fetchUnread');
+        Route::patch('/admin/api/notifications/{id}/read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('admin.notifications.markAsRead');
+        Route::post('/admin/notifications/mark-all-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllAsRead'])->name('admin.notifications.markAllRead');
+        Route::delete('/admin/api/notifications/{id}', [\App\Http\Controllers\Admin\NotificationController::class, 'destroy'])->name('admin.notifications.destroy');
+        Route::delete('/admin/notifications/destroy-all', [\App\Http\Controllers\Admin\NotificationController::class, 'destroyAll'])->name('admin.notifications.destroyAll');
 
         Route::post('/admin/push-subscriptions', [PushSubscriptionController::class, 'store'])
             ->name('admin.push-subscriptions.store')

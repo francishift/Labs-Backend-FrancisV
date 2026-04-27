@@ -22,7 +22,6 @@ class AppServiceProvider extends ServiceProvider
     {
         \Illuminate\Database\Eloquent\Model::preventLazyLoading(! app()->isProduction());
 
-        \App\Models\Nota::observe(\App\Observers\NotaObserver::class);
 
         // Ignorar los E_USER_NOTICE del paquete de minishlink/web-push sobre GMP y BCMath
         set_error_handler(function ($severity, $message, $file, $line) {

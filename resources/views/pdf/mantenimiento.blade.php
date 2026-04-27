@@ -5,32 +5,32 @@
     <title>Informe de Mantenimiento - {{ $mantenimiento->aplicacion }}</title>
     <style>
         @font-face {
-            font-family: 'Lexend';
-            src: url('{{ public_path('fonts/lexend/Lexend-Light.ttf') }}') format('truetype');
+            font-family: 'Lato';
+            src: url('{{ public_path('fonts/Lato/Lato-Light.ttf') }}') format('truetype');
             font-weight: 300;
             font-style: normal;
         }
         @font-face {
-            font-family: 'Lexend';
-            src: url('{{ public_path('fonts/lexend/Lexend-Light.ttf') }}') format('truetype');
+            font-family: 'Lato';
+            src: url('{{ public_path('fonts/Lato/Lato-Regular.ttf') }}') format('truetype');
             font-weight: 400;
             font-style: normal;
         }
         @font-face {
-            font-family: 'Lexend';
-            src: url('{{ public_path('fonts/lexend/Lexend-Light.ttf') }}') format('truetype');
+            font-family: 'Lato';
+            src: url('{{ public_path('fonts/Lato/Lato-Regular.ttf') }}') format('truetype');
             font-weight: normal;
             font-style: normal;
         }
         @font-face {
-            font-family: 'Lexend';
-            src: url('{{ public_path('fonts/lexend/Lexend-Regular.ttf') }}') format('truetype');
+            font-family: 'Lato';
+            src: url('{{ public_path('fonts/Lato/Lato-Bold.ttf') }}') format('truetype');
             font-weight: 600;
             font-style: normal;
         }
         @font-face {
-            font-family: 'Lexend';
-            src: url('{{ public_path('fonts/lexend/Lexend-Regular.ttf') }}') format('truetype');
+            font-family: 'Lato';
+            src: url('{{ public_path('fonts/Lato/Lato-Bold.ttf') }}') format('truetype');
             font-weight: bold;
             font-style: normal;
         }
@@ -39,7 +39,7 @@
             margin: 1.5cm;
         }
         body {
-            font-family: 'Lexend', sans-serif;
+            font-family: 'Lato', sans-serif;
             color: #18181b;
             line-height: 1.4;
             font-size: 10pt;
@@ -91,6 +91,7 @@
             text-transform: uppercase;
             margin-bottom: 10px;
             display: block;
+            page-break-after: avoid;
         }
         .emerald-label { color: #065f46; }
 
@@ -161,6 +162,18 @@
 
         .keep-together {
             page-break-inside: avoid;
+        }
+
+        /* Resolving multipage tables in DomPDF */
+        table.data-table {
+            page-break-inside: auto;
+        }
+        table.data-table tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+        table.data-table thead {
+            display: table-header-group;
         }
 
         .footer-total {
@@ -257,7 +270,7 @@
     @endif
 
     @if($mantenimiento->servicios && $mantenimiento->servicios->count() > 0)
-    <div style="margin-bottom: 30px;" class="keep-together">
+    <div style="margin-bottom: 30px;">
         <div class="label">Servicios Realizados (Periodo)</div>
         <table class="data-table">
             <thead>

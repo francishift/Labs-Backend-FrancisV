@@ -9,6 +9,7 @@ import Sidebar from './Partials/Sidebar.vue';
 import UserDropdown from './Partials/UserDropdown.vue';
 import DarkModeToggle from './Partials/DarkModeToggle.vue';
 import FlashMessages from '@/Components/FlashMessages.vue';
+import NotificationDropdown from '@/Components/NotificationDropdown.vue';
 
 const page = usePage();
 const isDark = ref(false);
@@ -109,8 +110,8 @@ onUnmounted(() => {
                 <div class="h-6 w-px bg-gray-200 dark:border-zinc-800 lg:hidden" aria-hidden="true"></div>
 
                 <!-- Mobile Logo Icon -->
-                <div class="lg:hidden flex items-center">
-                    <img src="/logo-icono.png" alt="Logo" class="h-8 w-auto ml-2 dark:invert" />
+                <div class="lg:hidden flex items-center shrink-0">
+                    <img src="/logo-icono.png" alt="Logo" class="h-8 w-auto ml-2 shrink-0 object-contain dark:invert" />
                 </div>
 
                 <div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
@@ -124,6 +125,9 @@ onUnmounted(() => {
 
                         <!-- Dark Mode -->
                         <DarkModeToggle :is-dark="isDark" @toggle="toggleDarkMode" />
+
+                        <!-- Notificaciones -->
+                        <NotificationDropdown />
 
                         <!-- Separator -->
                         <div class="h-6 w-px bg-gray-200 dark:bg-zinc-800 lg:ms-2" aria-hidden="true"></div>

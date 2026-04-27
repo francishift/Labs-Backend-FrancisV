@@ -5,32 +5,32 @@
     <title>Presupuesto: {{ $presupuesto->number }}</title>
     <style>
         @font-face {
-            font-family: 'Lexend';
-            src: url('{{ public_path('fonts/lexend/Lexend-Light.ttf') }}') format('truetype');
+            font-family: 'Lato';
+            src: url('{{ public_path('fonts/Lato/Lato-Light.ttf') }}') format('truetype');
             font-weight: 300;
             font-style: normal;
         }
         @font-face {
-            font-family: 'Lexend';
-            src: url('{{ public_path('fonts/lexend/Lexend-Light.ttf') }}') format('truetype');
+            font-family: 'Lato';
+            src: url('{{ public_path('fonts/Lato/Lato-Regular.ttf') }}') format('truetype');
             font-weight: 400;
             font-style: normal;
         }
         @font-face {
-            font-family: 'Lexend';
-            src: url('{{ public_path('fonts/lexend/Lexend-Light.ttf') }}') format('truetype');
+            font-family: 'Lato';
+            src: url('{{ public_path('fonts/Lato/Lato-Regular.ttf') }}') format('truetype');
             font-weight: normal;
             font-style: normal;
         }
         @font-face {
-            font-family: 'Lexend';
-            src: url('{{ public_path('fonts/lexend/Lexend-Regular.ttf') }}') format('truetype');
+            font-family: 'Lato';
+            src: url('{{ public_path('fonts/Lato/Lato-Bold.ttf') }}') format('truetype');
             font-weight: 600;
             font-style: normal;
         }
         @font-face {
-            font-family: 'Lexend';
-            src: url('{{ public_path('fonts/lexend/Lexend-Regular.ttf') }}') format('truetype');
+            font-family: 'Lato';
+            src: url('{{ public_path('fonts/Lato/Lato-Bold.ttf') }}') format('truetype');
             font-weight: bold;
             font-style: normal;
         }
@@ -39,7 +39,7 @@
             margin: 40px 50px 80px 50px;
         }
         body {
-            font-family: 'Lexend', sans-serif;
+            font-family: 'Lato', sans-serif;
             font-size: 9pt;
             line-height: 1.4;
             color: #27272a;

@@ -1,24 +1,30 @@
-# Integración de Google Calendar en el Gestor de Notas
+# Módulo de Calendario y Sincronización Google Calendar
 
-El módulo de Notas permite la sincronización automática de registros en tiempo real con Google Calendar del usuario logueado en la aplicación, empleando el mismo proyecto de Google habilitado para Drive.
+El antiguo módulo de "Notas" ha sido reemplazado por un sólido sistema de **Calendario Visual** impulsado por `FullCalendar para Vue3` e integrado en el backend a través del paquete `spatie/laravel-google-calendar`.
 
-## 1. Arquitectura de Sincronización
+## 1. Arquitectura de UI (Frontend)
 
-*   **GoogleCalendarService (`app/Services/GoogleCalendarService.php`)**: Es el servicio inyectable (inyección de dependencias) puente que envuelve el cliente SDK de `google/apiclient`. Contiene los métodos puros de `createEvent`, `updateEvent`, y `deleteEvent`.
-*   **NotaObserver (`app/Observers/NotaObserver.php`)**: Escucha silenciosamente los eventos Eloquent `created`, `updated` y `deleted`. Al detectar un cambio evalúa el flag booleano `sync_calendar`. Si es `true`, envía el comando al servicio.
-*   **Gestión de Estados**: Al crear con éxito un evento en Calendar, la API de Google devuelve un ID alfanumérico. Este ID se guarda en el campo `google_event_id` del modelo `Nota` en la base de datos local usando `saveQuietly()` (para que Eloquent no dispare de nuevo el observer al hacer save). Con este ID, futuras ediciones en la base de datos saben exactamente qué evento de Google modificar.
+Se utiliza `@fullcalendar/vue3` para disponer de una vista rica del tipo "Agenda".
+- Vista por defecto: Mes (DayGridMonth).
+- Botonera superior que permite alternar a vista Semana y vista Día.
+- Formularios interactivos en modal `DialogModal` para creación, edición y visualización de la información completa del evento arrastrando fechas (drag and drop y resize events habilitado nativamente e interceptando la API local).
 
-## 2. Prevención de Ruido de Notificación (Override)
+## 2. Arquitectura de Sincronización (Backend)
 
-Por defecto, Google Calendar dispara correos electrónicos o notificaciones push 30 o 10 minutos antes a todos los dueños del calendario. Se forzó la política `UseDefault: false` en los *Reminders* del objeto API de Google para asegurar que el evento exista en el planificador visual diario, pero el motor de avisos nativos en tiempo real recaiga 100% sobre las [Notificaciones Push de la PWA](notificaciones-push-pwa.md) implementadas en este CRM, eliminando los avisos dobles (el del móvil de GCalendar + El del móvil de Labs).
+*   **Modelo de Base de Datos (`CalendarEvent`)**: A diferencia de delegar puramente en la nube, todos los eventos persisten localmente asegurando un performance instantáneo y evitando consultas `N+1` hacia los servidores de Google.
+*   **Gestor API (`Spatie\GoogleCalendar`)**: Todas las acciones (creación / edición / eliminación) originadas desde el sistema local, replican instantáneamente sus parámetros en el Google Calendar general.
+*   **Almacenamiento de Enlace**: Una vez replicado un evento nuevo, Google devuelve un Hash ID que almacenaremos en `google_event_id` en nuestro registro local.
 
-## 3. Identificación Visual de la Fuente
+## 3. Notificaciones y Prevención de Ruido
 
-Para entender qué eventos de la agenda proceden del CRM Labs y separar los eventos automáticos de eventos creados a mano en la aplicación Google Calendar, el servicio antepone de manera automatizada el emoji 📌 al título `$event->setSummary("📌 " . $nota->comentario)`.
+Con el fin de evitar "ruido de notificaciones" y no saturar de correos mediante Google, en cada petición de *crear / actualizar* mandamos el parámetro `['sendUpdates' => 'none']` limitando la comunicación nativa de Google de estos eventos.
+A su vez, en la base de datos local gestionamos un campo `notification_minutes_before` que, combinado con nuestro sistema de **Web Push**, permite que el sistema informe al usuario según sus tiempos solicitados sin interferencias.
 
-## 4. Obtención Multi-Scope del OAuth 2.0
+## 4. Autenticación / Credenciales (Spatie)
 
-La autenticación no depende de claves de servidor a servidor, utiliza una autorización `offline` tipo *Authorization Code Flow* delegando el consentimiento al usuario físico (dueño del Calendar).
-*   Variables `.env`: Utiliza el `GOOGLE_DRIVE_CLIENT_ID`, `GOOGLE_DRIVE_CLIENT_SECRET`.
-*   Scope combinado: Requiere `\Google\Service\Drive::DRIVE` + `\Google\Service\Calendar::CALENDAR_EVENTS`.
-*   La variable final es un `GOOGLE_DRIVE_REFRESH_TOKEN` que aloja en un solo string alfanumérico largo las potencias de ambos módulos combinados para acceso perpetuo.
+Para mantener desacoplada la interfaz local de la dependencia directa en la cuenta (sin requerir autorización OAuth visual), este método recomienda altamente el uso de **Credenciales por cuenta de servicio (Service Account)**.
+
+1.  En *Google Cloud Console* acceder a "Service Accounts".
+2.  Generar una cuenta de tipo Service Account, exportar la clave en formato `JSON` y renombrarla o ubicarla en una ruta accesible.
+3.  En `.env` se debe declarar `GOOGLE_CALENDAR_AUTH_PROFILE=service_account` y apuntar el directorio de JSON.
+4.  Tomar la dirección de email artificial de la _Service Account_ y añadirla al Calendario de Google deseado, con permisos para **Hacer cambios en eventos**. La ID general del calendario se pasará a la variable de entorno correspondiente, típicamente `GOOGLE_CALENDAR_ID`.

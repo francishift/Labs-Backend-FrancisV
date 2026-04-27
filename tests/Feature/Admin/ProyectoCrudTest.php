@@ -98,7 +98,7 @@ class ProyectoCrudTest extends TestCase
         $payload = [
             'proyecto' => 'Updated Name',
             'fecha_inicio' => $proyecto->fecha_inicio,
-            'fecha_fin' => Carbon::now()->format('Y-m-d'),
+            'fecha_fin' => Carbon::parse($proyecto->fecha_inicio)->addDays(5)->format('Y-m-d'),
             'estado' => 'Finalizado',
             'client_id' => $this->client->id,
         ];

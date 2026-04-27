@@ -22,6 +22,7 @@
         "masbug/flysystem-google-drive-ext": "^2.4",
         "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-backup": "^9.4",
+        "spatie/laravel-google-calendar": "^3.8",
         "spatie/laravel-permission": "^6.24",
         "tightenco/ziggy": "^2.0"
     },

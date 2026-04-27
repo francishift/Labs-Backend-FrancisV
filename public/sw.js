@@ -17,7 +17,7 @@ self.addEventListener('push', function (event) {
         title: 'Algo nuevo ha sucedido',
         body: 'Haga clic para ver más',
         icon: '/logo-icono.png',
-        url: '/admin/notas?estado=notificadas'
+        url: '/admin/calendar'
     };
 
     if (event.data) {
@@ -49,7 +49,7 @@ self.addEventListener('notificationclick', function (event) {
     event.preventDefault();
     event.notification.close();
 
-    const targetUrl = (event.notification.data && event.notification.data.url) ? event.notification.data.url : '/admin/notas?estado=notificadas';
+    const targetUrl = (event.notification.data && event.notification.data.url) ? event.notification.data.url : '/admin/calendar';
 
     // Estrategia V9: Cache Storage + Visibility
     // 1. Escribimos la intención de navegación en el Cache API nativo.

@@ -4,5 +4,11 @@
         "normal": "\/var\/www\/vhosts\/TU_DOMINIO\/httpdocs\/storage\/fonts\/lexend_normal_b9d384a10717407d5a3abfb642535ad4",
         "600": "\/var\/www\/vhosts\/TU_DOMINIO\/httpdocs\/storage\/fonts\/lexend_600_3a8eff9bca402cd2df6110cd04090cb9",
         "bold": "lexend_bold_3a8eff9bca402cd2df6110cd04090cb9"
+    },
+    "lato": {
+        "300": "\/var\/www\/vhosts\/TU_DOMINIO\/httpdocs\/storage\/fonts\/lato_300_9d79ac1be67495aaa1b8223a1f310885",
+        "normal": "\/var\/www\/vhosts\/TU_DOMINIO\/httpdocs\/storage\/fonts\/lato_normal_f566bfaf03aa32ae746942d9519599f6",
+        "600": "\/var\/www\/vhosts\/TU_DOMINIO\/httpdocs\/storage\/fonts\/lato_600_f08695c77a9242b3a09b74c1899296db",
+        "bold": "lato_bold_f08695c77a9242b3a09b74c1899296db"
     }
 }

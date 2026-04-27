@@ -14,6 +14,7 @@ import {
     CurrencyEuroIcon,
     WrenchScrewdriverIcon,
     DocumentTextIcon,
+    CalendarIcon,
     BanknotesIcon,
     CreditCardIcon,
     PuzzlePieceIcon,
@@ -241,9 +242,9 @@ const clientesChartOption = computed(() => ({
 const modules = computed(() => {
     const allModules = [
         {
-            name: 'Notas',
-            icon: DocumentTextIcon,
-            route: 'admin.notas.index',
+            name: 'Calendario',
+            icon: CalendarIcon,
+            route: 'admin.calendar.index',
             roles: ['admin', 'coordinador'],
         },
         {
