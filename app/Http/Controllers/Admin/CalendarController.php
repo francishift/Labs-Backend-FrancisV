@@ -111,6 +111,10 @@ class CalendarController extends Controller
 
     public function store(Request $request)
     {
+        if (!$request->filled('end_date')) {
+            $request->merge(['end_date' => $request->input('start_date')]);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -182,6 +186,10 @@ class CalendarController extends Controller
 
     public function update($id, Request $request)
     {
+        if (!$request->filled('end_date')) {
+            $request->merge(['end_date' => $request->input('start_date')]);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',

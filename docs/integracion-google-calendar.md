@@ -15,7 +15,13 @@ Se utiliza `@fullcalendar/vue3` para disponer de una vista rica del tipo "Agenda
 *   **Gestor API (`Spatie\GoogleCalendar`)**: Todas las acciones (creación / edición / eliminación) originadas desde el sistema local, replican instantáneamente sus parámetros en el Google Calendar general.
 *   **Almacenamiento de Enlace**: Una vez replicado un evento nuevo, Google devuelve un Hash ID que almacenaremos en `google_event_id` en nuestro registro local.
 
-## 3. Notificaciones y Prevención de Ruido
+## 3. Validaciones Inteligentes de UX
+El sistema cuenta con una tricapa de aserción preventiva para las fechas, asegurando que bloqueos cronológicos (donde la fecha de fin es anterior a la fecha de inicio o nula) jamás colisionen con las APIS strict de Google Calendar:
+- **Blindaje UI (Layer 1):** El Selector Nativo de HTML restringe los días opacos (mediante el atributo `min`) impidiendo a nivel visual el retroceso indebido en la línea del tiempo.
+- **Asistencia Frontend (Layer 2):** Si el operador deja el cajón `end_date` vacío por la prisa, la interfaz Vue interpela silenciosamente y clona la franja horario del inicio a la de fin y remite un paquete válido.
+- **Dique Backend (Layer 3):** Por último las request de Laravel inspeccionan e inyectan el reverso condicional antes de disparar las Reglas Nullables para erradicar cualquier tipo de exploit de saltos API.
+
+## 4. Notificaciones y Prevención de Ruido
 
 Con el fin de evitar "ruido de notificaciones" y no saturar de correos mediante Google, en cada petición de *crear / actualizar* mandamos el parámetro `['sendUpdates' => 'none']` limitando la comunicación nativa de Google de estos eventos.
 A su vez, en la base de datos local gestionamos un campo `notification_minutes_before` que, combinado con nuestro sistema de **Web Push**, permite que el sistema informe al usuario según sus tiempos solicitados sin interferencias.

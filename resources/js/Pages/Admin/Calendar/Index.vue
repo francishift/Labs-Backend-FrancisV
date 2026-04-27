@@ -170,6 +170,13 @@ async function saveEvent() {
     isLoading.value = true;
     formErrors.value = {};
     
+    // Validar lógicamente en cliente para mejor UX
+    if (!form.value.end_date) {
+        form.value.end_date = form.value.start_date;
+    } else if (form.value.end_date < form.value.start_date) {
+        form.value.end_date = form.value.start_date;
+    }
+    
     try {
         if (isEditing.value) {
             await axios.put(route('admin.calendar.update', form.value.id), form.value);
@@ -274,6 +281,7 @@ async function deleteEvent() {
                                 id="end_date"
                                 v-model="form.end_date"
                                 type="datetime-local"
+                                :min="form.start_date"
                                 class="mt-1 block w-full"
                             />
                             <InputError :message="formErrors.end_date?.[0]" class="mt-2" />
