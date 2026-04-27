@@ -92,23 +92,28 @@ class CalendarController extends Controller
                     }
 
                     $isOurs = false;
-                    $localMaster = null;
-                    if ($masterId) {
-                        $localMaster = $localEvents->where('google_event_id', $masterId)->first();
+                    $localItem = null;
+                    
+                    $localExact = $localEvents->where('google_event_id', $event->getId())->first();
+
+                    if ($localExact) {
+                        $localItem = $localExact;
+                    } elseif ($masterId) {
+                        $localItem = $localEvents->where('google_event_id', $masterId)->first();
                     }
 
-                    if ($localMaster) {
+                    if ($localItem) {
                         $isOurs = true;
                         // Prevenir duplicado del primer día: Eliminar el bloque estático local insertado previamente
                         foreach ($eventsArray as $idx => $ea) {
-                            if (isset($ea['extendedProps']['google_event_id']) && $ea['extendedProps']['google_event_id'] === $masterId) {
+                            if (isset($ea['extendedProps']['google_event_id']) && $ea['extendedProps']['google_event_id'] === $localItem->google_event_id) {
                                 unset($eventsArray[$idx]);
                             }
                         }
                         
                         $remindersList = [];
-                        if (is_array($localMaster->reminders)) {
-                            foreach ($localMaster->reminders as $rem) {
+                        if (is_array($localItem->reminders)) {
+                            foreach ($localItem->reminders as $rem) {
                                 $remindersList[] = [
                                     'minutes' => (int) $rem['minutes'],
                                     'notified' => false
@@ -118,12 +123,12 @@ class CalendarController extends Controller
                         
                         $eventsArray[] = [
                             'id' => $event->getId(), // Mantenemos el ID string de Google para permitir aislar excepciones locales luego
-                            'title' => $localMaster->name,
+                            'title' => $localItem->name,
                             'start' => $startItem->toIso8601String(),
                             'end' => $endItem->toIso8601String(),
                             // No inyectamos bg_color para que herede el diseño verde nativo (Emerald)
                             'extendedProps' => [
-                                'description' => $localMaster->description,
+                                'description' => $localItem->description,
                                 'reminders' => $remindersList,
                                 'google_event_id' => $event->getId(),
                                 'recurring_event_id' => $masterId,
@@ -309,6 +314,26 @@ class CalendarController extends Controller
             ]);
 
             if ($updateMode === 'series' && $recurringId) {
+                // Modificar toda la serie maestra localmente
+                $masterEvent = CalendarEvent::where('google_event_id', $recurringId)->first();
+                if ($masterEvent) {
+                    $masterEvent->update([
+                        'name' => $validated['name'],
+                        'description' => $validated['description'] ?? null,
+                        'reminders' => $validated['reminders'],
+                    ]);
+                }
+
+                // Propagar estos cambios a cualquier instancia aislada (caché) que ya se haya creado con el cronjob
+                $cachedInstances = CalendarEvent::where('google_event_id', 'like', $recurringId . '\_%')->get();
+                foreach ($cachedInstances as $ci) {
+                    $ci->update([
+                        'name' => $validated['name'],
+                        'description' => $validated['description'] ?? null,
+                        'reminders' => $validated['reminders'],
+                    ]);
+                }
+                
                 // Modificar toda la serie maestra en Google sin asentar una nueva instancia aisalmente local
                 $dummyEvent = new CalendarEvent($validated);
                 $this->syncGoogleSeries($recurringId, $dummyEvent);

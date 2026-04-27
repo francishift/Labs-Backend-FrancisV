@@ -71,15 +71,21 @@ class SyncUpcomingCalendarEvents extends Command
                 }
 
                 $remindersOverrides = [];
-                if ($recurringId) {
-                    $localMaster = CalendarEvent::where('google_event_id', $recurringId)->first();
-                    if ($localMaster && is_array($localMaster->reminders)) {
-                        foreach ($localMaster->reminders as $rem) {
-                            $remindersOverrides[] = [
-                                'minutes' => (int) $rem['minutes'],
-                                'notified' => false
-                            ];
-                        }
+                $localExact = CalendarEvent::where('google_event_id', $googleEventId)->first();
+                $localTarget = null;
+                
+                if ($localExact) {
+                    $localTarget = $localExact;
+                } elseif ($recurringId) {
+                    $localTarget = CalendarEvent::where('google_event_id', $recurringId)->first();
+                }
+
+                if ($localTarget && is_array($localTarget->reminders)) {
+                    foreach ($localTarget->reminders as $rem) {
+                        $remindersOverrides[] = [
+                            'minutes' => (int) $rem['minutes'],
+                            'notified' => false
+                        ];
                     }
                 }
                 

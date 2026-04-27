@@ -410,17 +410,17 @@ async function confirmDeleteEvent() {
                     </div>
                 </div>
 
-                <div class="mt-6 flex justify-between">
-                    <div>
-                        <DangerButton v-if="isEditing" @click="triggerDelete" :class="{ 'opacity-25': isLoading }" :disabled="isLoading">
+                <div class="mt-6 flex flex-col sm:flex-row sm:justify-between gap-3 sm:gap-0">
+                    <div class="order-3 sm:order-1 flex mt-2 sm:mt-0">
+                        <DangerButton v-if="isEditing" @click="triggerDelete" class="w-full justify-center sm:w-auto" :class="{ 'opacity-25': isLoading }" :disabled="isLoading">
                             Eliminar Original
                         </DangerButton>
                     </div>
-                    <div class="flex space-x-3">
-                        <SecondaryButton @click="showEventModal = false">
+                    <div class="order-1 sm:order-2 flex flex-col sm:flex-row gap-2 sm:gap-3">
+                        <SecondaryButton @click="showEventModal = false" class="order-2 sm:order-1 w-full justify-center sm:w-auto">
                             Cancelar
                         </SecondaryButton>
-                        <PrimaryButton @click="saveEvent" :class="{ 'opacity-25': isLoading }" :disabled="isLoading">
+                        <PrimaryButton @click="saveEvent" class="order-1 sm:order-2 w-full justify-center sm:w-auto" :class="{ 'opacity-25': isLoading }" :disabled="isLoading">
                             {{ isEditing ? 'Actualizar' : 'Guardar' }}
                         </PrimaryButton>
                     </div>
