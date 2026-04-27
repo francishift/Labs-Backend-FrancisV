@@ -316,9 +316,11 @@ class CalendarController extends Controller
             if ($updateMode === 'series' && $recurringId) {
                 // Modificar toda la serie maestra localmente, creándola si no existe (vital para series nativas de Google importadas)
                 $masterEvent = CalendarEvent::updateOrCreate(
-                    ['google_event_id' => $recurringId],
                     [
+                        'google_event_id' => $recurringId,
                         'user_id' => auth()->id(),
+                    ],
+                    [
                         'name' => $validated['name'],
                         'description' => $validated['description'] ?? null,
                         'start_date' => $validated['start_date'],
@@ -328,7 +330,9 @@ class CalendarController extends Controller
                 );
 
                 // Propagar estos cambios a cualquier instancia aislada (caché) que ya se haya creado con el cronjob
-                $cachedInstances = CalendarEvent::where('google_event_id', 'like', $recurringId . '\_%')->get();
+                $cachedInstances = CalendarEvent::where('google_event_id', 'like', $recurringId . '\_%')
+                    ->where('user_id', auth()->id())
+                    ->get();
                 foreach ($cachedInstances as $ci) {
                     $ci->update([
                         'name' => $validated['name'],

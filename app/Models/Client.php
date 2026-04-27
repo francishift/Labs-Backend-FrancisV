@@ -5,8 +5,29 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string|null $cif_nif
+ * @property string|null $email
+ * @property string|null $phone
+ * @property string|null $mobile
+ * @property string|null $address
+ * @property string|null $city
+ * @property string|null $zip_code
+ * @property string|null $province
+ * @property string|null $country
+ * @property \Illuminate\Support\Carbon|null $excel_created_at
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read float $active_projects_budget
+ * @property-read float $monthly_maintenance_income
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Proyecto[] $proyectos
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Mantenimiento[] $mantenimientos
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Factura[] $facturas
+ * @mixin \Illuminate\Database\Eloquent\Builder
+ */
 class Client extends Model
-{
     use HasFactory;
 
     protected static function booted()
