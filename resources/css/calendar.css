@@ -1,0 +1,98 @@
+/* Estilos modernos y adaptados para FullCalendar */
+.calendar-container .fc {
+    font-family: inherit;
+    --fc-page-bg-color: transparent;
+    --fc-border-color: #e5e7eb;
+    --fc-button-bg-color: #10b981;
+    --fc-button-border-color: #10b981;
+    --fc-button-hover-bg-color: #059669;
+    --fc-button-hover-border-color: #059669;
+    --fc-button-active-bg-color: #047857;
+    --fc-button-active-border-color: #047857;
+    --fc-event-bg-color: #10b981;
+    --fc-event-border-color: #10b981;
+    --fc-today-bg-color: rgba(16, 185, 129, 0.05);
+}
+
+.dark .calendar-container .fc {
+    color: #e4e4e7; /* Forzar color de texto claro en etiquetas como 'all-day' y horas del timeline */
+    --fc-border-color: rgba(255, 255, 255, 0.05);
+    --fc-page-bg-color: transparent;
+    --fc-neutral-bg-color: #18181b; /* zinc-900 */
+    --fc-neutral-text-color: #e4e4e7; /* zinc-200 */
+    --fc-today-bg-color: rgba(255, 255, 255, 0.03);
+    
+    /* Estilo atenuado sutil para los botones en modo oscuro en vez de purpuras/azules brillantes */
+    --fc-button-bg-color: #27272a; /* zinc-800 */
+    --fc-button-border-color: #3f3f46; /* zinc-700 */
+    --fc-button-hover-bg-color: #3f3f46; 
+    --fc-button-hover-border-color: #52525b;
+    --fc-button-active-bg-color: #52525b; 
+    --fc-button-active-border-color: #71717a;
+    
+    --fc-event-bg-color: rgba(16, 185, 129, 0.2); /* emerald-500 con transparencia */
+    --fc-event-border-color: #10b981; /* emerald-500 */
+    --fc-event-text-color: #a7f3d0; /* emerald-200 */
+}
+
+.calendar-container .fc-header-toolbar {
+    @apply mb-6;
+}
+
+.calendar-container .fc-toolbar-title {
+    @apply text-xl font-bold text-gray-800 dark:text-zinc-100;
+}
+
+.calendar-container .fc-button {
+    @apply rounded shadow-sm font-medium px-4 py-2 text-sm focus:ring-2 focus:ring-offset-1 focus:ring-emerald-500 dark:focus:ring-offset-zinc-900 transition-colors;
+}
+
+.calendar-container .fc-button-primary:not(:disabled).fc-button-active, 
+.calendar-container .fc-button-primary:not(:disabled):active {
+    @apply bg-emerald-700 border-emerald-700 dark:bg-zinc-700 dark:border-zinc-600 dark:text-white;
+}
+
+.calendar-container .fc-col-header-cell {
+    @apply py-3 bg-gray-50 dark:bg-zinc-800/50 text-gray-700 dark:text-zinc-300 font-semibold text-sm border-b dark:border-zinc-700/50;
+}
+
+.calendar-container .fc-daygrid-day-number {
+    @apply p-2 font-medium text-gray-600 dark:text-zinc-400 transition-colors hover:text-emerald-600 dark:hover:text-emerald-400;
+}
+
+.calendar-container .fc-theme-standard td, 
+.calendar-container .fc-theme-standard th {
+    @apply border-gray-200 dark:border-zinc-800;
+}
+
+.calendar-container .fc-day-today .fc-daygrid-day-number {
+    @apply bg-emerald-100 dark:bg-emerald-500/20 rounded-full w-8 h-8 flex items-center justify-center shadow-inner font-bold text-emerald-700 dark:text-emerald-300;
+}
+
+.calendar-container .fc-event {
+    @apply rounded px-2 py-1 font-medium text-xs border-0 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:opacity-100 dark:hover:bg-emerald-500/20 transition-all cursor-pointer border-l-2 border-emerald-500 dark:border-emerald-400 shadow-sm;
+}
+
+/* Responsividad para móviles */
+@media (max-width: 640px) {
+    .calendar-container .fc-header-toolbar {
+        flex-direction: column !important;
+        gap: 0.75rem;
+    }
+    
+    .calendar-container .fc-toolbar-chunk {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .calendar-container .fc-toolbar-title {
+        font-size: 1.15rem !important;
+        text-align: center;
+    }
+    
+    .calendar-container .fc-button {
+        padding: 0.35rem 0.75rem;
+        font-size: 0.85rem;
+    }
+}
