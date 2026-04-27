@@ -7,11 +7,13 @@ El antiguo módulo de "Notas" ha sido reemplazado por un sólido sistema de **Ca
 Se utiliza `@fullcalendar/vue3` para disponer de una vista rica del tipo "Agenda".
 - Vista por defecto: Mes (DayGridMonth).
 - Botonera superior que permite alternar a vista Semana y vista Día.
-- Formularios interactivos en modal `DialogModal` para creación, edición y visualización de la información completa del evento arrastrando fechas (drag and drop y resize events habilitado nativamente e interceptando la API local).
+- La interfaz principal (`Index.vue`) está estrictamente acoplada a la renderización del lienzo visual y delega todas las inserciones, validaciones reactivas y estados del formulario en un subcomponente estandarizado y purgado de *Tailwind bloated tags* llamado `EventFormModal.vue` (el cual implementa la iconografía oficial de Heroicons y selects nativos del portal).
+- Se soporta `drag and drop` y `resize events` de forma natural que interceptan las APIS locales de forma asíncrona.
 
 ## 2. Arquitectura de Sincronización (Backend)
 
 *   **Modelo Híbrido (`CalendarEvent`)**: Los eventos creados en el portal persisten localmente e inyectan una cabecera nativa u ocurrencia `RRULE` hacia los servidores de Google API. 
+*   **Asimilación de Series Externas (Alien Events)**: Si el usuario edita desde el visor una serie recurrente nativa que fue creada **desde fuera** de nuestra plataforma (por ej., desde la app móvil oficial de GCal), el backend intercepta el evento mediante un `updateOrCreate` de seguridad, **"nacionalizando"** el evento maestro en la Base de Datos MySQL del portal para así poder inyectarle nuestro régimen local de notificaciones privado. Toda esta transacción está blindada a nivel multi-tenant `user_id`.
 *   **Aislamiento de la Muestra**: Para la visualización frontend se cargan los eventos base locales y se cruzan con la vista estricta que devuelve Google Calendar de los futuros próximos, deduplicando los bloques maestros locales que coinciden con las repeticiones autogeneradas para mantener la interfaz esmeralda sin duplicidades y delegar el trazado puramente en Google API.
 *   **Gestor API (`Spatie\GoogleCalendar` modificado)**: Todas las acciones (creación / edición de serie / eliminación) originadas desde el sistema local replican instantáneamente sus parámetros en el Google Calendar general usando parámetros especiales de silenciamiento.
 
