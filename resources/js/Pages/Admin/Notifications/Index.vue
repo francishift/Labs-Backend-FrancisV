@@ -128,8 +128,8 @@ const destroyAll = () => {
                         </li>
                     </ul>
                     
-                    <!-- Paginación Simple Automática de Laravel/Inertia -->
-                    <div v-if="notifications.links" class="p-4 border-t border-gray-200 dark:border-zinc-800">
+                    <!-- Paginación Automática de Laravel/Inertia (Ocultar si solo hay 1 página) -->
+                    <div v-if="notifications.links && notifications.links.length > 3" class="p-4 border-t border-gray-200 dark:border-zinc-800">
                         <div class="flex flex-wrap gap-1 justify-center">
                             <template v-for="(link, p) in notifications.links" :key="p">
                                 <Link 

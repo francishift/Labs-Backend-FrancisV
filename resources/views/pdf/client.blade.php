@@ -294,8 +294,17 @@
                     <td>{{ date('d/m/Y', $presu->date) }}</td>
                     <td>
                         @php
-                            $statusLabel = ['Pendiente', 'Aceptado', 'Rechazado'][$presu->status] ?? 'Desconocido';
-                            $statusClass = ['status-amber', 'status-emerald', 'status-zinc'][$presu->status] ?? 'status-zinc';
+                            if ($presu->status instanceof \App\Enums\PresupuestoStatus) {
+                                $statusLabel = $presu->status->label();
+                                $statusClass = match($presu->status) {
+                                    \App\Enums\PresupuestoStatus::PENDING => 'status-amber',
+                                    \App\Enums\PresupuestoStatus::APPROVED => 'status-emerald',
+                                    default => 'status-zinc',
+                                };
+                            } else {
+                                $statusLabel = ['Pendiente', 'Aceptado', 'Rechazado'][$presu->status] ?? 'Desconocido';
+                                $statusClass = ['status-amber', 'status-emerald', 'status-zinc'][$presu->status] ?? 'status-zinc';
+                            }
                         @endphp
                         <span class="status-badge {{ $statusClass }}">{{ $statusLabel }}</span>
                     </td>

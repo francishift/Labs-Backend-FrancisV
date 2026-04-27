@@ -15,12 +15,12 @@ defineProps({
                 <span class="inline-flex rounded-md">
                     <button
                         type="button"
-                        class="inline-flex items-center rounded-md border border-transparent bg-white dark:bg-zinc-800 px-3 py-2 text-sm font-medium leading-4 text-gray-500 dark:text-zinc-400 transition duration-150 ease-in-out hover:text-gray-700 dark:hover:text-zinc-300 focus:outline-none"
+                        class="inline-flex items-center rounded-md border border-transparent bg-white dark:bg-zinc-800 px-2 py-2 text-sm font-medium leading-4 text-gray-500 dark:text-zinc-400 transition duration-150 ease-in-out hover:text-gray-700 dark:hover:text-zinc-300 focus:outline-none"
                     >
-                        {{ user.name }}
+                        <UserIcon class="h-5 w-5" />
 
                         <svg
-                            class="-me-0.5 ms-2 h-4 w-4"
+                            class="-me-0.5 ms-1 h-4 w-4"
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 20 20"
                             fill="currentColor"
@@ -36,7 +36,10 @@ defineProps({
             </template>
 
             <template #content>
-                <DropdownLink :href="route('profile.edit')" class="flex items-center">
+                <div class="block px-4 py-2 text-xs text-gray-400 border-b border-gray-100 dark:border-zinc-700">
+                    {{ user.name }}
+                </div>
+                <DropdownLink :href="route('profile.edit')" class="flex items-center mt-1">
                     <UserIcon class="me-2 h-4 w-4" />
                     Perfil
                 </DropdownLink>
