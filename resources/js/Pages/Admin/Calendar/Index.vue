@@ -11,6 +11,9 @@ import InputLabel from '@/Components/InputLabel.vue';
 import InputError from '@/Components/InputError.vue';
 import TextArea from '@/Components/TextArea.vue';
 import PageHeader from '@/Components/PageHeader.vue';
+import ToggleSwitch from '@/Components/ToggleSwitch.vue';
+import SelectInput from '@/Components/SelectInput.vue';
+import ConfirmModal from '@/Components/ConfirmModal.vue';
 import axios from 'axios';
 
 // Núcleo de FullCalendar + Plugins
@@ -25,6 +28,7 @@ const props = defineProps({
 
 const calendarRef = ref(null);
 const showEventModal = ref(false);
+const showDeleteConfirm = ref(false);
 const isEditing = ref(false);
 
 const form = ref({
@@ -34,7 +38,18 @@ const form = ref({
     start_date: '',
     end_date: '',
     reminders: [],
+    recurring_event_id: null,
+    update_mode: 'single',
+    is_recurring: false,
+    recurrence: '',
 });
+
+const recurrenceOptions = [
+    { value: 'DAILY', label: 'Diariamente (Cada día)' },
+    { value: 'WEEKLY', label: 'Semanalmente (Cada semana)' },
+    { value: 'MONTHLY', label: 'Mensualmente (Cada mes)' },
+    { value: 'YEARLY', label: 'Anualmente (Cada año)' },
+];
 
 const formErrors = ref({});
 const isLoading = ref(false);
@@ -101,6 +116,8 @@ function resetForm() {
         start_date: '',
         end_date: '',
         reminders: [],
+        recurring_event_id: null,
+        update_mode: 'single',
     };
     formErrors.value = {};
 }
@@ -137,6 +154,10 @@ function handleEventClick(clickInfo) {
         start_date: startStr,
         end_date: endStr,
         reminders: Array.isArray(event.extendedProps.reminders) ? [...event.extendedProps.reminders] : [],
+        recurring_event_id: event.extendedProps.recurring_event_id || null,
+        update_mode: 'single',
+        is_recurring: false,
+        recurrence: '',
     };
     
     isEditing.value = true;
@@ -196,12 +217,20 @@ async function saveEvent() {
     }
 }
 
-async function deleteEvent() {
-    if (!confirm('¿Estás seguro de que quieres eliminar este evento?')) return;
-    
+function triggerDelete() {
+    showDeleteConfirm.value = true;
+}
+
+async function confirmDeleteEvent() {
     isLoading.value = true;
     try {
-        await axios.delete(route('admin.calendar.destroy', form.value.id));
+        await axios.delete(route('admin.calendar.destroy', form.value.id), {
+            data: {
+                update_mode: form.value.update_mode,
+                recurring_event_id: form.value.recurring_event_id
+            }
+        });
+        showDeleteConfirm.value = false;
         showEventModal.value = false;
         calendarRef.value.getApi().refetchEvents();
     } catch (error) {
@@ -251,6 +280,31 @@ async function deleteEvent() {
                     {{ isEditing ? 'Editar Evento' : 'Nuevo Evento' }}
                 </h3>
 
+                <div v-if="form.recurring_event_id && isEditing" class="mb-6 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700/50 rounded-lg p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-amber-800 dark:text-amber-200">Este es un evento periódico.</h3>
+                            <div class="mt-2 text-sm text-amber-700 dark:text-amber-300">
+                                <p>¿A qué eventos quieres aplicar los cambios?</p>
+                                <div class="mt-3 space-y-2">
+                                    <label class="flex items-center">
+                                        <input type="radio" v-model="form.update_mode" value="single" class="focus:ring-amber-500 h-4 w-4 text-amber-600 border-gray-300 dark:border-zinc-700 dark:bg-zinc-800">
+                                        <span class="ml-2 font-medium">Solo esta repetición</span>
+                                    </label>
+                                    <label class="flex items-center">
+                                        <input type="radio" v-model="form.update_mode" value="series" class="focus:ring-amber-500 h-4 w-4 text-amber-600 border-gray-300 dark:border-zinc-700 dark:bg-zinc-800">
+                                        <span class="ml-2 font-medium">Toda la serie</span>
+                                        <span class="ml-1 text-xs opacity-75">(Título, Notas y Notificaciones)</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="space-y-4">
                     <div>
                         <InputLabel for="name" value="Título del Evento" />
@@ -272,6 +326,7 @@ async function deleteEvent() {
                                 v-model="form.start_date"
                                 type="datetime-local"
                                 class="mt-1 block w-full"
+                                :disabled="form.recurring_event_id && form.update_mode === 'series'"
                             />
                             <InputError :message="formErrors.start_date?.[0]" class="mt-2" />
                         </div>
@@ -283,6 +338,7 @@ async function deleteEvent() {
                                 type="datetime-local"
                                 :min="form.start_date"
                                 class="mt-1 block w-full"
+                                :disabled="form.recurring_event_id && form.update_mode === 'series'"
                             />
                             <InputError :message="formErrors.end_date?.[0]" class="mt-2" />
                         </div>
@@ -297,6 +353,28 @@ async function deleteEvent() {
                             rows="3"
                         />
                         <InputError :message="formErrors.description?.[0]" class="mt-2" />
+                    </div>
+
+                    <div v-if="!isEditing" class="bg-gray-50 dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-800 rounded-lg p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="text-sm font-medium text-gray-900 dark:text-zinc-100">Evento Periódico</h4>
+                                <p class="text-xs text-gray-500 dark:text-zinc-400 mt-1">Repetir este evento automáticamente en el futuro.</p>
+                            </div>
+                            <ToggleSwitch v-model:checked="form.is_recurring" />
+                        </div>
+                        
+                        <div v-if="form.is_recurring" class="mt-4 pt-4 border-t border-gray-200 dark:border-zinc-700">
+                            <InputLabel for="recurrence" value="Frecuencia de Repetición" />
+                            <SelectInput
+                                id="recurrence"
+                                v-model="form.recurrence"
+                                class="mt-1 block w-full"
+                                :options="recurrenceOptions"
+                                placeholder="Selecciona una frecuencia..."
+                            />
+                            <InputError :message="formErrors.recurrence?.[0]" class="mt-2" />
+                        </div>
                     </div>
                     
                     <div>
@@ -314,27 +392,27 @@ async function deleteEvent() {
                                 v-model="rem.minutes"
                                 class="block w-full text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-emerald-500 dark:focus:border-emerald-600 focus:ring-emerald-500 dark:focus:ring-emerald-600 rounded-md shadow-sm"
                             >
-                                <option value="0">A la hora del evento</option>
-                                <option value="5">5 minutos antes</option>
-                                <option value="10">10 minutos antes</option>
-                                <option value="15">15 minutos antes</option>
-                                <option value="30">30 minutos antes</option>
-                                <option value="60">1 hora antes</option>
-                                <option value="120">2 horas antes</option>
-                                <option value="1440">1 día antes</option>
+                                <option :value="0">A la hora del evento</option>
+                                <option :value="5">5 minutos antes</option>
+                                <option :value="10">10 minutos antes</option>
+                                <option :value="15">15 minutos antes</option>
+                                <option :value="30">30 minutos antes</option>
+                                <option :value="60">1 hora antes</option>
+                                <option :value="120">2 horas antes</option>
+                                <option :value="1440">1 día antes</option>
                             </select>
                             <button type="button" @click="removeReminder(index)" class="text-gray-400 hover:text-red-500 transition px-2">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
                         <InputError :message="formErrors.reminders?.[0]" class="mt-2" />
-                        <p class="text-xs text-gray-500 mt-2">Múltiples alertas sincronizadas entre notificaciones Web y app GCal.</p>
+                        <p class="text-xs text-gray-500 mt-2">Notificaciones exclusivas del sistema del portal.</p>
                     </div>
                 </div>
 
                 <div class="mt-6 flex justify-between">
                     <div>
-                        <DangerButton v-if="isEditing" @click="deleteEvent" :class="{ 'opacity-25': isLoading }" :disabled="isLoading">
+                        <DangerButton v-if="isEditing" @click="triggerDelete" :class="{ 'opacity-25': isLoading }" :disabled="isLoading">
                             Eliminar Original
                         </DangerButton>
                     </div>
@@ -349,6 +427,16 @@ async function deleteEvent() {
                 </div>
             </div>
         </Modal>
+
+        <ConfirmModal
+            :show="showDeleteConfirm"
+            title="Eliminar Evento"
+            content="¿Estás completamente seguro de que deseas eliminar esto? Esta acción es irreversible."
+            confirmText="Sí, Eliminar"
+            cancelText="Cancelar"
+            @close="showDeleteConfirm = false"
+            @confirm="confirmDeleteEvent"
+        />
     </AuthenticatedLayout>
 </template>
 

@@ -53,9 +53,13 @@ class SendCalendarReminders extends Command
                 // Restar los minutos de antelación
                 $triggerTime = Carbon::parse($event->start_date)->subMinutes((int)$rem['minutes']);
 
-                // Si el momento de disparar ya pasó o es ahora, enviamos la notificación
-                if ($now->greaterThanOrEqualTo($triggerTime)) {
+                // Si el momento de disparar ya pasó o es ahora, pero no han pasado más de 2 horas (ventana segura)
+                if ($now->greaterThanOrEqualTo($triggerTime) && $now->lessThanOrEqualTo($triggerTime->copy()->addHours(2))) {
                     $shouldNotify = true;
+                    $reminders[$key]['notified'] = true;
+                    $updated = true;
+                } elseif ($now->greaterThan($triggerTime->copy()->addHours(2))) {
+                    // Si ya pasó hace más de 2 horas (por ejemplo, editando un evento antiguo y añadiendo alerta), marcarla como ya enviada para no spam
                     $reminders[$key]['notified'] = true;
                     $updated = true;
                 }

@@ -54,6 +54,7 @@ class CalendarController extends Controller
                     'description' => $event->description,
                     'reminders' => is_array($event->reminders) ? $event->reminders : [],
                     'google_event_id' => $event->google_event_id,
+                    'recurring_event_id' => $event->google_event_id && preg_match('/_([0-9]{8})(T[0-9]{6}Z)?$/', $event->google_event_id) ? preg_replace('/_([0-9]{8})(T[0-9]{6}Z)?$/', '', $event->google_event_id) : null,
                     'is_external' => false,
                 ]
             ];
@@ -85,28 +86,76 @@ class CalendarController extends Controller
                     $startItem = clone ($event->getStart()->getDateTime() ? Carbon::parse($event->getStart()->getDateTime()) : Carbon::parse($event->getStart()->getDate()));
                     $endItem = clone ($event->getEnd()->getDateTime() ? Carbon::parse($event->getEnd()->getDateTime()) : Carbon::parse($event->getEnd()->getDate()));
                     
-                    $eventsArray[] = [
-                        'id' => $event->getId(),
-                        'title' => $event->getSummary() ?: '(Sin título)',
-                        'start' => $startItem->toIso8601String(),
-                        'end' => $endItem->toIso8601String(),
-                        'backgroundColor' => '#27272a', // zinc-800
-                        'borderColor' => '#3f3f46', // zinc-700
-                        'textColor' => '#a1a1aa', // zinc-400
-                        'extendedProps' => [
-                            'description' => $event->getDescription(),
-                            'reminders' => [],
-                            'google_event_id' => $event->getId(),
-                            'is_external' => true,
-                        ]
-                    ];
+                    $masterId = $event->getRecurringEventId();
+                    if (!$masterId && preg_match('/_([0-9]{8})(T[0-9]{6}Z)?$/', $event->getId())) {
+                        $masterId = preg_replace('/_([0-9]{8})(T[0-9]{6}Z)?$/', '', $event->getId());
+                    }
+
+                    $isOurs = false;
+                    $localMaster = null;
+                    if ($masterId) {
+                        $localMaster = $localEvents->where('google_event_id', $masterId)->first();
+                    }
+
+                    if ($localMaster) {
+                        $isOurs = true;
+                        // Prevenir duplicado del primer día: Eliminar el bloque estático local insertado previamente
+                        foreach ($eventsArray as $idx => $ea) {
+                            if (isset($ea['extendedProps']['google_event_id']) && $ea['extendedProps']['google_event_id'] === $masterId) {
+                                unset($eventsArray[$idx]);
+                            }
+                        }
+                        
+                        $remindersList = [];
+                        if (is_array($localMaster->reminders)) {
+                            foreach ($localMaster->reminders as $rem) {
+                                $remindersList[] = [
+                                    'minutes' => (int) $rem['minutes'],
+                                    'notified' => false
+                                ];
+                            }
+                        }
+                        
+                        $eventsArray[] = [
+                            'id' => $event->getId(), // Mantenemos el ID string de Google para permitir aislar excepciones locales luego
+                            'title' => $localMaster->name,
+                            'start' => $startItem->toIso8601String(),
+                            'end' => $endItem->toIso8601String(),
+                            // No inyectamos bg_color para que herede el diseño verde nativo (Emerald)
+                            'extendedProps' => [
+                                'description' => $localMaster->description,
+                                'reminders' => $remindersList,
+                                'google_event_id' => $event->getId(),
+                                'recurring_event_id' => $masterId,
+                                'is_external' => false, // Lo tratamos como propio
+                            ]
+                        ];
+                    } else {
+                        // Evento totalmente externo (Zinc)
+                        $eventsArray[] = [
+                            'id' => $event->getId(),
+                            'title' => $event->getSummary() ?: '(Sin título)',
+                            'start' => $startItem->toIso8601String(),
+                            'end' => $endItem->toIso8601String(),
+                            'backgroundColor' => '#27272a', // zinc-800
+                            'borderColor' => '#3f3f46', // zinc-700
+                            'textColor' => '#a1a1aa', // zinc-400
+                            'extendedProps' => [
+                                'description' => $event->getDescription(),
+                                'reminders' => [],
+                                'google_event_id' => $event->getId(),
+                                'recurring_event_id' => $masterId,
+                                'is_external' => true,
+                            ]
+                        ];
+                    }
                 }
             }
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("Error reading Google Calendar: " . $e->getMessage());
         }
 
-        return response()->json($eventsArray);
+        return response()->json(array_values($eventsArray));
     }
 
     public function store(Request $request)
@@ -122,6 +171,8 @@ class CalendarController extends Controller
             'end_date' => 'required|date|after_or_equal:start_date',
             'reminders' => 'nullable|array',
             'reminders.*.minutes' => 'required|integer|min:0',
+            'is_recurring' => 'nullable|boolean',
+            'recurrence' => 'nullable|string|in:DAILY,WEEKLY,MONTHLY,YEARLY',
         ]);
 
         $remindersData = [];
@@ -155,19 +206,13 @@ class CalendarController extends Controller
                 ]),
             ]);
 
-            $remindersOverrides = [];
-            if (!empty($localEvent->reminders)) {
-                foreach ($localEvent->reminders as $r) {
-                    $remindersOverrides[] = ['method' => 'popup', 'minutes' => $r['minutes']];
-                }
+            if ($request->boolean('is_recurring') && !empty($validated['recurrence'])) {
+                $gEvent->setRecurrence(["RRULE:FREQ=" . $validated['recurrence']]);
             }
+
             $remindersParam = new \Google\Service\Calendar\EventReminders();
-            if (!empty($remindersOverrides)) {
-                $remindersParam->setUseDefault(false);
-                $remindersParam->setOverrides($remindersOverrides);
-            } else {
-                $remindersParam->setUseDefault(false);
-            }
+            $remindersParam->setUseDefault(false);
+            $remindersParam->setOverrides([]);
             $gEvent->setReminders($remindersParam);
 
 
@@ -230,13 +275,21 @@ class CalendarController extends Controller
 
             $calendarEvent->update($validated);
 
-            if ($calendarEvent->google_event_id) {
+            $updateMode = $request->input('update_mode', 'single');
+            $recurringId = $request->input('recurring_event_id');
+
+            if ($updateMode === 'series' && $recurringId) {
+                $this->syncGoogleSeries($recurringId, $calendarEvent);
+            } elseif ($calendarEvent->google_event_id) {
                 $this->syncGoogleEvent($calendarEvent->google_event_id, $calendarEvent);
             }
 
             return response()->json($calendarEvent);
         } else {
-            // Adoptar (Option B: Google ID string)
+            $updateMode = $request->input('update_mode', 'single');
+            $recurringId = $request->input('recurring_event_id');
+
+            // Preparar reminders en caso de que vayan hacia Google
             $remindersData = [];
             if (!empty($validated['reminders'])) {
                 foreach ($validated['reminders'] as $rem) {
@@ -247,14 +300,52 @@ class CalendarController extends Controller
                 }
             }
             $validated['reminders'] = $remindersData;
-
             $validated['user_id'] = auth()->id();
+
+            \Illuminate\Support\Facades\Log::info("DEBUG UPDATE CALENDAR", [
+                'updateMode' => $updateMode,
+                'recurringId' => $recurringId,
+                'id' => $id
+            ]);
+
+            if ($updateMode === 'series' && $recurringId) {
+                // Modificar toda la serie maestra en Google sin asentar una nueva instancia aisalmente local
+                $dummyEvent = new CalendarEvent($validated);
+                $this->syncGoogleSeries($recurringId, $dummyEvent);
+                return response()->json(['success' => true]);
+            }
+
+            // Adoptar (Option B: Google ID string) - Solo esta ocurrencia
+            $validated['google_event_id'] = $id;
             $validated['google_event_id'] = $id;
             $calendarEvent = CalendarEvent::create($validated);
             
             $this->syncGoogleEvent($id, $calendarEvent);
 
             return response()->json($calendarEvent);
+        }
+    }
+
+    protected function syncGoogleSeries($recurringEventId, CalendarEvent $calendarEvent)
+    {
+        try {
+            $service = $this->getGoogleCalendarService();
+            $calendarId = $this->getCalendarId();
+
+            $gEvent = $service->events->get($calendarId, $recurringEventId);
+            $gEvent->setSummary($calendarEvent->name);
+            $gEvent->setDescription($calendarEvent->description ?? '');
+            
+            // Limitamos a no editar fechas en actualizacion de series enteras para conservar RRULE original
+
+            $remindersParam = new \Google\Service\Calendar\EventReminders();
+            $remindersParam->setUseDefault(false);
+            $remindersParam->setOverrides([]);
+            $gEvent->setReminders($remindersParam);
+
+            $service->events->update($calendarId, $recurringEventId, $gEvent, ['sendUpdates' => 'none']);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Error updating Google Calendar Series: " . $e->getMessage());
         }
     }
 
@@ -278,19 +369,9 @@ class CalendarController extends Controller
             $end->setTimeZone(config('app.timezone'));
             $gEvent->setEnd($end);
 
-            $remindersOverrides = [];
-            if (is_array($calendarEvent->reminders)) {
-                foreach ($calendarEvent->reminders as $r) {
-                    $remindersOverrides[] = ['method' => 'popup', 'minutes' => $r['minutes']];
-                }
-            }
             $remindersParam = new \Google\Service\Calendar\EventReminders();
-            if (!empty($remindersOverrides)) {
-                $remindersParam->setUseDefault(false);
-                $remindersParam->setOverrides($remindersOverrides);
-            } else {
-                $remindersParam->setUseDefault(false);
-            }
+            $remindersParam->setUseDefault(false);
+            $remindersParam->setOverrides([]);
             $gEvent->setReminders($remindersParam);
 
             $service->events->update($calendarId, $googleEventId, $gEvent, ['sendUpdates' => 'none']);
@@ -299,8 +380,11 @@ class CalendarController extends Controller
         }
     }
 
-    public function destroy($id)
+    public function destroy($id, Request $request)
     {
+        $updateMode = $request->input('update_mode', 'single');
+        $recurringId = $request->input('recurring_event_id');
+
         if (is_numeric($id)) {
             $calendarEvent = CalendarEvent::findOrFail($id);
             if ($calendarEvent->user_id !== auth()->id()) {
@@ -311,19 +395,30 @@ class CalendarController extends Controller
                 try {
                     $service = $this->getGoogleCalendarService();
                     $calendarId = $this->getCalendarId();
-                    $service->events->delete($calendarId, $calendarEvent->google_event_id, ['sendUpdates' => 'none']);
+                    
+                    if ($updateMode === 'series' && $recurringId) {
+                        $service->events->delete($calendarId, $recurringId, ['sendUpdates' => 'none']);
+                    } else {
+                        $service->events->delete($calendarId, $calendarEvent->google_event_id, ['sendUpdates' => 'none']);
+                    }
                 } catch (\Exception $e) {
                     \Illuminate\Support\Facades\Log::error("Error deleting from Google Calendar: " . $e->getMessage());
                 }
             }
 
-            $calendarEvent->delete();
+            // Si borramos la serie, tiene sentido purgar instancias locales atadas a ese Master
+            if ($updateMode === 'series' && $recurringId) {
+                CalendarEvent::where('google_event_id', 'like', $recurringId . '_%')->delete();
+            } else {
+                $calendarEvent->delete();
+            }
         } else {
-            // Eliminar elemento exclusivo de Google Calendar
+            // Eliminar elemento externo exclusivo de Google Calendar
             try {
                 $service = $this->getGoogleCalendarService();
                 $calendarId = $this->getCalendarId();
-                $service->events->delete($calendarId, $id, ['sendUpdates' => 'none']);
+                $targetId = ($updateMode === 'series' && $recurringId) ? $recurringId : $id;
+                $service->events->delete($calendarId, $targetId, ['sendUpdates' => 'none']);
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error("Error deleting from Google Calendar (external): " . $e->getMessage());
             }

@@ -5,6 +5,8 @@ import { BellIcon, CheckCircleIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import { useFormatters } from '@/Composables/useFormatters';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import DangerButton from '@/Components/DangerButton.vue';
+import ConfirmModal from '@/Components/ConfirmModal.vue';
+import { ref } from 'vue';
 import axios from 'axios';
 
 const props = defineProps({
@@ -30,16 +32,30 @@ const markAllAsRead = () => {
     router.post(route('admin.notifications.markAllRead'));
 };
 
-const destroyNotification = (id) => {
-    if (confirm('¿Eliminar esta notificación permanentemente?')) {
-        router.delete(route('admin.notifications.destroy', id), { preserveScroll: true });
+const showSingleDeleteModal = ref(false);
+const showAllDeleteModal = ref(false);
+const notificationToDelete = ref(null);
+
+const confirmDeleteNotification = (id) => {
+    notificationToDelete.value = id;
+    showSingleDeleteModal.value = true;
+};
+
+const executeDestroyNotification = () => {
+    if (notificationToDelete.value) {
+        router.delete(route('admin.notifications.destroy', notificationToDelete.value), { preserveScroll: true });
+        showSingleDeleteModal.value = false;
+        notificationToDelete.value = null;
     }
 };
 
-const destroyAll = () => {
-    if (confirm('¿Estás seguro de que quieres eliminar TODAS las notificaciones de tu historial? Esta acción no se puede deshacer.')) {
-        router.delete(route('admin.notifications.destroyAll'));
-    }
+const confirmDeleteAll = () => {
+    showAllDeleteModal.value = true;
+};
+
+const executeDestroyAll = () => {
+    router.delete(route('admin.notifications.destroyAll'));
+    showAllDeleteModal.value = false;
 };
 </script>
 
@@ -56,7 +72,7 @@ const destroyAll = () => {
                     <SecondaryButton @click="markAllAsRead" v-if="notifications.data.length > 0">
                         Marcar todas como leídas
                     </SecondaryButton>
-                    <DangerButton @click="destroyAll" v-if="notifications.data.length > 0">
+                    <DangerButton @click="confirmDeleteAll" v-if="notifications.data.length > 0">
                         Vaciar Historial
                     </DangerButton>
                 </div>
@@ -109,7 +125,7 @@ const destroyAll = () => {
                                             </button>
 
                                             <button 
-                                                @click="destroyNotification(notification.id)"
+                                                @click="confirmDeleteNotification(notification.id)"
                                                 class="text-sm flex items-center text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-medium transition-colors"
                                                 title="Eliminar permanentemente"
                                             >
@@ -150,5 +166,26 @@ const destroyAll = () => {
                 </div>
             </div>
         </div>
+
+        <!-- Modales de Confirmación -->
+        <ConfirmModal
+            :show="showSingleDeleteModal"
+            title="Eliminar Notificación"
+            content="¿Estás seguro de que deseas eliminar permanentemente esta notificación?"
+            confirmText="Eliminar"
+            cancelText="Cancelar"
+            @close="showSingleDeleteModal = false"
+            @confirm="executeDestroyNotification"
+        />
+
+        <ConfirmModal
+            :show="showAllDeleteModal"
+            title="Vaciar Historial Completo"
+            content="¿Estás seguro de que quieres eliminar TODAS las notificaciones de tu historial? Esta acción no se puede deshacer."
+            confirmText="Vaciar Todo"
+            cancelText="Cancelar"
+            @close="showAllDeleteModal = false"
+            @confirm="executeDestroyAll"
+        />
     </AuthenticatedLayout>
 </template>

@@ -11,9 +11,9 @@ Se utiliza `@fullcalendar/vue3` para disponer de una vista rica del tipo "Agenda
 
 ## 2. Arquitectura de Sincronización (Backend)
 
-*   **Modelo de Base de Datos (`CalendarEvent`)**: A diferencia de delegar puramente en la nube, todos los eventos persisten localmente asegurando un performance instantáneo y evitando consultas `N+1` hacia los servidores de Google.
-*   **Gestor API (`Spatie\GoogleCalendar`)**: Todas las acciones (creación / edición / eliminación) originadas desde el sistema local, replican instantáneamente sus parámetros en el Google Calendar general.
-*   **Almacenamiento de Enlace**: Una vez replicado un evento nuevo, Google devuelve un Hash ID que almacenaremos en `google_event_id` en nuestro registro local.
+*   **Modelo Híbrido (`CalendarEvent`)**: Los eventos creados en el portal persisten localmente e inyectan una cabecera nativa u ocurrencia `RRULE` hacia los servidores de Google API. 
+*   **Aislamiento de la Muestra**: Para la visualización frontend se cargan los eventos base locales y se cruzan con la vista estricta que devuelve Google Calendar de los futuros próximos, deduplicando los bloques maestros locales que coinciden con las repeticiones autogeneradas para mantener la interfaz esmeralda sin duplicidades y delegar el trazado puramente en Google API.
+*   **Gestor API (`Spatie\GoogleCalendar` modificado)**: Todas las acciones (creación / edición de serie / eliminación) originadas desde el sistema local replican instantáneamente sus parámetros en el Google Calendar general usando parámetros especiales de silenciamiento.
 
 ## 3. Validaciones Inteligentes de UX
 El sistema cuenta con una tricapa de aserción preventiva para las fechas, asegurando que bloqueos cronológicos (donde la fecha de fin es anterior a la fecha de inicio o nula) jamás colisionen con las APIS strict de Google Calendar:
@@ -21,10 +21,14 @@ El sistema cuenta con una tricapa de aserción preventiva para las fechas, asegu
 - **Asistencia Frontend (Layer 2):** Si el operador deja el cajón `end_date` vacío por la prisa, la interfaz Vue interpela silenciosamente y clona la franja horario del inicio a la de fin y remite un paquete válido.
 - **Dique Backend (Layer 3):** Por último las request de Laravel inspeccionan e inyectan el reverso condicional antes de disparar las Reglas Nullables para erradicar cualquier tipo de exploit de saltos API.
 
-## 4. Notificaciones y Prevención de Ruido
+## 4. Custodia Privada de Notificaciones
 
-Con el fin de evitar "ruido de notificaciones" y no saturar de correos mediante Google, en cada petición de *crear / actualizar* mandamos el parámetro `['sendUpdates' => 'none']` limitando la comunicación nativa de Google de estos eventos.
-A su vez, en la base de datos local gestionamos un campo `notification_minutes_before` que, combinado con nuestro sistema de **Web Push**, permite que el sistema informe al usuario según sus tiempos solicitados sin interferencias.
+Con el fin de evitar "ruido cruzado" o correos repetitivos originados por Google Calendar (`spam`), toda la plataforma impone un estricto silenciamiento (`setUseDefault(false)` junto a `Overrides` en blanco) a cualquier alarma enviada.
+
+La Base de Datos MySQL se erige como la absoluta **Fuente de la Verdad** de las notificaciones:
+*   Un `Cron Job` local (`SyncUpcomingCalendarEvents`) audita quincenal o mensualmente la línea temporal de GCal.
+*   Si una instancia detectada en Google pertenece a una Serie Raíz de la base de datos local que tenía programada información de alertas o recordatorios, la herramienta hereda y clona esa alarma específicamente para el día venidero en la base de datos interna.
+*   De esta manera el minuto a minuto interno dispara los Avisos PWA y Correos sin ensuciar los repositorios Cloud nativos de terceros y respetando las Ventanas de Intervención (2 horas preventivas) en caso de edición en diferido.
 
 ## 4. Autenticación / Credenciales (Spatie)
 
