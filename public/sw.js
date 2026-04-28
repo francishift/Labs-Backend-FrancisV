@@ -37,7 +37,8 @@ self.addEventListener('push', function (event) {
         body: pushData.body,
         icon: pushData.icon,
         data: { url: pushData.url },
-        vibrate: pushData.vibrate || [100, 50, 100]
+        vibrate: pushData.vibrate || [100, 50, 100],
+        silent: false
     };
 
     event.waitUntil(
