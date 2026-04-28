@@ -73,4 +73,17 @@ class SoftwareTest extends TestCase
         $response->assertRedirect();
         $this->assertSoftDeleted('softwares', ['id' => $software->id]);
     }
+
+    public function test_falla_creacion_software_sin_campos_obligatorios()
+    {
+        $response = $this->actingAs($this->admin)->post(route('admin.softwares.store'), [
+            'tipo' => 'Software',
+            // Falta 'nombre'
+            'tipo_licencia' => 'Anual',
+            'precio' => 150.00,
+            'estado' => 'Activa',
+        ]);
+
+        $response->assertSessionHasErrors('nombre');
+    }
 }

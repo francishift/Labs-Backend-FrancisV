@@ -7,12 +7,11 @@ use App\Models\MantenimientoServicio;
 use App\Models\Mantenimiento;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Http\Requests\StoreMantenimientoServicioRequest;
+use App\Http\Requests\UpdateMantenimientoServicioRequest;
 
 class MantenimientoServicioController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         $servicios = MantenimientoServicio::query()
@@ -38,19 +37,9 @@ class MantenimientoServicioController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreMantenimientoServicioRequest $request)
     {
-        $data = $request->validate([
-            'mantenimiento_id' => 'required|exists:mantenimientos,id',
-            'descripcion' => 'required|string',
-            'duracion_minutos' => 'required|integer|min:0',
-            'fecha' => 'required|date',
-        ]);
-
-        $mantenimiento = Mantenimiento::find($data['mantenimiento_id']);
+        $data = $request->validated();
         $data['precio_hora'] = Mantenimiento::getDiscountedHourlyRate();
 
         MantenimientoServicio::create($data);
@@ -58,25 +47,13 @@ class MantenimientoServicioController extends Controller
         return back()->with('success', 'Servicio de mantenimiento registrado correctamente.');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, MantenimientoServicio $mantenimientoServicio)
+    public function update(UpdateMantenimientoServicioRequest $request, MantenimientoServicio $mantenimientoServicio)
     {
-        $data = $request->validate([
-            'descripcion' => 'required|string',
-            'duracion_minutos' => 'required|integer|min:0',
-            'fecha' => 'required|date',
-        ]);
-
-        $mantenimientoServicio->update($data);
+        $mantenimientoServicio->update($request->validated());
 
         return back()->with('success', 'Servicio de mantenimiento actualizado correctamente.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(MantenimientoServicio $mantenimientoServicio)
     {
         $mantenimientoServicio->delete();

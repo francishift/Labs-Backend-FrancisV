@@ -4,17 +4,26 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PurchaseFactura;
-use App\Models\Client;
+use App\Http\Requests\StorePurchaseFacturaRequest;
+use App\Http\Requests\UpdatePurchaseFacturaRequest;
+use App\Services\PurchaseFacturaService;
+use App\Services\GoogleDriveDocumentService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Storage;
-use Google\Service\Drive\DriveFile;
-use App\Services\GeminiInvoiceService;
-use Illuminate\Support\Facades\Log;
-use App\Services\GoogleDriveService; // Added this line
 
 class PurchaseFacturaController extends Controller
 {
+    private PurchaseFacturaService $purchaseService;
+    private GoogleDriveDocumentService $googleDriveService;
+
+    public function __construct(
+        PurchaseFacturaService $purchaseService,
+        GoogleDriveDocumentService $googleDriveService
+    ) {
+        $this->purchaseService = $purchaseService;
+        $this->googleDriveService = $googleDriveService;
+    }
+
     public function index(Request $request)
     {
         $query = PurchaseFactura::query();
@@ -52,7 +61,7 @@ class PurchaseFacturaController extends Controller
             'total' => (float) $totalsQuery->sum('total'),
         ];
 
-        // 4. Ordenación
+        // Ordenación
         $sort = $request->input('sort', 'date');
         $direction = $request->input('direction', 'desc');
         $allowedSorts = ['number', 'provider_name', 'date', 'net_amount', 'tax_amount', 'total', 'status'];
@@ -84,259 +93,50 @@ class PurchaseFacturaController extends Controller
         ]);
     }
 
-    public function store(Request $request, GeminiInvoiceService $geminiService)
+    public function store(StorePurchaseFacturaRequest $request)
     {
-        $request->validate([
-            'file' => [
-                'required',
-                'file',
-                'mimes:pdf',
-                function ($attribute, $value, $fail) {
-                    if ($value->getSize() > 10485760) {
-                        $fail('El archivo no debe pesar más de 10 MB.');
-                    }
-                },
-            ],
-        ]);
+        $result = $this->purchaseService->procesarFacturaDesdePdf($request->file('file'));
 
-        try {
-            $file = $request->file('file');
-            $fileName = $file->getClientOriginalName();
-            $pdfBinary = file_get_contents($file->getRealPath());
-
-            // 1. Crear registro inicial
-            $factura = PurchaseFactura::create([
-                'number' => 'PENDING-' . time() . '-' . uniqid(),
-                'provider_name' => 'Pendiente de procesar',
-                'date' => now(),
-                'total' => 0,
-                'status' => 'procesando',
-            ]);
-
-            // 2. Subida a Drive
-            $driveFileId = $this->uploadToDrive($factura, $pdfBinary, $fileName, now());
-            if (!$driveFileId) throw new \Exception("Error al subir el archivo a Google Drive.");
-            $factura->update(['google_drive_file_id' => $driveFileId]);
-            
-            // 3. Extracción de Datos
-            $extractedData = $geminiService->extractInvoiceData($pdfBinary);
-
-            if (empty($extractedData)) {
-                $factura->update(['status' => 'error_ia', 'provider_name' => 'Error en extracción IA']);
-                return response()->json(['success' => true, 'factura' => $factura, 'message' => 'IA falló al extraer datos.']);
-            }
-
-            // 4. Manejar duplicados y actualizar
-            return $this->handleExtractedData($factura, $extractedData);
-
-        } catch (\Exception $e) {
-            \Log::error('Purchase Invoice Error: ' . $e->getMessage());
-            if (isset($factura)) {
-                // Usar DB directamente para evitar problemas de modelo sucio con restricciones de unicidad
-                \DB::table('purchase_facturas')
-                    ->where('id', $factura->id)
-                    ->update([
-                        'status' => 'error',
-                        'notes' => 'Error: ' . $e->getMessage(),
-                        'updated_at' => now(),
-                    ]);
-            }
-            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
-        }
-    }
-
-    private function handleExtractedData(PurchaseFactura $factura, array $data)
-    {
-        $newNumber = $data['invoice_id'] ?? $factura->number;
-        
-        $existing = PurchaseFactura::withTrashed()
-            ->where('number', $newNumber)
-            ->where('id', '!=', $factura->id)
-            ->first();
-            
-        if ($existing) {
-            if ($existing->trashed()) {
-                $existing->forceDelete();
-            } else {
-                // Duplicado encontrado: marcar y detener
-                $factura->update([
-                    'number' => 'DUP-' . time() . '-' . $newNumber,
-                    'provider_name' => $data['supplier_name'] ?? $factura->provider_name,
-                    'total' => $data['total_amount'] ?? 0,
-                    'net_amount' => $data['net_amount'] ?? 0,
-                    'tax_amount' => $data['tax_amount'] ?? 0,
-                    'irpf_amount' => $data['irpf_amount'] ?? 0,
-                    'raw_data' => array_merge($data['raw'] ?? [], ['duplicate_of' => $existing->id, 'intended_number' => $newNumber]),
-                    'status' => 'duplicada',
-                ]);
-                return response()->json(['success' => true, 'factura' => $factura, 'message' => 'Factura duplicada detectada.']);
-            }
+        if (!$result['success']) {
+            return response()->json($result, 500);
         }
 
-        $updateData = [
-            'number' => $newNumber,
-            'provider_name' => $data['supplier_name'] ?? $factura->provider_name,
-            'total' => $data['total_amount'] ?? 0,
-            'net_amount' => $data['net_amount'] ?? 0,
-            'tax_amount' => $data['tax_amount'] ?? 0,
-            'irpf_amount' => $data['irpf_amount'] ?? 0,
-            'raw_data' => $data['raw'] ?? [],
-            'status' => 'recibida',
-        ];
-
-        if ($data['invoice_date']) {
-            $extractedDate = new \DateTime($data['invoice_date']);
-            $updateData['date'] = $extractedDate;
-            if ($extractedDate->format('Y-m') !== now()->format('Y-m')) {
-                $this->moveToCorrectFolder($factura, $extractedDate);
-            }
-        }
-
-        $factura->update($updateData);
-
-        return response()->json(['success' => true, 'factura' => $factura, 'message' => "Factura {$factura->number} procesada."]);
+        return response()->json($result);
     }
 
-    private function uploadToDrive(PurchaseFactura $factura, $pdfBinary, $originalName, $date = null)
+    public function update(UpdatePurchaseFacturaRequest $request, PurchaseFactura $purchaseFactura)
     {
-        $date = $date ?: now();
-        $adapter = Storage::disk('google_facturas')->getAdapter();
-        $service = $adapter->getService();
-        $rootDriveId = env('GOOGLE_DRIVE_FOLDER_ID_FACTURAS');
-
-        $yearFolderId = $this->findOrCreateFolder($service, $date->format('Y'), $rootDriveId);
-        $comprasFolderId = $this->findOrCreateFolder($service, 'COMPRAS', $yearFolderId);
-        $quarter = ceil($date->format('n') / 3);
-        $quarterFolderId = $this->findOrCreateFolder($service, "{$quarter}tri", $comprasFolderId);
-
-        // Sobrescribir si existe
-        $optParams = ['q' => "'$quarterFolderId' in parents and name = '$originalName' and trashed = false", 'fields' => 'files(id)'];
-        $existingFiles = $service->files->listFiles($optParams)->getFiles();
-
-        if (count($existingFiles) > 0) {
-            $existingFileId = $existingFiles[0]->getId();
-            $service->files->update($existingFileId, new DriveFile(), [
-                'data' => $pdfBinary, 'mimeType' => 'application/pdf', 'uploadType' => 'multipart', 'fields' => 'id'
-            ]);
-            return $existingFileId;
-        }
-
-        $driveFile = $service->files->create(new DriveFile(['name' => $originalName, 'parents' => [$quarterFolderId]]), [
-            'data' => $pdfBinary, 'mimeType' => 'application/pdf', 'uploadType' => 'multipart', 'fields' => 'id'
-        ]);
-
-        return $driveFile->getId();
-    }
-
-    private function moveToCorrectFolder(PurchaseFactura $factura, \DateTime $date)
-    {
-        try {
-            if (!$fileId = $factura->google_drive_file_id) return;
-            $adapter = Storage::disk('google_facturas')->getAdapter();
-            $service = $adapter->getService();
-            $rootDriveId = env('GOOGLE_DRIVE_FOLDER_ID_FACTURAS');
-
-            $yearFolderId = $this->findOrCreateFolder($service, $date->format('Y'), $rootDriveId);
-            $comprasFolderId = $this->findOrCreateFolder($service, 'COMPRAS', $yearFolderId);
-            $quarter = ceil($date->format('n') / 3);
-            $quarterFolderId = $this->findOrCreateFolder($service, "{$quarter}tri", $comprasFolderId);
-
-            $file = $service->files->get($fileId, ['fields' => 'parents']);
-            $previousParents = implode(',', $file->getParents());
-
-            $service->files->update($fileId, new DriveFile(), [
-                'addParents' => $quarterFolderId, 'removeParents' => $previousParents, 'fields' => 'id, parents'
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Move file error: ' . $e->getMessage());
-        }
-    }
-
-    private function findOrCreateFolder($service, $name, $parentId)
-    {
-        $optParams = [
-            'q' => "'$parentId' in parents and mimeType = 'application/vnd.google-apps.folder' and name = '$name' and trashed = false",
-            'fields' => 'files(id)'
-        ];
-        $files = $service->files->listFiles($optParams)->getFiles();
-        if (count($files) > 0) return $files[0]->getId();
-
-        $folder = $service->files->create(new DriveFile([
-            'name' => $name, 'mimeType' => 'application/vnd.google-apps.folder', 'parents' => [$parentId]
-        ]), ['fields' => 'id']);
-        
-        return $folder->getId();
-    }
-
-    public function update(Request $request, PurchaseFactura $purchaseFactura)
-    {
-        $validated = $request->validate([
-            'number' => 'required|string|unique:purchase_facturas,number,' . $purchaseFactura->id,
-            'provider_name' => 'required|string',
-            'date' => 'required|date',
-            'total' => 'required|numeric',
-            'net_amount' => 'nullable|numeric',
-            'tax_amount' => 'nullable|numeric',
-            'irpf_amount' => 'nullable|numeric',
-            'status' => 'required|string',
-            'notes' => 'nullable|string',
-        ]);
-        $purchaseFactura->update($validated);
+        $this->purchaseService->actualizarFactura($purchaseFactura, $request->validated());
         return redirect()->back()->with('success', 'Factura de compra actualizada.');
     }
 
     public function destroy(PurchaseFactura $purchaseFactura)
     {
-        if ($purchaseFactura->google_drive_file_id) {
-            try {
-                $service = Storage::disk('google_facturas')->getAdapter()->getService();
-                $service->files->delete($purchaseFactura->google_drive_file_id);
-            } catch (\Exception $e) {
-                \Log::warning('Note: Could not delete from Drive: ' . $purchaseFactura->google_drive_file_id);
-            }
-        }
-        $purchaseFactura->delete();
+        $this->purchaseService->eliminarFactura($purchaseFactura);
         return redirect()->back()->with('success', 'Factura eliminada.');
     }
 
     public function showPdf(PurchaseFactura $purchaseFactura)
     {
-        if (!$purchaseFactura->google_drive_file_id) abort(404);
-        try {
-            $service = Storage::disk('google_facturas')->getAdapter()->getService();
-            $response = $service->files->get($purchaseFactura->google_drive_file_id, ['alt' => 'media']);
-            return response($response->getBody()->getContents())
-                ->header('Content-Type', 'application/pdf')
-                ->header('Content-Disposition', 'inline; filename="' . $purchaseFactura->number . '.pdf"');
-        } catch (\Exception $e) {
-            abort(500);
+        if (!$purchaseFactura->google_drive_file_id) {
+            abort(404);
         }
+
+        $content = $this->googleDriveService->getDocumentContent('google_facturas', $purchaseFactura->google_drive_file_id);
+        
+        if (!$content) {
+            abort(500, 'No se pudo descargar el archivo de Google Drive.');
+        }
+
+        return response($content)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="' . $purchaseFactura->number . '.pdf"');
     }
 
     public function confirmOverwrite(PurchaseFactura $purchaseFactura)
     {
-        if ($purchaseFactura->status !== 'duplicada') return redirect()->back();
-        $duplicateOfId = $purchaseFactura->raw_data['duplicate_of'] ?? null;
-        if (!$duplicateOfId) return redirect()->back();
-
-        if ($original = PurchaseFactura::find($duplicateOfId)) {
-            if ($original->google_drive_file_id) {
-                try {
-                    Storage::disk('google_facturas')->getAdapter()->getService()->files->delete($original->google_drive_file_id);
-                } catch (\Exception $e) {}
-            }
-            $original->forceDelete(); 
-        }
-
-        $purchaseFactura->update([
-            'number' => $purchaseFactura->raw_data['intended_number'] ?? $purchaseFactura->number,
-            'status' => 'recibida',
-        ]);
-
-        if ($purchaseFactura->date) {
-            $this->moveToCorrectFolder($purchaseFactura, new \DateTime($purchaseFactura->date->format('Y-m-d')));
-        }
-
+        $this->purchaseService->resolverDuplicado($purchaseFactura);
+        
         return redirect()->back()->with('success', "Factura corregida.");
     }
 }

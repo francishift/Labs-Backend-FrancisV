@@ -4,20 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Extension;
-use App\Models\Proyecto;
-use App\Models\Mantenimiento;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Http\Requests\StoreExtensionRequest;
+use App\Http\Requests\UpdateExtensionRequest;
 
 class ExtensionController extends Controller
 {
-    /**
-     * Muestra el listado paginado de extensiones.
-     * Incluye buscador global y estadísticas agregadas.
-     *
-     * @param Request $request
-     * @return \Inertia\Response
-     */
     public function index(Request $request)
     {
         $extensiones = Extension::query()
@@ -42,50 +35,17 @@ class ExtensionController extends Controller
         ]);
     }
 
-    /**
-     * Almacena una nueva extensión en la base de datos.
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function store(Request $request)
+    public function store(StoreExtensionRequest $request)
     {
-        $data = $request->validate([
-            'nombre' => 'required|string|max:255',
-            'url' => 'nullable|url|max:255',
-            'descripcion' => 'nullable|string',
-            'precio' => 'required|numeric|min:0',
-            'tipo_licencia' => 'required|in:Anual,Mensual,Pago único',
-            'estado' => 'required|in:Activada,Cancelada',
-        ]);
-
-        Extension::create($data);
-
+        Extension::create($request->validated());
         return back()->with('success', 'Extensión creada correctamente.');
     }
 
-    /**
-     * Actualiza los datos de una extensión existente.
-     *
-     * @param Request $request
-     * @param Extension $extensione
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function update(Request $request, Extension $extensione)
+    public function update(UpdateExtensionRequest $request, Extension $extensione)
     {
-        $data = $request->validate([
-            'nombre' => 'required|string|max:255',
-            'url' => 'nullable|url|max:255',
-            'descripcion' => 'nullable|string',
-            'precio' => 'required|numeric|min:0',
-            'tipo_licencia' => 'required|in:Anual,Mensual,Pago único',
-            'estado' => 'required|in:Activada,Cancelada',
-        ]);
-
         $oldPrecio = $extensione->precio;
-        $extensione->update($data);
+        $extensione->update($request->validated());
 
-        // Si el precio ha cambiado, forzar recálculo masivo para proyectos activos
         if ($oldPrecio != $extensione->precio) {
             app(\App\Services\ExtensionPricingService::class)->recalculateForExtension($extensione);
         }
@@ -93,17 +53,10 @@ class ExtensionController extends Controller
         return back()->with('success', 'Extensión actualizada correctamente.');
     }
 
-    /**
-     * Elimina una extensión específica (Soft Delete).
-     *
-     * @param Extension $extensione
-     * @return \Illuminate\Http\RedirectResponse
-     */
     public function destroy(Extension $extensione)
     {
         $extensione->delete();
         
-        // Recalcular sus precios para los proyectos activos tras eliminarse (soft-delete)
         app(\App\Services\ExtensionPricingService::class)->recalculateForExtension($extensione);
 
         return back()->with('success', 'Extensión eliminada correctamente.');

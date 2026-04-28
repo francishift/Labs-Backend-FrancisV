@@ -6,16 +6,27 @@ use App\Http\Controllers\Controller;
 use App\Models\Mantenimiento;
 use App\Models\Client;
 use App\Models\Extension;
+use App\Models\Software;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\MantenimientoPdfMail;
+use App\Http\Requests\StoreMantenimientoRequest;
+use App\Http\Requests\UpdateMantenimientoRequest;
+use App\Services\MantenimientoService;
+use App\Services\DocumentPdfService;
+use Carbon\Carbon;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class MantenimientoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    private MantenimientoService $mantenimientoService;
+    private DocumentPdfService $pdfService;
+
+    public function __construct(MantenimientoService $mantenimientoService, DocumentPdfService $pdfService)
+    {
+        $this->mantenimientoService = $mantenimientoService;
+        $this->pdfService = $pdfService;
+    }
+
     public function index(Request $request)
     {
         $mantenimientos = Mantenimiento::query()
@@ -34,9 +45,8 @@ class MantenimientoController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        // Métrica global solicitada: Gasto Anual Soft/Host (Suma de costo anual de software activo + coste anual extensiones activas)
-        $extensionesAnuales = \App\Models\Extension::where('estado', 'Activada')->get()->sum(fn($e) => $e->calculatePeriodCost('all'));
-        $softwareAnual = \App\Models\Software::getTotalAnual();
+        $extensionesAnuales = Extension::where('estado', 'Activada')->get()->sum(fn($e) => $e->calculatePeriodCost('all'));
+        $softwareAnual = Software::getTotalAnual();
 
         return Inertia::render('Admin/Mantenimientos/Index', [
             'mantenimientos' => $mantenimientos,
@@ -49,41 +59,16 @@ class MantenimientoController extends Controller
         ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreMantenimientoRequest $request)
     {
-        $data = $request->validate([
-            'aplicacion' => 'required|string|max:255',
-            'url' => 'nullable|url|max:255',
-            'client_id' => 'required|exists:clients,id',
-            'fecha_inicio' => 'required|date',
-            'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
-            'tipo_pago' => 'required|string|in:mensual,trimestral,anual',
-            'importe' => 'required|numeric|min:0',
-            'estado' => 'required|string|in:en curso,finalizado',
-            'descripcion' => 'nullable|string',
-            'extensiones' => 'nullable|array',
-            'extensiones.*' => 'exists:extensiones,id',
-        ]);
-
-        $data['precio_hora'] = Mantenimiento::getDiscountedHourlyRate();
-        $data['porcentaje_software'] = (float) \App\Models\Configuracion::get('porcentaje_software', 2);
-        $data['coste_software_anual'] = \App\Models\Software::getTotalAnual();
-        
-        $mantenimiento = Mantenimiento::create($data);
-        
-        if ($request->has('extensiones')) {
-            $mantenimiento->syncExtensionSnapshots($request->extensiones);
-        }
+        $this->mantenimientoService->crearMantenimiento(
+            $request->validated(),
+            $request->input('extensiones')
+        );
 
         return back()->with('success', 'Mantenimiento creado correctamente.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Request $request, Mantenimiento $mantenimiento)
     {
         $mantenimiento->load([
@@ -92,9 +77,8 @@ class MantenimientoController extends Controller
         ]);
         
         $year = $request->input('year', date('Y'));
-        $month = $request->input('month', date('n')); // 1-12 o 'all'
+        $month = $request->input('month', date('n'));
         
-        // Filtro de servicios por periodo
         $serviciosQuery = $mantenimiento->servicios()
             ->when($year, function ($q) use ($year) {
                 $q->whereYear('fecha', $year);
@@ -111,12 +95,10 @@ class MantenimientoController extends Controller
             
         $financialStats = $mantenimiento->getFinancialStats($month, $year);
 
-        // Datos para los selectores de filtro
         $aniosDisponibles = $mantenimiento->servicios()->selectRaw('YEAR(fecha) as year')->distinct()->pluck('year')->toArray();
         if (!in_array(date('Y'), $aniosDisponibles)) $aniosDisponibles[] = (int)date('Y');
         sort($aniosDisponibles);
 
-        // Obtenemos todos los IDs en el orden correcto para encontrar la "página" del mantenimiento actual
         $allMantenimientoIds = Mantenimiento::query()
             ->orderBy('fecha_inicio', 'desc')
             ->orderBy('id', 'desc')
@@ -126,8 +108,7 @@ class MantenimientoController extends Controller
         $currentIndex = array_search($mantenimiento->id, $allMantenimientoIds);
         $currentPage = $currentIndex !== false ? $currentIndex + 1 : 1;
 
-        // Creamos un paginador manual para la navegación entre mantenimientos
-        $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+        $paginator = new LengthAwarePaginator(
             [$mantenimiento],
             count($allMantenimientoIds),
             1,
@@ -135,7 +116,6 @@ class MantenimientoController extends Controller
             ['path' => route('admin.mantenimientos.index')]
         );
 
-        // Ajustamos los links para que apunten à 'show'
         $paginationData = $paginator->toArray();
         foreach ($paginationData['links'] as &$link) {
             if ($link['url']) {
@@ -157,8 +137,8 @@ class MantenimientoController extends Controller
             'mantenimiento' => $mantenimiento,
             'servicios' => $servicios,
             'pagination' => $paginationData,
-            'clients' => \App\Models\Client::orderBy('name')->get(['id', 'name']),
-            'availableExtensions' => \App\Models\Extension::orderBy('nombre')->get(['id', 'nombre']),
+            'clients' => Client::orderBy('name')->get(['id', 'name']),
+            'availableExtensions' => Extension::orderBy('nombre')->get(['id', 'nombre']),
             'stats' => array_merge($financialStats, [
                 'periodo' => [
                     'month' => $month === 'all' ? 'all' : (int)$month,
@@ -169,41 +149,20 @@ class MantenimientoController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Mantenimiento $mantenimiento)
+    public function update(UpdateMantenimientoRequest $request, Mantenimiento $mantenimiento)
     {
-        $data = $request->validate([
-            'aplicacion' => 'required|string|max:255',
-            'url' => 'nullable|url|max:255',
-            'client_id' => 'required|exists:clients,id',
-            'fecha_inicio' => 'required|date',
-            'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
-            'tipo_pago' => 'required|string|in:mensual,trimestral,anual',
-            'importe' => 'required|numeric|min:0',
-            'estado' => 'required|string|in:en curso,finalizado',
-            'descripcion' => 'nullable|string',
-            'extensiones' => 'nullable|array',
-            'extensiones.*' => 'exists:extensiones,id',
-        ]);
-
-        $mantenimiento->update($data);
-        
-        if ($request->has('extensiones')) {
-            $mantenimiento->syncExtensionSnapshots($request->extensiones);
-        }
+        $this->mantenimientoService->actualizarMantenimiento(
+            $mantenimiento,
+            $request->validated(),
+            $request->input('extensiones')
+        );
 
         return back()->with('success', 'Mantenimiento actualizado correctamente.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Mantenimiento $mantenimiento)
     {
         $mantenimiento->delete();
-
         return back()->with('success', 'Mantenimiento eliminado correctamente.');
     }
 
@@ -213,46 +172,11 @@ class MantenimientoController extends Controller
         $month = $request->input('month', date('n'));
         if ($month !== 'all') $month = (int) $month;
 
-        $mantenimiento->load([
-            'cliente:id,name,email,phone,mobile',
-            'extensiones:id,nombre,precio,tipo_licencia',
-            'servicios' => function($q) use ($year, $month) {
-                $q->when($year, function ($query) use ($year) {
-                    $query->whereYear('fecha', $year);
-                })
-                ->when($month !== 'all', function ($query) use ($month) {
-                    $query->whereMonth('fecha', $month);
-                })
-                ->orderBy('fecha', 'desc')
-                ->orderBy('created_at', 'desc');
-            },
-        ]);
-
-        $stats = $mantenimiento->getFinancialStats($month, $year);
-
-        $logoPath = public_path('img/logo.png');
-        $logoBase64 = '';
-        if (file_exists($logoPath)) {
-            $type = pathinfo($logoPath, PATHINFO_EXTENSION);
-            $data = file_get_contents($logoPath);
-            $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
-        }
-
         $hidePrices = $request->boolean('hide_prices', false);
+        
+        $pdf = $this->pdfService->generateMantenimientoPdf($mantenimiento, $month, $year, $hidePrices);
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.mantenimiento', [
-            'mantenimiento' => $mantenimiento,
-            'logoBase64' => $logoBase64,
-            'stats' => $stats,
-            'periodo' => [
-                'month' => $month,
-                'year' => $year
-            ],
-            'precioHoraFallback' => $mantenimiento->precio_hora ?: \App\Models\Mantenimiento::getDiscountedHourlyRate(),
-            'hidePrices' => $hidePrices,
-        ]);
-
-        $monthName = $month === 'all' ? 'Anual' : ucfirst(\Carbon\Carbon::create()->month($month)->locale('es')->monthName);
+        $monthName = $month === 'all' ? 'Anual' : ucfirst(Carbon::create()->month($month)->locale('es')->monthName);
         $fileName = "Mantenimiento-{$monthName}-{$year}.pdf";
 
         if ($request->has('download')) {
@@ -264,56 +188,21 @@ class MantenimientoController extends Controller
 
     public function sendPdfEmail(Request $request, Mantenimiento $mantenimiento)
     {
-        $request->validate([
-            'email' => 'required|email'
-        ]);
+        $request->validate(['email' => 'required|email']);
 
         $year = (int) $request->input('year', date('Y'));
         $month = $request->input('month', date('n'));
         if ($month !== 'all') $month = (int) $month;
 
-        $mantenimiento->load([
-            'cliente:id,name,email,phone,mobile',
-            'extensiones:id,nombre,precio,tipo_licencia',
-            'servicios' => function($q) use ($year, $month) {
-                $q->when($year, function ($query) use ($year) {
-                    $query->whereYear('fecha', $year);
-                })
-                ->when($month !== 'all', function ($query) use ($month) {
-                    $query->whereMonth('fecha', $month);
-                })
-                ->orderBy('fecha', 'desc')
-                ->orderBy('created_at', 'desc');
-            },
-        ]);
-
-        $stats = $mantenimiento->getFinancialStats($month, $year);
-
-        $logoPath = public_path('img/logo.png');
-        $logoBase64 = '';
-        if (file_exists($logoPath)) {
-            $type = pathinfo($logoPath, PATHINFO_EXTENSION);
-            $data = file_get_contents($logoPath);
-            $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
-        }
-
         $hidePrices = $request->boolean('hide_prices', false);
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.mantenimiento', [
-            'mantenimiento' => $mantenimiento,
-            'logoBase64' => $logoBase64,
-            'stats' => $stats,
-            'periodo' => [
-                'month' => $month,
-                'year' => $year
-            ],
-            'precioHoraFallback' => $mantenimiento->precio_hora ?: \App\Models\Mantenimiento::getDiscountedHourlyRate(),
-            'hidePrices' => $hidePrices,
-        ]);
-
-        $pdfOutput = $pdf->output();
-
-        Mail::to($request->email)->send(new MantenimientoPdfMail($mantenimiento, $pdfOutput, $month, $year));
+        $this->mantenimientoService->enviarPdfPorEmail(
+            $mantenimiento,
+            $request->email,
+            $month,
+            $year,
+            $hidePrices
+        );
 
         return back()->with('success', 'Email enviado correctamente.');
     }

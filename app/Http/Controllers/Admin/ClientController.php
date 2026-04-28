@@ -9,12 +9,22 @@ use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 use Inertia\Inertia;
 use App\Models\Presupuesto;
+use App\Models\Factura;
+use App\Http\Requests\StoreClientRequest;
+use App\Http\Requests\UpdateClientRequest;
+use App\Services\DocumentPdfService;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ClientController extends Controller
 {
-    public function __construct()
+    private DocumentPdfService $pdfService;
+
+    public function __construct(DocumentPdfService $pdfService)
     {
+        $this->pdfService = $pdfService;
     }
+
     public function index(Request $request)
     {
         $clients = Client::query()
@@ -35,23 +45,9 @@ class ClientController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreClientRequest $request)
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'cif_nif' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:20',
-            'mobile' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:100',
-            'zip_code' => 'nullable|string|max:10',
-            'province' => 'nullable|string|max:100',
-            'country' => 'nullable|string|max:100',
-
-            'secondary_contacts' => 'nullable|string',
-            'excel_created_at' => 'nullable|date',
-        ]);
+        $data = $request->validated();
 
         if (!empty($data['secondary_contacts'])) {
             $data['secondary_contacts'] = array_map('trim', explode(',', $data['secondary_contacts']));
@@ -61,27 +57,12 @@ class ClientController extends Controller
 
         Client::create($data);
 
-        return back()
-            ->with('success', 'Cliente creado correctamente.');
+        return back()->with('success', 'Cliente creado correctamente.');
     }
 
-    public function update(Request $request, Client $client)
+    public function update(UpdateClientRequest $request, Client $client)
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'cif_nif' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:20',
-            'mobile' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:100',
-            'zip_code' => 'nullable|string|max:10',
-            'province' => 'nullable|string|max:100',
-            'country' => 'nullable|string|max:100',
-
-            'secondary_contacts' => 'nullable|string',
-            'excel_created_at' => 'nullable|date',
-        ]);
+        $data = $request->validated();
 
         if (!empty($data['secondary_contacts'])) {
             $data['secondary_contacts'] = array_filter(array_map('trim', explode(',', $data['secondary_contacts'])));
@@ -91,16 +72,14 @@ class ClientController extends Controller
 
         $client->update($data);
 
-        return back()
-            ->with('success', 'Cliente actualizado correctamente.');
+        return back()->with('success', 'Cliente actualizado correctamente.');
     }
 
     public function destroy(Client $client)
     {
         $client->delete();
 
-        return back()
-            ->with('success', 'Cliente eliminado correctamente.');
+        return back()->with('success', 'Cliente eliminado correctamente.');
     }
 
     public function import(Request $request)
@@ -119,8 +98,7 @@ class ClientController extends Controller
 
         Excel::import(new ClientImport, $request->file('file'));
 
-        return back()
-            ->with('success', 'Importación finalizada. Los datos existentes han sido actualizados y los nuevos añadidos.');
+        return back()->with('success', 'Importación finalizada. Los datos existentes han sido actualizados y los nuevos añadidos.');
     }
 
     public function show(Client $client)
@@ -136,7 +114,7 @@ class ClientController extends Controller
             ->orderBy('date', 'desc')
             ->get();
 
-        $facturas = \App\Models\Factura::where('client_id', $client->id)
+        $facturas = Factura::where('client_id', $client->id)
             ->orderBy('date', 'desc')
             ->get();
 
@@ -149,7 +127,7 @@ class ClientController extends Controller
         $currentIndex = array_search($client->id, $allClientIds);
         $currentPage = $currentIndex !== false ? $currentIndex + 1 : 1;
 
-        $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+        $paginator = new LengthAwarePaginator(
             [$client],
             count($allClientIds),
             1,
@@ -188,31 +166,7 @@ class ClientController extends Controller
 
     public function exportPdf(Request $request, Client $client)
     {
-        $client->load([
-            'proyectos' => fn($q) => $q->orderBy('fecha_inicio', 'desc'),
-            'proyectos.extensiones',
-            'mantenimientos' => fn($q) => $q->orderBy('fecha_inicio', 'desc'),
-            'mantenimientos.extensiones'
-        ]);
-
-        // Presupuestos Nativos
-        $presupuestos = Presupuesto::where('client_id', $client->id)
-            ->orderBy('date', 'desc')
-            ->get();
-
-        $logoPath = public_path('img/logo.png');
-        $logoBase64 = '';
-        if (file_exists($logoPath)) {
-            $type = pathinfo($logoPath, PATHINFO_EXTENSION);
-            $data = file_get_contents($logoPath);
-            $logoBase64 = 'data:image/' . $type . ';base64,' . base64_encode($data);
-        }
-
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.client', compact(
-            'client', 
-            'presupuestos', 
-            'logoBase64'
-        ));
+        $pdf = $this->pdfService->generateClientPdf($client);
         
         if ($request->has('download')) {
             return $pdf->download("Cliente-{$client->name}.pdf");
@@ -239,7 +193,7 @@ class ClientController extends Controller
 
             return response()->json($presupuestos);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Error fetching budgets for client ' . $client->id . ': ' . $e->getMessage());
+            Log::error('Error fetching budgets for client ' . $client->id . ': ' . $e->getMessage());
             return response()->json([], 500);
         }
     }
@@ -247,8 +201,7 @@ class ClientController extends Controller
     public function getFacturas(Client $client)
     {
         try {
-
-            $facturas = \App\Models\Factura::where('client_id', $client->id)
+            $facturas = Factura::where('client_id', $client->id)
                 ->orderBy('date', 'desc')
                 ->get(['id', 'number', 'total', 'date', 'proyecto_id'])
                 ->map(function ($f) {
@@ -261,7 +214,7 @@ class ClientController extends Controller
 
             return response()->json($facturas);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Error fetching invoices for client ' . $client->id . ': ' . $e->getMessage());
+            Log::error('Error fetching invoices for client ' . $client->id . ': ' . $e->getMessage());
             return response()->json([], 500);
         }
     }

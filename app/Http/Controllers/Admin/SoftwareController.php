@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Software;
-use App\Models\Proyecto;
-use App\Models\Mantenimiento;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Http\Requests\StoreSoftwareRequest;
+use App\Http\Requests\UpdateSoftwareRequest;
 
 class SoftwareController extends Controller
 {
@@ -34,42 +34,21 @@ class SoftwareController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreSoftwareRequest $request)
     {
-        $data = $request->validate([
-            'tipo' => 'required|in:Software,Hosting',
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'tipo_licencia' => 'required|in:Anual,Mensual',
-            'precio' => 'required|numeric|min:0',
-            'estado' => 'required|in:Activa,Finalizada',
-        ]);
-
-        Software::create($data);
-
+        Software::create($request->validated());
         return back()->with('success', 'Elemento creado correctamente.');
     }
 
-    public function update(Request $request, Software $software)
+    public function update(UpdateSoftwareRequest $request, Software $software)
     {
-        $data = $request->validate([
-            'tipo' => 'required|in:Software,Hosting',
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-            'tipo_licencia' => 'required|in:Anual,Mensual',
-            'precio' => 'required|numeric|min:0',
-            'estado' => 'required|in:Activa,Finalizada',
-        ]);
-
-        $software->update($data);
-
+        $software->update($request->validated());
         return back()->with('success', 'Elemento actualizado correctamente.');
     }
 
     public function destroy(Software $software)
     {
         $software->delete();
-
         return back()->with('success', 'Elemento eliminado correctamente.');
     }
 }
