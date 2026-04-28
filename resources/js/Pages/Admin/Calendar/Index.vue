@@ -168,7 +168,7 @@ function createNewForm() {
                 
                 <PageHeader 
                     title="Calendario" 
-                    subtitle="Gestiona tus citas, tareas y proyectos de forma eficiente y sincronizada."
+                    subtitle="Gestiona citas, tareas y proyectos de forma eficiente y sincronizada."
                 >
                     <template #actions>
                         <PrimaryButton @click="createNewForm">
