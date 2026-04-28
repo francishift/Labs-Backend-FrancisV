@@ -21,7 +21,7 @@ Una solución **ERP y CRM completa y premium**, diseñada para agencias digitale
 - **🔄 Sincronización Google Calendar**: Sincronización bidireccional silenciosa (vía Eloquent Observers) que enlaza el CRM local con tu calendario personal.
 - **📊 Analítica y MRR en Tiempo Real**: Dashboards financieros y cuadros de mando creados con Apache ECharts, con cálculos automatizados de Ingresos Recurrentes Mensuales.
 - **⚡ Rendimiento y Base de Datos**: Optimización extrema con Eager Loading (`with()`) para prevenir cuellos de botella N+1 y paginación en todos los recursos.
-- **🌓 Interfaz Premium**: UI/UX responsivo con modo oscuro integrado, creado con Vue 3 (Composition API) e Inertia.js para navegación ultrarrápida sin recargas de página.
+- **🌓 Interfaz Premium**: UI/UX responsive con modo oscuro integrado, creado con Vue 3 (Composition API) e Inertia.js para navegación ultrarrápida sin recargas de página.
 
 ---
 
