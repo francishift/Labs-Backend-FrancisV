@@ -2,7 +2,7 @@
 
 [English Version Below](#-labs-backend---enterprise-management-system-saas)
 
-[![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel)](https://laravel.com)
+[![Laravel](https://img.shields.io/badge/Laravel-13.x-FF2D20?style=for-the-badge&logo=laravel)](https://laravel.com)
 [![Vue.js](https://img.shields.io/badge/Vue.js-3.x-4FC08D?style=for-the-badge&logo=vue.js)](https://vuejs.org)
 [![Inertia.js](https://img.shields.io/badge/Inertia.js-1.x-9553E9?style=for-the-badge&logo=inertia)](https://inertiajs.com)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com)
@@ -37,7 +37,7 @@ Una solución **ERP y CRM completa y premium**, diseñada para agencias digitale
 
 | Capa | Tecnologías |
 | :--- | :--- |
-| **Backend** | Laravel 12, PHP 8.3, Eloquent ORM |
+| **Backend** | Laravel 13, PHP 8.4, Eloquent ORM |
 | **Frontend** | Vue 3 (Composition API), Inertia.js |
 | **Estilo** | Tailwind CSS, Headless UI |
 | **Analítica** | Apache ECharts, Vue-ECharts |
@@ -70,7 +70,7 @@ graph TD
 
 ### Requisitos
 
-- PHP 8.3+
+- PHP 8.4+
 - Node.js 20+
 - Composer
 - MySQL/MariaDB
@@ -137,7 +137,7 @@ Este proyecto está bajo la licencia **GNU General Public License v3.0** - mira 
 
 # 🚀 Labs Backend - Enterprise Management System
 
-[![Laravel](https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel)](https://laravel.com)
+[![Laravel](https://img.shields.io/badge/Laravel-13.x-FF2D20?style=for-the-badge&logo=laravel)](https://laravel.com)
 [![Vue.js](https://img.shields.io/badge/Vue.js-3.x-4FC08D?style=for-the-badge&logo=vue.js)](https://vuejs.org)
 [![Inertia.js](https://img.shields.io/badge/Inertia.js-1.x-9553E9?style=for-the-badge&logo=inertia)](https://inertiajs.com)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com)
@@ -174,7 +174,7 @@ A premium, full-featured **Enterprise Resource Planning (ERP) and CRM solution**
 
 | Layer | Technologies |
 | :--- | :--- |
-| **Backend** | Laravel 12, PHP 8.3, Eloquent ORM |
+| **Backend** | Laravel 13, PHP 8.4, Eloquent ORM |
 | **Frontend** | Vue 3 (Composition API), Inertia.js |
 | **Styling** | Tailwind CSS, Headless UI |
 | **Analytics** | Apache ECharts, Vue-ECharts |
@@ -218,7 +218,7 @@ graph TD
 
 ### Prerequisites
 
-- PHP 8.3+
+- PHP 8.4+
 - Node.js 20+
 - Composer
 - MySQL/MariaDB
