@@ -25,3 +25,8 @@ Thumbs.db
 /database/backups
 
 
+
+# AI Agents
+.agents/
+.gemini/
+

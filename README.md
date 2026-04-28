@@ -1,4 +1,4 @@
-# 🚀 Labs Backend - Sistema de Gestión Empresarial
+# 🚀 Labs Backend - Enterprise Management System
 
 [English Version Below](#-labs-backend---enterprise-management-system-saas)
 
@@ -7,29 +7,21 @@
 [![Inertia.js](https://img.shields.io/badge/Inertia.js-1.x-9553E9?style=for-the-badge&logo=inertia)](https://inertiajs.com)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com)
 
-Una solución **ERP y CRM completa y premium**, diseñada para agencias digitales y freelancers. Este sistema proporciona un panel centralizado para gestionar proyectos, servicios de mantenimiento recurrentes, relaciones con clientes y rendimiento del equipo con analítica avanzada.
+Una solución **ERP y CRM completa y premium**, diseñada para agencias digitales y freelancers. Este sistema proporciona un panel centralizado para gestionar proyectos, servicios de mantenimiento recurrentes, relaciones con clientes y rendimiento del equipo con analítica avanzada, bajo una **Arquitectura Limpia** altamente escalable.
 
 ---
 
 ## ✨ Funcionalidades Clave
 
-- **📊 Dashboard de Analítica Avanzada**: KPIs en tiempo real que rastrean la rentabilidad de proyectos, Ingresos Recurrentes Mensuales (MRR) y asignación de recursos usando ECharts.
-- **💼 CRM Integral**: Perfiles de clientes multifacéticos con historiales detallados de proyectos, contratos de mantenimiento y registros de comunicación.
-- **🏗️ Gestión del Ciclo de Vida de Proyectos**: Control granular sobre las etapas del proyecto, desde la estimación y presupuesto hasta la entrega final y seguimiento de tareas.
-- **🔄 Automatización de Servicios Recurrentes**: Gestión automatizada de mantenimientos mensuales y anuales, incluyendo cálculos automáticos de rentabilidad.
-- **🔌 Ecosistema de Extensiones**: Repositorio centralizado de herramientas y licencias utilizadas en diferentes proyectos para optimizar la gestión de costes.
-- **🔐 RBAC Seguro**: Control de acceso detallado mediante el sistema de permisos de Spatie (roles de Admin, Coordinador y Visor).
-- **📥 Importación Inteligente de Datos**: Sistema de importación masiva para datos de clientes heredados con normalización automática.
-- **🌓 Interfaz Adaptativa**: Interfaz totalmente responsiva con modo oscuro integrado y navegación de alto rendimiento impulsada por Inertia.js.
-- **🎨 Refinamiento UI Premium**: Sistema de espaciado optimizado (`p-4`) en móviles para mejor balance visual y legibilidad en todas las vistas de lista y detalle.
-- **⚡ Optimización de Alto Rendimiento**: Eliminación masiva de consultas N+1 mediante carga ansiosa (`eager loading`) estratégica, resultando en una navegación y guardado instantáneos.
-- **🖱️ Interactividad en Tablas**: Filas clicables en proyectos y mantenimientos para edición directa, mejorando significativamente la eficiencia operativa.
-- **📊 Gráficos Ultra-Nítidos y Optimizados**: Etiquetas inteligentes que se ajustan automáticamente (truncado, rotación) y renderizado SVG para una visualización perfecta en cualquier dispositivo.
-- **🔗 Vinculación Proyecto-Presupuesto**: Asociación directa de presupuestos a Proyectos, permitiendo un seguimiento financiero preciso y acceso a PDF nativo con un clic.
-- **📄 Gestión Inteligente de Facturas**: Sincronización, almacenamiento en Drive (`.../VENTAS/1tri/...`) y extracción automática de datos (proveedor, importes, impuestos) mediante **Google Gemini AI**. Incluye una interfaz Vue dedicada para revisión, validación y filtrado de facturas de compra.
-- **👥 Gestión Avanzada de Contactos**: Manejo inteligente de perfiles unificados, asegurando datos financieros cohesionados.
-- **🛡️ Persistencia de Precios de Mantenimiento**: Nueva arquitectura de base de datos que registra el historial de precios aplicados, permitiendo actualizaciones de tarifas sin afectar de forma destructiva a la analítica histórica.
-- **📅 Sincronización Automática con Google Calendar**: Motor en segundo plano (vía Eloquent Observer) que sincroniza de forma bidireccional y sin interrupciones visuales las Notas y Tareas de la app directamente hacia Google Calendar, con soporte multi-scope OAuth local.
+- **🏗️ Arquitectura Limpia (Clean Architecture)**: Lógica de negocio 100% aislada en clases de Servicio transaccionales, Controladores delgados y validación estricta vía FormRequests. Cero código espagueti.
+- **🛡️ Alta Fiabilidad (75+ Tests Automatizados)**: Suite completa de pruebas unitarias y de integración que verifican la creación de facturas, cálculos de rentabilidad, envíos de emails y sincronizaciones VPN, garantizando cero regresiones.
+- **💼 Ecosistema Nativo e Independiente**: Generación ultrarrápida al vuelo (sin estado) de Presupuestos y Facturas de Venta en PDF. Todo persiste en base de datos local y Google Drive, logrando independencia total de ERPs externos.
+- **🤖 Inteligencia Artificial (Gemini AI)**: Sistema automatizado que escanea, clasifica y extrae datos financieros de las facturas de proveedores enviadas por PDF, almacenándolas de forma resiliente en Google Drive.
+- **🔐 VPN Automatizada (WireGuard)**: Orquestador integrado que genera redes privadas, asigna IPs y distribuye llaves de conexión a los nuevos empleados automáticamente por email.
+- **🔄 Sincronización Google Calendar**: Sincronización bidireccional silenciosa (vía Eloquent Observers) que enlaza el CRM local con tu calendario personal.
+- **📊 Analítica y MRR en Tiempo Real**: Dashboards financieros y cuadros de mando creados con Apache ECharts, con cálculos automatizados de Ingresos Recurrentes Mensuales.
+- **⚡ Rendimiento y Base de Datos**: Optimización extrema con Eager Loading (`with()`) para prevenir cuellos de botella N+1 y paginación en todos los recursos.
+- **🌓 Interfaz Premium**: UI/UX responsivo con modo oscuro integrado, creado con Vue 3 (Composition API) e Inertia.js para navegación ultrarrápida sin recargas de página.
 
 ---
 
@@ -38,29 +30,31 @@ Una solución **ERP y CRM completa y premium**, diseñada para agencias digitale
 | Capa | Tecnologías |
 | :--- | :--- |
 | **Backend** | Laravel 13, PHP 8.4, Eloquent ORM |
+| **Arquitectura** | Patrón de Servicios, FormRequests, Observers, Traits |
 | **Frontend** | Vue 3 (Composition API), Inertia.js |
 | **Estilo** | Tailwind CSS, Headless UI |
-| **Analítica** | Apache ECharts, Vue-ECharts |
+| **Automatización** | Google Gemini AI, Google Drive API, Google Calendar API |
 | **Auth/Seguridad** | Laravel Breeze, Spatie Permissions, **WireGuard VPN** |
-| **Automatización** | Composables Personalizados, Búsqueda Debounced, Filtrado Avanzado |
+| **Testing** | Pest/PHPUnit (75+ Pruebas Automatizadas, Cobertura Integral) |
 
 ---
 
 ## 🏗️ Arquitectura del Sistema
 
-La aplicación sigue un enfoque de arquitectura limpia, separando la lógica de negocio de la representación a través de Helpers personalizados y Vue Composables para maximizar la reutilización.
+La aplicación sigue un enfoque estricto de **Clean Architecture**, separando la base de datos de la lógica central para garantizar mantenibilidad a largo plazo.
 
 ```mermaid
 graph TD
-    User([Usuario]) --> VPN["VPN WireGuard"]
+    User([Usuario / Empleado]) --> VPN["VPN WireGuard"]
     subgraph "Infraestructura"
     VPN --> B[Inertia.js SPA]
-    B --> C[Controladores]
-    C --> D[Lógica & Helpers]
-    D --> E[Modelos]
-    E --> F[(DB)]
-    C --> G[Spatie]
-    C --> H[Gestión VPN]
+    B --> C[Controladores Ligeros]
+    C --> V[Form Requests de Seguridad]
+    V --> S[Servicios Transaccionales]
+    S --> D[APIs: Gemini / Calendar / Drive]
+    S --> E[Modelos Eloquent]
+    E --> F[(DB MySQL / MariaDB)]
+    C --> G[Spatie Permissions]
     end
 ```
 
@@ -69,11 +63,10 @@ graph TD
 ## 🚀 Instalación
 
 ### Requisitos
-
 - PHP 8.4+
 - Node.js 20+
 - Composer
-- MySQL/MariaDB
+- Base de datos relacional (MySQL/MariaDB)
 
 ### Pasos
 
@@ -103,7 +96,6 @@ graph TD
 5. **Iniciar Servidor de Desarrollo**
    ```bash
    npm run dev
-   # En otra terminal:
    php artisan serve
    ```
 
@@ -119,13 +111,13 @@ graph TD
 
 ## 📄 Documentación Adicional
 
-- [Sistema de Gestión de Facturas de Compra](docs/gestion-facturas-compras.md)
-- [Sistema Resiliente de Facturas de Ventas (Drive & BD Local)](docs/gestion-facturas-ventas.md)
-- [Gestión de Presupuestos](docs/gestion-presupuestos.md)
-- [Gestión de VPN WireGuard](docs/VPN_DOCUMENTATION.md)
-- [Lógica de Negocio](docs/logic_negocio.md)
-- [Configuración de Backups en Google Drive](docs/setup-google-backups.md)
-- [Integración con Google Calendar](docs/integracion-google-calendar.md)
+La documentación técnica completa ha sido unificada y actualizada:
+
+- [Manual: Arquitectura, Lógica de Negocio y Testing](docs/logic_negocio.md)
+- [Sistema de Facturas y Presupuestos (Ventas Nativas)](docs/gestion-facturas-ventas.md)
+- [Sistema de Compras Inteligente (Gemini AI + Drive)](docs/gestion-facturas-compras.md)
+- [Manual: Gestión de VPN WireGuard Segura](docs/VPN_DOCUMENTATION.md)
+- [Integración con Google Calendar Automática](docs/integracion-google-calendar.md)
 
 ---
 
@@ -135,38 +127,28 @@ Este proyecto está bajo la licencia **GNU General Public License v3.0** - mira 
 
 ---
 
-# 🚀 Labs Backend - Enterprise Management System
+# 🚀 Labs Backend - Enterprise Management System (SaaS)
 
 [![Laravel](https://img.shields.io/badge/Laravel-13.x-FF2D20?style=for-the-badge&logo=laravel)](https://laravel.com)
 [![Vue.js](https://img.shields.io/badge/Vue.js-3.x-4FC08D?style=for-the-badge&logo=vue.js)](https://vuejs.org)
 [![Inertia.js](https://img.shields.io/badge/Inertia.js-1.x-9553E9?style=for-the-badge&logo=inertia)](https://inertiajs.com)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.x-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com)
 
-A premium, full-featured **Enterprise Resource Planning (ERP) and CRM solution** designed for digital agencies and freelancers. This system provides a centralized dashboard for managing projects, recurring maintenance services, client relationships, and team performance with advanced analytics.
+A premium, full-featured **Enterprise Resource Planning (ERP) and CRM solution** designed for digital agencies and freelancers. This system provides a centralized dashboard for managing projects, recurring maintenance services, and team performance, built entirely upon a highly scalable **Clean Architecture** model.
 
 ---
 
 ## ✨ Key Features
 
-- **📊 Advanced Analytics Dashboard**: Real-time KPIs tracking project profitability, Monthly Recurring Revenue (MRR), and resource allocation using ECharts.
-- **💼 Comprehensive CRM**: Multi-faceted client profiles with detailed histories of projects, maintenance contracts, and communication logs.
-- **🏗️ Project Lifecycle Management**: Granular control over project stages, from estimation and budgeting to final delivery and service tracking.
-- **🔄 Recurring Service Automation**: Automated management of monthly and annual maintenance services, including automated profitability calculations.
-- **🔌 Extension Ecosystem**: Centralized repository of tools and licenses used across different projects for optimized cost management.
-- **🔐 Secure RBAC**: Fine-grained access control using Spatie's permission system (Admin, Coordinator, Viewer roles).
-- **📥 Smart Data Import**: Bulk import system for legacy client data with automatic normalization.
-- **🌓 Adaptive UI**: Fully responsive interface with built-in dark mode and high-performance Inertia.js-driven navigation.
-- **⚡ High-Performance Optimization**: Strategic database indexing (`status`), Dashboard caching with event-driven invalidation (Cache Busting), selective column loading, and Vite bundle optimization.
-- **🔔 Global Notifications**: Centralized toast message system for a fluid and consistent user feedback experience.
-- **🛡️ Data Immutability**: Price snapshot system ensuring the integrity of historical reports against changes in global rates.
-- **📄 Proactive Export (PDF)**: Detailed financial report generation for **Clients, Projects, and Maintenance**, with an embedded viewer optimized for mobile and Safari compatibility.
-- **📦 Native Finance Ecosystem**: Real-time management of estimates, invoices and contacts via pure native architecture with local database persistence for maximum performance and independence.
-- **🔗 Project-Budget Linking**: Direct association of estimates to Projects, enabling precise financial tracking and one-click PDF access.
-- **📄 Smart Invoice Management**: Full synchronization, organized Google Drive storage (`.../VENTAS/1tri/...`), and automated data extraction (supplier, amounts, taxes) using **Google Gemini AI**. Features a dedicated Vue interface for uploading, reviewing, and advanced filtering of purchase invoices.
-- **👥 Advanced Contact Management**: Intelligent handling of unified profiles ensuring robust financial data aggregation.
-- **🛡️ VPN & Network Management**: Integrated module for provisioning WireGuard VPN access to employees, automating IP allocation and securing internal resources.
-- **🎨 UI Refinement**: Consistent interface for extension management aligned with maintenance modules and improved table readability.
-- **📅 Automated Google Calendar Synchronization**: Background engine (via Eloquent Observer) that provides silent, bidirectional syncing of Notes directly to Google Calendar, utilizing local multi-scope OAuth authentication.
+- **🏗️ Clean Architecture**: 100% decoupled business logic utilizing transactional Services, extremely thin Controllers, and strict FormRequests validation. Zero spaghetti code.
+- **🛡️ Bulletproof Reliability (75+ Automated Tests)**: Comprehensive test suite guaranteeing stability across PDF rendering, financial calculations, VPN orchestration, and API integrations.
+- **💼 Native & Independent Ecosystem**: Ultra-fast, stateless, on-the-fly PDF generation for Estimates and Invoices. The system relies purely on local database persistence, effectively eliminating dependencies on third-party ERPs like Holded.
+- **🤖 Artificial Intelligence (Gemini AI)**: Smart ingestion system that scans, classifies, and extracts financial data from supplier invoices, securely archiving the original PDFs on Google Drive.
+- **🔐 Automated VPN Provisioning (WireGuard)**: Integrated orchestrator that generates private network peers, assigns IPs, and emails secure configuration profiles to new employees upon creation.
+- **🔄 Google Calendar Synchronization**: Silent, bidirectional background syncing (via Eloquent Observers) connecting the local CRM workflow to your personal calendar.
+- **📊 Real-time Analytics & MRR**: Beautiful, interactive financial dashboards powered by Apache ECharts, computing Monthly Recurring Revenue instantaneously.
+- **⚡ Extreme Optimization**: Total elimination of N+1 database queries through strategic eager loading, paired with paginated indexing for instantaneous UX.
+- **🌓 Adaptive Premium UI**: A highly responsive, built-in dark mode interface crafted with Vue 3 and Inertia.js for seamless, SPA-like navigation.
 
 ---
 
@@ -175,99 +157,22 @@ A premium, full-featured **Enterprise Resource Planning (ERP) and CRM solution**
 | Layer | Technologies |
 | :--- | :--- |
 | **Backend** | Laravel 13, PHP 8.4, Eloquent ORM |
+| **Architecture** | Service Pattern, FormRequests, Observers, Traits |
 | **Frontend** | Vue 3 (Composition API), Inertia.js |
 | **Styling** | Tailwind CSS, Headless UI |
-| **Analytics** | Apache ECharts, Vue-ECharts |
+| **Automation** | Google Gemini AI, Google Drive API, Google Calendar API |
 | **Auth/Security** | Laravel Breeze, Spatie Permissions, **WireGuard VPN** |
-| **Automation** | Custom Composables, Debounced Search, Advanced Filtering |
+| **Testing** | Pest/PHPUnit (75+ Automated Feature & Unit Tests) |
 
 ---
 
-## 🏗️ System Architecture
+## 📄 Additional Documentation (Spanish)
 
-The application follows a clean-architecture approach, separating business logic from representation through custom Helpers and Vue Composables for maximum reusability.
-
-```mermaid
-graph TD
-    User([User]) --> VPN["VPN WireGuard"]
-    subgraph "Infrastructure"
-    VPN --> B[Inertia.js SPA]
-    B --> C[Controllers]
-    C --> D[Logic & Helpers]
-    D --> E[Models]
-    E --> F[(DB)]
-    C --> G[Spatie]
-    C --> H[VPN Management]
-    end
-```
-
----
-
-## 📄 Additional Documentation
-
-- [Purchase Invoices Management System](docs/gestion-facturas-compras.md)
-- [Resilient Sales Invoices Management (Drive & Local DB)](docs/gestion-facturas-ventas.md)
-- [Budget Management](docs/gestion-presupuestos.md)
+- [Architecture & Business Logic Manual](docs/logic_negocio.md)
+- [Native Sales Invoices & Estimates](docs/gestion-facturas-ventas.md)
+- [Smart Purchases via Gemini AI](docs/gestion-facturas-compras.md)
 - [WireGuard VPN Management](docs/VPN_DOCUMENTATION.md)
-- [Business Logic (Spanish)](docs/logic_negocio.md)
-- [Google Drive Backup Setup](docs/setup-google-backups.md)
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- PHP 8.4+
-- Node.js 20+
-- Composer
-- MySQL/MariaDB
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone git@github.com:tu-usuario-git/Labs-Backend-FrancisV.git
-   cd Labs-Backend-FrancisV
-   ```
-
-2. **Install dependencies**
-   ```bash
-   composer install
-   npm install
-   ```
-
-3. **Configure Environment**
-   ```bash
-   cp .env.example .env
-   php artisan key:generate
-   ```
-
-4. **Run Migrations & Seeders**
-   ```bash
-   php artisan migrate --seed
-   ```
-
-5. **Start Development Server**
-   ```bash
-   npm run dev
-   # In another terminal:
-   php artisan serve
-   ```
-
----
-
-## 📄 License
-
-This project is licensed under the **GNU General Public License v3.0** - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 👨‍💻 Author
-
-**Francis Valenzuela**
-- GitHub: [@tu-usuario-git](https://github.com/tu-usuario-git)
-- Web: [www.TU_DOMINIO](https://www.TU_DOMINIO)
+- [Google Calendar Integration](docs/integracion-google-calendar.md)
 
 ---
 > *This repository is part of my professional portfolio. Feel free to explore the codebase and reach out for collaborations!*

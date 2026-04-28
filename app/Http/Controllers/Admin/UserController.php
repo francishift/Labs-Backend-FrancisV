@@ -5,13 +5,21 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Mail;
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
+use App\Services\UserService;
 
 class UserController extends Controller
 {
+    private UserService $userService;
+
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
+    }
+
     public function index(Request $request)
     {
         $roles = Role::query()
@@ -53,107 +61,41 @@ class UserController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        $roleNames = Role::query()->pluck('name')->all();
+        $this->userService->crearUsuarioConVpn(
+            $request->validated(),
+            $request->user()->id,
+            $request->ip(),
+            $request->userAgent()
+        );
 
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email:rfc,dns', 'max:255', 'unique:users,email'],
-            'role' => ['required', 'string', Rule::in($roleNames)],
-            'password' => ['required', 'string', 'min:10', 'max:255'],
-        ]);
-
-        $plainPassword = $data['password'];
-
-        $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => $plainPassword,
-        ]);
-
-        $user->syncRoles([$data['role']]);
-
-        try {
-            $vpnService = app(\App\Services\VpnService::class);
-            $keys = $vpnService->generateKeyPair();
-            $internalIp = $vpnService->getNextAvailableIp();
-
-            $device = $user->vpnDevices()->create([
-                'name' => 'Dispositivo Principal',
-                'public_key' => $keys['public'],
-                'internal_ip' => $internalIp,
-            ]);
-
-            $vpnService->addPeer($device);
-            $vpnConfig = $vpnService->generateConfig($device, $keys['private']);
-
-            \App\Models\VpnAccessLog::create([
-                'user_id' => request()->user()->id,
-                'target_device_id' => $device->id,
-                'action' => 'CREATE_SUCCESS',
-                'ip_address' => request()->ip(),
-                'user_agent' => request()->userAgent(),
-                'details' => "Dispositivo '{$device->name}' autogenerado en alta de usuario.",
-            ]);
-        } catch (\Throwable $e) {
-            \Illuminate\Support\Facades\Log::error("Fallo al crear VPN en alta de usuario: " . $e->getMessage());
-            $vpnConfig = null;
-        }
-
-        $user->notify(new \App\Notifications\WelcomeUserSpanish($plainPassword, $vpnConfig));
-
-        return back()
-            ->with('success', 'Usuario creado y email enviado.');
+        return back()->with('success', 'Usuario creado y email enviado.');
     }
 
     public function updateRole(Request $request, User $user)
     {
-        if ($request->user()->id === $user->id) {
-            return back()->withErrors([
-                'role' => 'No puedes cambiar tu propio rol.',
-            ]);
-        }
-
-        $roleNames = Role::query()->pluck('name')->all();
-
-        $data = $request->validate([
-            'role' => ['required', 'string', Rule::in($roleNames)],
+        $request->validate([
+            'role' => ['required', 'string', \Illuminate\Validation\Rule::in(Role::query()->pluck('name')->all())],
         ]);
 
-        $user->syncRoles([$data['role']]);
-
-        return back()
-            ->with('success', 'Rol actualizado para ' . $user->email);
+        try {
+            $this->userService->actualizarRol($user, $request->input('role'), $request->user()->id);
+            return back()->with('success', 'Rol actualizado para ' . $user->email);
+        } catch (\Exception $e) {
+            return back()->withErrors(['role' => $e->getMessage()]);
+        }
     }
 
-    public function update(Request $request, User $user)
+    public function update(UpdateUserRequest $request, User $user)
     {
-        $roleNames = Role::query()->pluck('name')->all();
+        $this->userService->actualizarUsuario(
+            $user,
+            $request->validated(),
+            $request->user()->id
+        );
 
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email:rfc,dns', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'role' => ['required', 'string', Rule::in($roleNames)],
-            'password' => ['nullable', 'string', 'min:10', 'max:255'],
-        ]);
-
-        $user->update([
-            'name' => $data['name'],
-            'email' => $data['email'],
-        ]);
-
-        if (!empty($data['password'])) {
-            $user->password = $data['password'];
-            $user->save();
-        }
-
-        if ($request->user()->id !== $user->id) {
-            $user->syncRoles([$data['role']]);
-        }
-
-        return back()
-            ->with('success', 'Usuario actualizado: ' . $user->email);
+        return back()->with('success', 'Usuario actualizado: ' . $user->email);
     }
 
     public function destroy(Request $request, User $user)
@@ -166,7 +108,6 @@ class UserController extends Controller
 
         $user->delete();
 
-        return back()
-            ->with('success', 'Usuario eliminado: ' . $user->email);
+        return back()->with('success', 'Usuario eliminado: ' . $user->email);
     }
 }

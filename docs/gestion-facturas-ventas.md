@@ -1,31 +1,31 @@
-# Gestión de Facturas de Ventas
+# Sistema de Ventas: Facturas y Presupuestos (Arquitectura Nativa)
 
-A diferencia de las **Facturas de Compras** (las cuales se suben en PDF manualmente y son procesadas localmente por Google Gemini AI), en *Labs Backend*, las **Facturas de Ventas** operan de forma nativa e independiente, garantizando la resiliencia de los datos del negocio sin depender de plataformas de terceros.
+La aplicación Labs Backend ha evolucionado hacia un modelo **100% nativo e independiente**. Hemos eliminado cualquier dependencia de ERPs externos (como Holded) para gestionar las finanzas, logrando un control absoluto sobre los datos, un rendimiento instantáneo y un diseño arquitectónico superior.
 
-## 🔄 Flujo de Gestión y Renderizado Local
+## 🏗️ Arquitectura Limpia y Servicios
 
-El ciclo de vida de la facturación de ingresos inicia de manera natural o asociada a los **Proyectos** y **Mantenimientos**, procesándose y persistiendo directamente en la base de datos local (MySQL).
+Tanto los Presupuestos como las Facturas de Venta están regidos por un patrón de arquitectura limpia:
 
-### 1. Arquitectura de Base de Datos Estructurada
-La aplicación cuenta con una tabla robusta y local de `facturas` (`Factura.php`). Toda la información de facturación se genera, valida y archiva en columnas estables:
-- `subtotal` (Base Imponible)
-- `tax_amount` (Cuota de IVA desglosada)
-- `irpf_amount` (Retención desglosada)
-- `total` (Total a pagar numérico)
-- `status` (Enum estricto de Enum/FacturaStatus: PENDIENTE, PAGADA, PARCIAL, ANULADA)
+1. **FormRequests (`StoreFacturaRequest`, `StorePresupuestoRequest`)**: Toda la validación matemática, la prevención de inputs nulos o la protección contra inyecciones SQL ocurre aquí. El controlador nunca recibe datos sucios.
+2. **Servicios (`FacturaService`, `PresupuestoService`)**: Son el núcleo. Se encargan de procesar las líneas, calcular el IVA, sumar los totales y ejecutar operaciones en transacciones seguras de base de datos (`DB::transaction`). Si una sola línea del presupuesto falla al guardarse, se hace un *rollback* completo y no se guardan datos corruptos.
+3. **Controladores Ligeros (`FacturaController`, `PresupuestoController`)**: Su única misión es recibir la petición del frontend, pasársela al servicio, y devolver la redirección o el PDF al usuario.
 
-El cálculo del _Dashboard_ o los Resúmenes Anuales se ejecutan localmente mediante agregaciones rápidas (`SUM()`) en la base de datos, en una fracción de milisegundo.
+## 📄 Generación de PDFs "Stateless" (Al Vuelo)
 
-### 2. Filtros y Estados de Interfaz
-El listado de facturas incluye **filtros rápidos** reactivos integrados con **Inertia.js** para garantizar que los estados elegidos (selectores de Cliente, Fechas de Emisión, Estado de Pago) permanezcan visualmente exactos tras la recarga y paginación bidireccional, evitando borrados inesperados gracias a la retención de los props del enrutador. 
+**Regla de Oro:** En Labs Backend, los PDFs financieros generados por el sistema **no se guardan en el disco duro**. 
 
-### 3. Respaldo Inmutable en Google Drive
-Uno de los componentes principales es la función de almacenamiento inmutable en Background a Google Drive a través del `FacturaController`:
-- **Renderizado Dinámico:** Cuando se crea, actualiza o anula una factura, el sistema utiliza `DOMPDF` para generar la factura digital incrustándole diseño dinámico. En el caso de estar anulada, le inyecta una marca de agua roja transparente y cambia asíncronamente su sufijo nominal en Drive.
-- **Upload Estructurado:** El sistema sube de manera automatizada este documento a la estructura de carpetas de Google Drive de la empresa (**.../{Año}/VENTAS/{Trimestre}tri/{NºFactura} - {ClientName}.pdf**), y guarda internamente el identificador atómico `google_drive_file_id`.
-- **Acceso Directo Streamer:** Cada vez que el administrador accede a verla y descargarla en el equipo de escritorio/móvil local, se le facilita el PDF original traído sin esfuerzo directamente bajo stream usando el driver de Google asociado a Laravel.
+Utilizamos el `DocumentPdfService` acoplado al motor DomPDF. 
+- Al pulsar "Descargar PDF", el sistema recupera la información de la base de datos en ese milisegundo exacto, dibuja el documento en la memoria RAM, lo entrega al navegador del usuario, y lo destruye de la memoria.
+- **Ventaja de Escalabilidad**: Esto previene el abarrotamiento del disco duro, elimina la necesidad de sincronizar archivos en arquitecturas de servidores múltiples (AWS/IONOS), y asegura que si modificas un precio a nivel de base de datos, el PDF generado un segundo después ya lo reflejará correctamente sin necesidad de regenerar/borrar versiones antiguas.
 
-### Ventajas de esta Arquitectura
+## 🔗 Integración Proyecto-Factura
 
-1. **Software Resiliente "Zero-Dependency":** En lugar de vincular la estabilidad de la empresa a un carísimo sistema transaccional de facturas (ERP de terceros), el sistema es enteramente propietario. No importan los vencimientos de APIs externas, Labs Backend posee todo el histórico documental.
-2. **Alta Velocidad Perimetral:** Los "dashboards" financieros cargan al instante los datos agregados y no requieren costosas operaciones O(n) sobre peticiones remotas JSON.
+Las facturas y presupuestos son entidades relacionadas:
+- Un **Presupuesto** puede estar enlazado a un **Proyecto**. Desde el panel de control del proyecto puedes ver y emitir su presupuesto nativo.
+- Las **Facturas** pueden asignarse a proyectos (agrupándolas) para tener un cálculo real del MRR (Ingreso Recurrente) y del *Profit* global del proyecto.
+
+## 📊 Optimización de Listados (N+1)
+
+El renderizado de los listados web de ventas, que puede cargar miles de facturas y presupuestos de un plumazo, está altamente optimizado:
+- Se utiliza el Eager Loading (`->with(['cliente:id,name'])`) filtrando solo las columnas estrictamente necesarias (ID y Nombre del cliente), evitando el infame cuello de botella de Base de Datos N+1.
+- Todos los listados están paginados nativamente.

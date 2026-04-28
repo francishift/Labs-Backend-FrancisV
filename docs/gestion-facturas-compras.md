@@ -1,49 +1,37 @@
-# Sistema de Gestión de Facturas de Compra
+# Sistema de Facturas de Compras (IA + Google Drive)
 
-Este sistema automatiza la recepción, procesamiento y almacenamiento de facturas de compra (gastos) utilizando Inteligencia Artificial y almacenamiento en la nube.
+El módulo de Compras de Labs Backend es uno de los componentes más avanzados y automatizados del sistema. Utiliza un motor de **Inteligencia Artificial (Google Gemini)** combinado con la **API de Google Drive** para extraer, almacenar y organizar todas las facturas enviadas por los proveedores (Gastos).
 
-## Flujo de Trabajo
+## 🤖 Extracción con Google Gemini AI
 
-1.  **Subida de Archivos**:
-    *   Soporta múltiples archivos PDF simultáneamente.
-    *   Interfaz de arrastrar y soltar (Drag & Drop).
-    *   Cola de subida uno a uno para evitar timeouts del servidor y monitorizar el progreso individual.
+El corazón del módulo reside en `PurchaseFacturaService`. Cuando subes un PDF (o imagen) de una factura de un proveedor:
+1. El archivo en bruto se envía directamente a los modelos multimodales de Google Gemini (vía la clase de IA configurada).
+2. Gemini analiza visualmente y lee el documento, extrayendo mediante un prompt de sistema estructurado los siguientes datos:
+   - Proveedor (Nombre exacto).
+   - Fecha de emisión.
+   - Número de factura.
+   - Base Imponible (Importe Neto).
+   - Porcentaje e importe de IVA.
+   - Total final.
+3. El servicio parsea el texto y normaliza la salida garantizando que sea matemáticamente precisa.
 
-2.  **Procesamiento (Google Gemini 1.5 Flash)**:
-    *   El sistema utiliza la inteligencia artificial de **Gemini** mediante el SDK oficial para extraer automáticamente:
-        *   Número de factura, Proveedor y Fecha.
-        *   Base imponible (`net_amount`), Cuota de IVA (`tax_amount`) y Total.
-    *   **Prompting Estricto**: Se han configurado instrucciones precisas para que prefiera extraer el nombre legal/societario (ej. S.A.U., S.L.) sobre el nombre comercial y distinga el emisor del receptor.
-    *   **Heurística de Validación**: El sistema cuenta con lógica post-procesado para evitar confundir a "Labs Francis" u otros nombres del cliente como el proveedor de la factura.
+## ☁️ Resiliencia y Almacenamiento en Drive
 
-3.  **Gestión de Duplicados**:
-    *   Detección inteligente por número de factura.
-    *   **Sustitución**: Permite sobrescribir una factura existente, actualizando tanto la base de datos como el archivo en Google Drive (para auditorías).
+A diferencia de los PDFs de venta (que se generan al vuelo), las facturas de proveedores son documentos originales que sí necesitamos preservar por temas legales y fiscales. Para no saturar el servidor local (cumpliendo con nuestras directrices de Escalabilidad), utilizamos una solución Cloud-First:
 
-4.  **Revisión Manual**:
-    *   Cualquier factura puede ser editada manualmente mediante el icono de **lápiz**.
-    *   Permite corregir errores de la IA en cualquier campo (número, proveedor, fecha, importes).
-    *   **Sugerencias de Proveedor**: El campo proveedor ofrece sugerencias automáticas de proveedores existentes para mantener la integridad de los datos, pero permite crear nuevos escribiendo el nombre.
+1. El servicio `GoogleDriveDocumentService` toma el PDF subido y se conecta vía OAuth Service Account a la unidad compartida de la empresa.
+2. Identifica automáticamente el trimestre fiscal de la factura (basándose en la fecha extraída por la IA) y la carpeta (Ej. `Facturas_Gastos/1TRIMESTRE`).
+3. Sube físicamente el archivo allí y nos devuelve un `file_id`.
+4. El servidor local solo guarda en base de datos la información extraída (importes) y el `file_id`.
+5. Cuando el administrador desea ver la factura, el sistema hace un _stream_ en directo usando la ID sin descargar el archivo entero en el disco duro.
 
-5.  **Almacenamiento (Google Drive)**:
-    *   Organización automática: `Facturas / {AÑO} / COMPRAS / {TRIMESTRE}tri / {NOMBRE_ARCHIVO}.pdf`
-    *   Si se cambia la fecha de una factura manualmente, el sistema **mueve** el archivo a su carpeta correspondiente automáticamente.
+## 🛡️ Prevención de Duplicados
 
-## Componentes Técnicos
+`PurchaseFacturaService` cuenta con un motor anti-duplicados. Si subes la misma factura dos veces, o si detecta el mismo número de factura y mismo proveedor, el sistema:
+1. Levanta un Flag transaccional.
+2. Presenta al usuario una alerta visual indicando que es un posible duplicado.
+3. Ofrece una opción de confirmación ("Sobrescribir archivo"), la cual invoca un método de resolución de conflictos que elimina el registro viejo (tanto en base de datos como en Google Drive) y consolida el nuevo.
 
-### Backend
-*   **Controlador**: `App\Http\Controllers\Admin\PurchaseFacturaController`
-*   **Modelo**: `App\Models\PurchaseFactura`
-*   **Servicio de IA**: `App\Services\GeminiInvoiceService`
+## 🧪 Pruebas Automatizadas
 
-### Frontend
-*   **Página Principal**: `resources/js/Pages/Admin/PurchaseFacturas/Index.vue`
-*   **Interfaz Dedicada en Vue**: Vista interactiva diseñada específicamente para gestionar el alto volumen de facturas, facilitando la auditoría visual y corrección rápida.
-*   **Filtros Avanzados**: Búsqueda por texto, filtro reactivo de proveedor (con auto-sugerencias desde la base de datos) y selección por rango de fechas para conciliación.
-*   **Ordenación Reactiva**: Todas las columnas son ordenables dinámicamente sin recargar la página.
-*   **Revisión y Edición "In-Place"**: Formularios emergentes (modals) para corregir los datos extraídos por Gemini de forma ágil.
-*   **Tematización**: Soporte completo para modo claro y oscuro, respetando la estética global del panel.
-
-## Mantenimiento y Auditoría
-
-La estructura de carpetas en Google Drive y la trazabilidad de duplicados aseguran que el sistema esté siempre listo para una auditoría contable.
+Este motor IA cuenta con su propia suite de pruebas automatizadas en `tests/Feature/Admin/PurchaseFacturaAITest.php`, asegurando que la conexión simulada, la detección de duplicados y los errores de lectura jamás comprometan el funcionamiento general de la plataforma.
