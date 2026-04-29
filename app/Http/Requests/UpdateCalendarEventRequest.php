@@ -27,6 +27,7 @@ class UpdateCalendarEventRequest extends FormRequest
             'description' => 'nullable|string',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
+            'is_all_day' => 'boolean',
             'reminders' => 'nullable|array',
             'reminders.*.minutes' => 'required|integer|min:0',
             'update_mode' => 'nullable|string|in:single,series',

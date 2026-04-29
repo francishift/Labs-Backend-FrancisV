@@ -29,11 +29,12 @@ class CalendarEventService
                 $masterId = preg_replace('/_([0-9]{8})(T[0-9]{6}Z)?$/', '', $evento->google_event_id);
             }
 
-            return [
+            $arrayPayload = [
                 'id' => $evento->id,
                 'title' => $evento->name,
                 'start' => $evento->start_date->toIso8601String(),
                 'end' => $evento->end_date->toIso8601String(),
+                'allDay' => (bool) $evento->is_all_day,
                 'extendedProps' => [
                     'description' => $evento->description,
                     'reminders' => is_array($evento->reminders) ? $evento->reminders : [],
@@ -42,6 +43,14 @@ class CalendarEventService
                     'is_external' => false,
                 ]
             ];
+
+            if ($evento->is_all_day) {
+                $arrayPayload['backgroundColor'] = '#10b981'; // emerald-500
+                $arrayPayload['borderColor'] = '#059669'; // emerald-600
+                $arrayPayload['textColor'] = '#ffffff';
+            }
+
+            return $arrayPayload;
         });
 
         $arrayEventos = $eventosMapeados->toArray();
@@ -99,11 +108,13 @@ class CalendarEventService
                             }
                         }
                         
-                        $arrayEventos[] = [
+                        $isAllDay = empty($eventoGoogle->getStart()->getDateTime());
+                        $payloadSync = [
                             'id' => $eventoGoogle->getId(),
                             'title' => $eventoLocalRelacionado->name,
                             'start' => $inicioItem->toIso8601String(),
                             'end' => $finItem->toIso8601String(),
+                            'allDay' => $isAllDay,
                             'extendedProps' => [
                                 'description' => $eventoLocalRelacionado->description,
                                 'reminders' => $listaRecordatorios,
@@ -112,6 +123,13 @@ class CalendarEventService
                                 'is_external' => false,
                             ]
                         ];
+
+                        if ($isAllDay) {
+                            $payloadSync['backgroundColor'] = '#10b981'; // emerald-500
+                            $payloadSync['borderColor'] = '#059669'; // emerald-600
+                            $payloadSync['textColor'] = '#ffffff';
+                        }
+                        $arrayEventos[] = $payloadSync;
                     } else {
                         // Evento totalmente externo
                         $arrayEventos[] = [
@@ -119,6 +137,7 @@ class CalendarEventService
                             'title' => $eventoGoogle->getSummary() ?: '(Sin título)',
                             'start' => $inicioItem->toIso8601String(),
                             'end' => $finItem->toIso8601String(),
+                            'allDay' => empty($eventoGoogle->getStart()->getDateTime()),
                             'backgroundColor' => '#27272a',
                             'borderColor' => '#3f3f46',
                             'textColor' => '#a1a1aa',
@@ -152,15 +171,23 @@ class CalendarEventService
             $gEvent = new GoogleServiceEvent([
                 'summary' => $eventoLocal->name,
                 'description' => $eventoLocal->description ?? '',
-                'start' => new GoogleEventDateTime([
-                    'dateTime' => Carbon::parse($eventoLocal->start_date)->format('c'),
-                    'timeZone' => config('app.timezone'),
-                ]),
-                'end' => new GoogleEventDateTime([
-                    'dateTime' => Carbon::parse($eventoLocal->end_date)->format('c'),
-                    'timeZone' => config('app.timezone'),
-                ]),
             ]);
+            
+            $start = new GoogleEventDateTime();
+            $end = new GoogleEventDateTime();
+            
+            if ($eventoLocal->is_all_day) {
+                $start->setDate(Carbon::parse($eventoLocal->start_date)->format('Y-m-d'));
+                // Para Google, el end date de todo el día es exclusivo (+1 día)
+                $end->setDate(Carbon::parse($eventoLocal->end_date)->addDay()->format('Y-m-d'));
+            } else {
+                $start->setDateTime(Carbon::parse($eventoLocal->start_date)->format('c'));
+                $start->setTimeZone(config('app.timezone'));
+                $end->setDateTime(Carbon::parse($eventoLocal->end_date)->format('c'));
+                $end->setTimeZone(config('app.timezone'));
+            }
+            $gEvent->setStart($start);
+            $gEvent->setEnd($end);
 
             if (!empty($datosValidados['is_recurring']) && !empty($datosValidados['recurrence'])) {
                 $gEvent->setRecurrence(["RRULE:FREQ=" . $datosValidados['recurrence']]);
@@ -264,8 +291,13 @@ class CalendarEventService
                 try {
                     $targetId = ($modoActualizacion === 'series' && $idRecurrenteGoogle) ? $idRecurrenteGoogle : $eventoLocal->google_event_id;
                     $this->googleApiService->deleteEvent($targetId, ['sendUpdates' => 'none']);
+                } catch (\Google\Service\Exception $e) {
+                    if ($e->getCode() != 404 && $e->getCode() != 410) {
+                        Log::error("Error borrando en Google Calendar: " . $e->getMessage());
+                        throw new Exception("Falló la eliminación en Google Calendar: " . $e->getMessage());
+                    }
                 } catch (Exception $e) {
-                    Log::error("Error borrando en Google Calendar: " . $e->getMessage());
+                    Log::error("Error general borrando en Google Calendar: " . $e->getMessage());
                     throw new Exception("Falló la eliminación en Google Calendar: " . $e->getMessage());
                 }
             }
@@ -276,13 +308,25 @@ class CalendarEventService
                 $eventoLocal->delete();
             }
         } else {
-            // Eliminar elemento externo exclusivo de Google Calendar
+            // Es un ID de Google
             try {
                 $targetId = ($modoActualizacion === 'series' && $idRecurrenteGoogle) ? $idRecurrenteGoogle : $idOCodigoGoogle;
                 $this->googleApiService->deleteEvent($targetId, ['sendUpdates' => 'none']);
+            } catch (\Google\Service\Exception $e) {
+                if ($e->getCode() != 404 && $e->getCode() != 410) {
+                    Log::error("Error borrando en Google Calendar (externo): " . $e->getMessage());
+                    throw new Exception("Falló la eliminación externa en Google Calendar: " . $e->getMessage());
+                }
             } catch (Exception $e) {
-                Log::error("Error borrando en Google Calendar (externo): " . $e->getMessage());
+                Log::error("Error general borrando en Google Calendar (externo): " . $e->getMessage());
                 throw new Exception("Falló la eliminación externa en Google Calendar: " . $e->getMessage());
+            }
+
+            // También borrar cualquier rastro local que haya quedado atascado con este ID de Google
+            if ($modoActualizacion === 'series' && $idRecurrenteGoogle) {
+                CalendarEvent::where('google_event_id', 'like', $idRecurrenteGoogle . '%')->where('user_id', $userId)->delete();
+            } else {
+                CalendarEvent::where('google_event_id', $idOCodigoGoogle)->where('user_id', $userId)->delete();
             }
         }
     }
@@ -311,13 +355,19 @@ class CalendarEventService
             $gEvent->setDescription($eventoLocal->description ?? '');
             
             $start = new GoogleEventDateTime();
-            $start->setDateTime(Carbon::parse($eventoLocal->start_date)->format('c'));
-            $start->setTimeZone(config('app.timezone'));
-            $gEvent->setStart($start);
-
             $end = new GoogleEventDateTime();
-            $end->setDateTime(Carbon::parse($eventoLocal->end_date)->format('c'));
-            $end->setTimeZone(config('app.timezone'));
+            
+            if ($eventoLocal->is_all_day) {
+                $start->setDate(Carbon::parse($eventoLocal->start_date)->format('Y-m-d'));
+                $end->setDate(Carbon::parse($eventoLocal->end_date)->addDay()->format('Y-m-d'));
+            } else {
+                $start->setDateTime(Carbon::parse($eventoLocal->start_date)->format('c'));
+                $start->setTimeZone(config('app.timezone'));
+                $end->setDateTime(Carbon::parse($eventoLocal->end_date)->format('c'));
+                $end->setTimeZone(config('app.timezone'));
+            }
+            
+            $gEvent->setStart($start);
             $gEvent->setEnd($end);
 
             $gEvent->setReminders($this->construirRecordatoriosVaciosGoogle());

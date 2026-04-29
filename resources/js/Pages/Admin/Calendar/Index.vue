@@ -29,6 +29,7 @@ const defaultEventData = {
     update_mode: 'single',
     is_recurring: false,
     recurrence: '',
+    is_all_day: false,
 };
 
 const selectedEventData = ref({ ...defaultEventData });
@@ -48,14 +49,17 @@ const loadEvents = async (fetchInfo, successCallback, failureCallback) => {
     }
 };
 
+const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
 const calendarOptions = ref({
     plugins: [ dayGridPlugin, timeGridPlugin, interactionPlugin ],
-    initialView: 'dayGridMonth',
+    initialView: isMobile ? 'timeGridDay' : 'dayGridMonth',
     headerToolbar: {
-        left: 'prev,next today',
+        left: isMobile ? 'prev,next' : 'prev,next today',
         center: 'title',
-        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        right: isMobile ? 'today' : 'dayGridMonth,timeGridWeek,timeGridDay'
     },
+    scrollTime: '08:00:00', // Las 24h están disponibles, pero el scroll baja automáticamente a las 8:00 AM
     events: loadEvents,
     editable: true,
     selectable: true,
@@ -69,14 +73,34 @@ const calendarOptions = ref({
     height: 'auto',
     themeSystem: 'standard',
     firstDay: 1, // Lunes
+    slotMinTime: '08:00:00',
+    slotMaxTime: '32:00:00',
     buttonText: {
         today: 'Hoy',
         month: 'Mes',
         week: 'Semana',
         day: 'Día'
     },
-    allDayText: 'Todo el día',
-    locale: 'es'
+    allDayContent: function(arg) {
+        return { html: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mx-auto text-gray-500 dark:text-zinc-400"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>' };
+    },
+    locale: 'es',
+    // --- Mejores prácticas para móvil ---
+    longPressDelay: 250,       // Tiempo para considerar un 'mantener pulsado'
+    eventLongPressDelay: 250,  // Previene arrastrar eventos accidentalmente al hacer scroll
+    selectLongPressDelay: 250, // Previene seleccionar celdas accidentalmente al hacer scroll
+    windowResize: function() {
+        if (!calendarRef.value) return;
+        const width = window.innerWidth;
+        const api = calendarRef.value.getApi();
+        if (width < 768) {
+            if (api.view.type !== 'timeGridDay') api.changeView('timeGridDay');
+            api.setOption('headerToolbar', { left: 'prev,next', center: 'title', right: 'today' });
+        } else {
+            if (api.view.type !== 'dayGridMonth' && api.view.type !== 'timeGridWeek') api.changeView('dayGridMonth');
+            api.setOption('headerToolbar', { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' });
+        }
+    }
 });
 
 function handleDateSelect(selectInfo) {
@@ -118,6 +142,7 @@ function handleEventClick(clickInfo) {
         update_mode: 'single',
         is_recurring: false,
         recurrence: '',
+        is_all_day: event.allDay || false,
     };
     
     isEditing.value = true;
@@ -161,26 +186,28 @@ function createNewForm() {
 
 <template>
     <AuthenticatedLayout title="Calendario">
+        <template #header>
+            <PageHeader 
+                title="Calendario" 
+                subtitle="Gestiona citas, tareas y proyectos de forma eficiente y sincronizada."
+            >
+                <template #actions>
+                    <PrimaryButton @click="createNewForm">
+                        <span class="flex items-center">
+                            <PlusIcon class="w-5 h-5 mr-2" />
+                            Nuevo Evento
+                        </span>
+                    </PrimaryButton>
+                </template>
+            </PageHeader>
+        </template>
+
         <Head title="Calendario de Eventos" />
 
-        <div class="py-6 sm:py-8 lg:py-12">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                
-                <PageHeader 
-                    title="Calendario" 
-                    subtitle="Gestiona citas, tareas y proyectos de forma eficiente y sincronizada."
-                >
-                    <template #actions>
-                        <PrimaryButton @click="createNewForm">
-                            <span class="flex items-center">
-                                <PlusIcon class="w-5 h-5 mr-2" />
-                                Nuevo Evento
-                            </span>
-                        </PrimaryButton>
-                    </template>
-                </PageHeader>
+        <div class="py-6 sm:py-8 lg:py-6">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-0">
 
-                <div class="mt-6 bg-white dark:bg-zinc-900 border border-transparent dark:border-zinc-800 shadow-lg rounded-xl p-4 sm:p-6 overflow-hidden">
+                <div class="bg-white dark:bg-zinc-900 border border-transparent dark:border-zinc-800 shadow-lg rounded-xl p-4 sm:p-6 overflow-hidden">
                     <div class="calendar-container">
                         <FullCalendar ref="calendarRef" :options="calendarOptions" />
                     </div>

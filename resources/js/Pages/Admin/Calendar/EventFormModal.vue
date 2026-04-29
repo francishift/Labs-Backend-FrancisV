@@ -40,6 +40,7 @@ const form = ref({
     update_mode: 'single',
     is_recurring: false,
     recurrence: '',
+    is_all_day: false,
 });
 
 const formErrors = ref({});
@@ -68,7 +69,27 @@ const reminderOptions = [
 watch(() => props.show, (newVal) => {
     if (newVal) {
         form.value = JSON.parse(JSON.stringify(props.eventData));
+        if (form.value.is_all_day) {
+            if (form.value.start_date) form.value.start_date = form.value.start_date.substring(0, 10);
+            if (form.value.end_date) form.value.end_date = form.value.end_date.substring(0, 10);
+        }
         formErrors.value = {};
+    }
+});
+
+watch(() => form.value.is_all_day, (isAllDay) => {
+    if (isAllDay) {
+        if (form.value.start_date) form.value.start_date = form.value.start_date.substring(0, 10);
+        form.value.end_date = form.value.start_date; // Sync automatically
+    } else {
+        if (form.value.start_date && form.value.start_date.length === 10) form.value.start_date += 'T09:00';
+        if (form.value.end_date && form.value.end_date.length === 10) form.value.end_date += 'T10:00';
+    }
+});
+
+watch(() => form.value.start_date, (newStart) => {
+    if (form.value.is_all_day) {
+        form.value.end_date = newStart;
     }
 });
 
@@ -184,25 +205,34 @@ async function confirmDeleteEvent() {
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <InputLabel for="start_date" value="Fecha y Hora Inicio" />
+                        <div class="flex items-center justify-between mb-2">
+                            <InputLabel for="start_date" :value="form.is_all_day ? 'Fecha del Evento' : 'Fecha y Hora Inicio'" />
+                            <div class="flex items-center">
+                                <span class="text-xs text-gray-600 dark:text-zinc-400 mr-2">Todo el día</span>
+                                <ToggleSwitch v-model:checked="form.is_all_day" />
+                            </div>
+                        </div>
                         <TextInput
                             id="start_date"
                             v-model="form.start_date"
-                            type="datetime-local"
+                            :type="form.is_all_day ? 'date' : 'datetime-local'"
                             class="mt-1 block w-full"
                             :disabled="form.recurring_event_id && form.update_mode === 'series'"
                         />
                         <InputError :message="formErrors.start_date?.[0]" class="mt-2" />
                     </div>
                     <div>
-                        <InputLabel for="end_date" value="Fecha y Hora Fin" />
+                        <div class="flex items-center justify-between mb-2">
+                            <InputLabel for="end_date" :value="form.is_all_day ? 'Fecha Fin' : 'Fecha y Hora Fin'" :class="{ 'opacity-50': form.is_all_day }" />
+                        </div>
                         <TextInput
                             id="end_date"
                             v-model="form.end_date"
-                            type="datetime-local"
+                            :type="form.is_all_day ? 'date' : 'datetime-local'"
                             :min="form.start_date"
                             class="mt-1 block w-full"
-                            :disabled="form.recurring_event_id && form.update_mode === 'series'"
+                            :disabled="(form.recurring_event_id && form.update_mode === 'series') || form.is_all_day"
+                            :class="{ 'opacity-50 bg-gray-50 dark:bg-zinc-800/50 cursor-not-allowed': form.is_all_day }"
                         />
                         <InputError :message="formErrors.end_date?.[0]" class="mt-2" />
                     </div>

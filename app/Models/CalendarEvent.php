@@ -13,12 +13,14 @@ class CalendarEvent extends Model
         'description',
         'start_date',
         'end_date',
+        'is_all_day',
         'reminders',
     ];
 
     protected $casts = [
         'start_date' => 'datetime',
         'end_date' => 'datetime',
+        'is_all_day' => 'boolean',
         'reminders' => 'array',
     ];
 

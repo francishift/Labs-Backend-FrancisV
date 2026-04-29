@@ -307,7 +307,7 @@ const isAdmin = computed(() => userRoles.value.includes('admin'))
       <h2 class="text-xl font-semibold leading-tight text-gray-800 dark:text-zinc-200">Panel de Control</h2>
     </template>
 
-    <div class="py-6 space-y-8">
+    <div class="py-6 space-y-4">
         <!-- Navegación de Acceso Rápido -->
         <div>
             <div class="flex items-center gap-2 mb-4">
@@ -315,7 +315,7 @@ const isAdmin = computed(() => userRoles.value.includes('admin'))
                 <h3 class="text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-zinc-500">Acceso Rápido</h3>
             </div>
             
-            <div v-if="modules.length > 0" class="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3">
+            <div v-if="modules.length > 0" class="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <Link
                 v-for="module in modules"
                 :key="module.name"
@@ -332,7 +332,7 @@ const isAdmin = computed(() => userRoles.value.includes('admin'))
             </div>
         </div>
 
-        <div v-if="isAdmin" class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-6">
+        <div v-if="isAdmin" class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-4">
             <StatCard 
                 :title="`Finalizados ${stats.anio_actual}`"
                 :value="stats.presupuesto_finalizado_anio"
@@ -371,7 +371,7 @@ const isAdmin = computed(() => userRoles.value.includes('admin'))
         </div>
 
         <!-- Sección de Gráficos (Solo Admin) -->
-        <div v-if="isAdmin" class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-6">
+        <div v-if="isAdmin" class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-4">
             <Card class="p-4 flex flex-col h-[280px]">
                 <div class="flex items-center gap-3 mb-2">
                     <div class="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
