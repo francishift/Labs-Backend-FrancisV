@@ -13,7 +13,7 @@ Una solución **ERP y CRM completa y premium**, diseñada para agencias digitale
 
 ## ✨ Funcionalidades Clave
 
-- **🏗️ Arquitectura Limpia (Clean Architecture)**: Lógica de negocio 100% aislada en clases de Servicio transaccionales, Controladores delgados y validación estricta vía FormRequests. Cero código espagueti.
+- **🏗️ Arquitectura Limpia (Clean Architecture)**: Lógica de negocio 100% aislada en clases de Servicio transaccionales, Controladores ligeros y validación estricta vía FormRequests. Cero código espagueti.
 - **🛡️ Alta Fiabilidad (75+ Tests Automatizados)**: Suite completa de pruebas unitarias y de integración que verifican la creación de facturas, cálculos de rentabilidad, envíos de emails y sincronizaciones VPN, garantizando cero regresiones.
 - **💼 Ecosistema Nativo e Independiente**: Generación ultrarrápida al vuelo (sin estado) de Presupuestos y Facturas de Venta en PDF. Todo persiste en base de datos local y Google Drive, logrando independencia total de ERPs externos.
 - **🤖 Inteligencia Artificial (Gemini AI)**: Sistema automatizado que escanea, clasifica y extrae datos financieros de las facturas de proveedores enviadas por PDF, almacenándolas de forma resiliente en Google Drive.
