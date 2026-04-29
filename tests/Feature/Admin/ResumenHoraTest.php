@@ -137,4 +137,42 @@ class ResumenHoraTest extends TestCase
             )
         );
     }
+
+    public function test_resumen_horas_detalle_endpoint_returns_json_with_lazy_loaded_data()
+    {
+        \Carbon\Carbon::setTestNow(\Carbon\Carbon::create(2024, 6, 15));
+        
+        \Spatie\Permission\Models\Role::create(['name' => 'admin']);
+        $user = User::factory()->create();
+        $user->assignRole('admin');
+
+        $client = Client::factory()->create(['name' => 'Test Client']);
+        $proyecto = Proyecto::factory()->create([
+            'client_id' => $client->id,
+            'proyecto' => 'Test Project',
+            'precio_hora' => 50,
+        ]);
+
+        Servicio::create([
+            'proyecto_id' => $proyecto->id,
+            'servicio' => 'Tareas de backend Lazy Loading',
+            'fecha' => now()->format('Y-m-d'),
+            'duracion_minutos' => 120,
+            'precio_hora' => null,
+        ]);
+
+        $response = $this->actingAs($user)->getJson(route('admin.resumen-horas.detalle', [
+            'month' => 6,
+            'year' => 2024
+        ]));
+
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'detalle' => [
+                '*' => ['id', 'fecha', 'tipo', 'nombre', 'cliente', 'descripcion', 'minutos', 'importe_horas']
+            ]
+        ]);
+        
+        $this->assertEquals('Tareas de backend Lazy Loading', $response->json('detalle.0.descripcion'));
+    }
 }

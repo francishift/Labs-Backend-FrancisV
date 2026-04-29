@@ -12,7 +12,7 @@ Artisan::command('inspire', function () {
 
 Schedule::command('backup:run')->dailyAt('01:00')->then(fn () => Artisan::call('backup:clean'));
 
-Schedule::command('vpn:sync-handshakes')->everyMinute();
-Schedule::command('vpn:sync-peers')->everyFiveMinutes();
-Schedule::command('calendar:send-reminders')->everyMinute();
-Schedule::command('calendar:sync-upcoming')->twiceDaily(1, 13);
+Schedule::command('vpn:sync-handshakes')->everyMinute()->withoutOverlapping();
+Schedule::command('vpn:sync-peers')->everyFiveMinutes()->withoutOverlapping();
+Schedule::command('calendar:send-reminders')->everyMinute()->withoutOverlapping();
+Schedule::command('calendar:sync-upcoming')->twiceDaily(1, 13)->withoutOverlapping();

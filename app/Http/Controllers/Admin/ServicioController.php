@@ -29,7 +29,7 @@ class ServicioController extends Controller
                 });
             })
             ->orderBy('fecha', 'desc')
-            ->paginate(10)
+            ->paginate(20)
             ->withQueryString();
 
         return Inertia::render('Admin/Servicios/Index', [

@@ -42,7 +42,7 @@ class MantenimientoController extends Controller
                 });
             })
             ->orderBy('fecha_inicio', 'desc')
-            ->paginate(10)
+            ->paginate(20)
             ->withQueryString();
 
         $extensionesAnuales = Extension::where('estado', 'Activada')->get()->sum(fn($e) => $e->calculatePeriodCost('all'));

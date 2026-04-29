@@ -23,7 +23,7 @@ class ExtensionController extends Controller
                 });
             })
             ->orderBy('nombre')
-            ->paginate(10)
+            ->paginate(20)
             ->withQueryString();
 
         $stats = Extension::getAggregatedYearlyStats();

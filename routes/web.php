@@ -78,6 +78,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/admin/visor-pdf', [PdfViewerController::class, 'show'])->name('admin.visor-pdf');
         Route::get('/admin/resumen-horas', [ResumenHoraController::class, 'index'])->name('admin.resumen-horas.index');
+        Route::get('/admin/resumen-horas/detalle/{month}', [ResumenHoraController::class, 'detalle'])->name('admin.resumen-horas.detalle');
 
         Route::get('/admin/purchase-facturas', [\App\Http\Controllers\Admin\PurchaseFacturaController::class, 'index'])->name('admin.purchase-facturas.index');
         Route::post('/admin/purchase-facturas', [\App\Http\Controllers\Admin\PurchaseFacturaController::class, 'store'])->name('admin.purchase-facturas.store');
@@ -153,12 +154,10 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/admin/notifications/destroy-all', [\App\Http\Controllers\Admin\NotificationController::class, 'destroyAll'])->name('admin.notifications.destroyAll');
 
         Route::post('/admin/push-subscriptions', [PushSubscriptionController::class, 'store'])
-            ->name('admin.push-subscriptions.store')
-            ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+            ->name('admin.push-subscriptions.store');
 
         Route::post('/admin/push-subscriptions/delete', [PushSubscriptionController::class, 'destroy'])
-            ->name('admin.push-subscriptions.destroy')
-            ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+            ->name('admin.push-subscriptions.destroy');
 
     });
 

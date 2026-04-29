@@ -9,9 +9,10 @@ import Badge from '@/Components/Badge.vue';
 import Card from '@/Components/Card.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import SelectInput from '@/Components/SelectInput.vue';
-import { ClockIcon, BanknotesIcon, CalendarDaysIcon, BriefcaseIcon, WrenchScrewdriverIcon } from '@heroicons/vue/24/outline';
+import { ClockIcon, BanknotesIcon, CalendarDaysIcon, BriefcaseIcon, WrenchScrewdriverIcon, ChevronDownIcon } from '@heroicons/vue/24/outline';
 import pickBy from 'lodash/pickBy';
 import debounce from 'lodash/debounce';
+import axios from 'axios';
 
 const props = defineProps({
     resumenMensual: Array,
@@ -54,11 +55,27 @@ const resetFilters = () => {
 
 const expandedMonth = ref(null);
 
-const toggleMonth = (mes) => {
-    if (expandedMonth.value === mes) {
+const toggleMonth = async (mesObj) => {
+    if (expandedMonth.value === mesObj.mes) {
         expandedMonth.value = null;
     } else {
-        expandedMonth.value = mes;
+        expandedMonth.value = mesObj.mes;
+        
+        // Lazy Loading: Solo cargar si no se ha cargado previamente
+        if (!mesObj.detalle_cargado && !mesObj.cargando_detalle) {
+            mesObj.cargando_detalle = true;
+            try {
+                const response = await axios.get(route('admin.resumen-horas.detalle', { month: mesObj.mes }), {
+                    params: filterForm.value
+                });
+                mesObj.detalle = response.data.detalle;
+                mesObj.detalle_cargado = true;
+            } catch (error) {
+                console.error("Error cargando el detalle del mes:", error);
+            } finally {
+                mesObj.cargando_detalle = false;
+            }
+        }
     }
 };
 
@@ -205,7 +222,7 @@ const tableColumns = [
 
                             <div v-for="mes in resumenMensual" :key="mes.mes" class="border rounded-lg border-zinc-200 dark:border-zinc-800">
                                 <button 
-                                    @click="toggleMonth(mes.mes)"
+                                    @click="toggleMonth(mes)"
                                     class="w-full flex flex-col lg:flex-row lg:items-center justify-between p-4 gap-4 bg-zinc-50 dark:bg-zinc-800/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors rounded-t-lg"
                                     :class="{ 'rounded-b-lg': expandedMonth !== mes.mes }"
                                 >
@@ -237,19 +254,23 @@ const tableColumns = [
                                                 <ClockIcon class="w-4 h-4 mr-1.5 opacity-70" />
                                                 <span class="font-bold text-sm tracking-tight">{{ formatHours(mes.total_minutos) }}</span>
                                             </div>
-                                            <svg 
+                                            <ChevronDownIcon 
                                                 class="w-6 h-6 transition-transform duration-200 text-gray-400" 
                                                 :class="{ 'rotate-180': expandedMonth === mes.mes }"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                            >
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                                            </svg>
+                                            />
                                         </div>
                                     </div>
                                 </button>
 
                                 <div v-if="expandedMonth === mes.mes" class="p-3 sm:p-4 border-t border-zinc-200 dark:border-zinc-800 overflow-x-auto w-full max-w-full">
-                                    <DataTable :columns="tableColumns" :items="mes.detalle" :hoverable="true">
+                                    <div v-if="mes.cargando_detalle" class="flex flex-col items-center justify-center py-8 text-zinc-500 dark:text-zinc-400 space-y-3">
+                                        <svg class="animate-spin h-6 w-6 text-emerald-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <span class="text-sm font-medium">Cargando desglose...</span>
+                                    </div>
+                                    <DataTable v-else :columns="tableColumns" :items="mes.detalle" :hoverable="true">
                                         <template #cell-fecha="{ item }">
                                             <span class="text-gray-600 dark:text-zinc-400 whitespace-nowrap">{{ item.fecha }}</span>
                                         </template>

@@ -20,6 +20,7 @@ class UserCrudTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        \Illuminate\Support\Facades\Process::fake();
         
         $role = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'visor', 'guard_name' => 'web']);

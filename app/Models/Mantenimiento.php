@@ -144,10 +144,10 @@ class Mantenimiento extends Model
         // Buscar el precio vigente para este mes
         // OPTIMIZACIÓN: Si la relación 'precios' ya está cargada (eager loading), usamos la colección en memoria
         if ($this->relationLoaded('precios')) {
-            $p = $this->precios
-                ->where('fecha_aplicacion', '<=', $dateStr)
-                ->sortByDesc('fecha_aplicacion')
-                ->first();
+            // La relación ya viene ordenada por 'fecha_aplicacion' desc desde la clase Mantenimiento
+            $p = $this->precios->first(function ($precio) use ($dateStr) {
+                return $precio->fecha_aplicacion->format('Y-m-d') <= $dateStr;
+            });
         } else {
             $p = $this->precios()
                 ->where('fecha_aplicacion', '<=', $dateStr)

@@ -88,7 +88,7 @@ class FacturaController extends Controller
         }
 
         $facturas = $query->orderBy($sort, $direction)
-            ->paginate(15)
+            ->paginate(20)
             ->withQueryString()
             ->through(fn ($factura) => [
                 'id' => $factura->id,

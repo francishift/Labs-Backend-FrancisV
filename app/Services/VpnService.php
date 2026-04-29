@@ -15,8 +15,12 @@ class VpnService
      */
     public function generateKeyPair(): array
     {
-        $privateKey = trim(shell_exec('wg genkey'));
-        $publicKey = trim(shell_exec("echo '$privateKey' | wg pubkey"));
+        $privateKeyProcess = Process::run('wg genkey');
+        $privateKey = trim($privateKeyProcess->output());
+
+        // Process::input() es la forma más segura y nativa de Laravel para pasar datos por tubería (pipe)
+        $publicKeyProcess = Process::input($privateKey)->run('wg pubkey');
+        $publicKey = trim($publicKeyProcess->output());
 
         return [
             'private' => $privateKey,
@@ -103,7 +107,9 @@ class VpnService
      */
     public function generateConfig(VpnDevice $device, string $privateKey): string
     {
-        $serverPublicKey = trim(shell_exec("sudo /usr/bin/wg show {$this->interface} public-key"));
+        $serverPublicKeyProcess = Process::run("sudo /usr/bin/wg show {$this->interface} public-key");
+        $serverPublicKey = trim($serverPublicKeyProcess->output());
+        
         $endpoint = config('services.vpn.endpoint');
         
         // Extraer la IP del endpoint para añadirla a AllowedIPs (Split Tunneling con acceso al servidor)

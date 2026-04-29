@@ -74,7 +74,7 @@ class PurchaseFacturaController extends Controller
         }
 
         $facturas = $query->orderBy($sort, $direction)
-            ->paginate(10)
+            ->paginate(20)
             ->withQueryString();
 
         $providers = PurchaseFactura::select('provider_name')

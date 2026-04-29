@@ -88,7 +88,7 @@ class PresupuestoController extends Controller
         }
 
         $presupuestos = $query->orderBy($sort, $direction)
-            ->paginate(15)
+            ->paginate(20)
             ->withQueryString()
             ->through(fn ($presupuesto) => [
                 'id' => $presupuesto->id,
