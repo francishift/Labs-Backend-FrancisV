@@ -21,6 +21,8 @@ const props = defineProps({
 const emailModal = ref(false)
 const emailForm = useForm({
     email: props.factura.cliente?.email || '',
+    cc_emails: '',
+    send_copy_to_me: false,
     message: ''
 })
 
@@ -139,6 +141,15 @@ const executeDuplicate = () => {
                 <div class="mb-4">
                     <InputLabel value="Correo del destinatario" />
                     <TextInput v-model="emailForm.email" type="email" class="w-full mt-1" required placeholder="correo@cliente.com" />
+                </div>
+                <div class="mb-4">
+                    <InputLabel value="CC (Con copia a)" />
+                    <TextInput v-model="emailForm.cc_emails" type="text" class="w-full mt-1" placeholder="email1@ejemplo.com, email2@ejemplo.com..." />
+                    <p class="text-xs text-gray-500 dark:text-zinc-500 mt-1">Separa los correos con comas si son varios.</p>
+                </div>
+                <div class="mb-4 flex items-center gap-2">
+                    <input type="checkbox" id="send_copy_to_me" v-model="emailForm.send_copy_to_me" class="rounded border-gray-300 text-emerald-600 shadow-sm focus:ring-emerald-500 dark:bg-zinc-900 dark:border-zinc-700">
+                    <label for="send_copy_to_me" class="text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer select-none">Enviarme una copia oculta a mí mismo</label>
                 </div>
                 <div class="mb-4">
                     <InputLabel value="Mensaje adjunto (opcional)" />

@@ -260,6 +260,12 @@ const modules = computed(() => {
             roles: ['admin'],
         },
         {
+            name: 'Presupuestos',
+            icon: DocumentTextIcon,
+            route: 'admin.presupuestos.index',
+            roles: ['admin', 'coordinador'],
+        },
+        {
             name: 'Proyectos',
             icon: BriefcaseIcon,
             route: 'admin.proyectos.index',
@@ -302,14 +308,14 @@ const isAdmin = computed(() => userRoles.value.includes('admin'))
     </template>
 
     <div class="py-6 space-y-8">
-        <!-- Quick Access Navigation -->
+        <!-- Navegación de Acceso Rápido -->
         <div>
             <div class="flex items-center gap-2 mb-4">
                 <ChartBarIcon class="h-5 w-5 text-gray-400" />
                 <h3 class="text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-zinc-500">Acceso Rápido</h3>
             </div>
             
-            <div v-if="modules.length > 0" class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-2 md:gap-3">
+            <div v-if="modules.length > 0" class="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-3">
               <Link
                 v-for="module in modules"
                 :key="module.name"
@@ -328,10 +334,12 @@ const isAdmin = computed(() => userRoles.value.includes('admin'))
 
         <div v-if="isAdmin" class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-6">
             <StatCard 
-                title="Proyectos en Proceso"
-                :value="stats.proyectos_en_proceso"
-                :is-currency="false"
-                :icon="BriefcaseIcon"
+                :title="`Finalizados ${stats.anio_actual}`"
+                :value="stats.presupuesto_finalizado_anio"
+                :secondary-value="`${stats.proyectos_finalizados_anio} proyectos`"
+                :is-currency="true"
+                :secondary-is-currency="false"
+                :icon="CheckCircleIcon"
                 variant="emerald"
                 :small-value="true"
             />
@@ -353,17 +361,16 @@ const isAdmin = computed(() => userRoles.value.includes('admin'))
             />
 
             <StatCard 
-                :title="`Finalizados ${stats.anio_actual}`"
-                :value="stats.proyectos_finalizados_anio"
-                :secondary-value="stats.presupuesto_finalizado_anio"
+                title="Proyectos en Proceso"
+                :value="stats.proyectos_en_proceso"
                 :is-currency="false"
-                :icon="CheckCircleIcon"
+                :icon="BriefcaseIcon"
                 variant="emerald"
                 :small-value="true"
             />
         </div>
 
-        <!-- Charts Section (Solo Admin) -->
+        <!-- Sección de Gráficos (Solo Admin) -->
         <div v-if="isAdmin" class="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-4 gap-6">
             <Card class="p-4 flex flex-col h-[280px]">
                 <div class="flex items-center gap-3 mb-2">

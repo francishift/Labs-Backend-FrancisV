@@ -89,7 +89,7 @@ class ResumenHorasTest extends TestCase
         );
     }
 
-    public function test_resumen_horas_aggregates_project_income_on_last_month_only()
+    public function test_resumen_horas_aggregates_project_income_proportionally()
     {
         $this->withoutMiddleware(\Spatie\Permission\Middleware\PermissionMiddleware::class);
         $this->withoutMiddleware(\Spatie\Permission\Middleware\RoleMiddleware::class);
@@ -99,7 +99,9 @@ class ResumenHorasTest extends TestCase
         $proyecto = Proyecto::factory()->create([
             'client_id' => $client->id,
             'presupuesto' => 5000,
-            'estado' => 'En proceso'
+            'estado' => 'Finalizado',
+            'fecha_inicio' => '2024-03-01',
+            'fecha_fin' => '2024-04-30', // 61 días totales
         ]);
         
         // Registramos un servicio en Febrero (Mes 2)
@@ -120,7 +122,10 @@ class ResumenHorasTest extends TestCase
 
         $response = $this->actingAs($this->admin)->get(route('admin.resumen-horas.index', ['year' => 2024]));
         
-        // El presupuesto fijo de 5000 solo debería impactar a Abril (el último mes con servicios), NO a Febrero.
+        // El presupuesto fijo de 5000 se debe prorratear. Marzo tiene 31 días, Abril tiene 30 días. Total 61 días.
+        // Marzo = (31 / 61) * 5000 = 2540.98
+        // Abril = (30 / 61) * 5000 = 2459.02
+        // Total Proyectos en el año = 5000.
         // Y el coste interno de las 3 horas totales (180 mins) debe aplicarse.
         // Si el precio hora base es 10. Coste: 180 / 60 * 10 = 30.
         

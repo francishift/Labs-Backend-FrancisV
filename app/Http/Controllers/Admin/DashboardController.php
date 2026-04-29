@@ -7,6 +7,7 @@ use App\Models\Proyecto;
 use App\Models\Mantenimiento;
 use App\Models\Extension;
 use App\Models\Client;
+use App\Models\Presupuesto;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;

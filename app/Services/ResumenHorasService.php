@@ -28,8 +28,11 @@ class ResumenHorasService
         $serviciosMantenimiento = collect();
         $mantenimientosContratos = collect();
 
+        $proyectosParaImputar = collect();
+
         if (!$tipoServicio || $tipoServicio === 'proyectos') {
             $serviciosProyecto = $this->getServiciosProyecto($year, $clientId, $basePrecioHora);
+            $proyectosParaImputar = $this->getProyectosParaImputar($year, $clientId);
         }
 
         if (!$tipoServicio || $tipoServicio === 'mantenimientos') {
@@ -38,7 +41,7 @@ class ResumenHorasService
         }
 
         $todos = $serviciosProyecto->concat($serviciosMantenimiento);
-        $resumenMensual = $this->agruparPorMeses($year, $todos, $mantenimientosContratos);
+        $resumenMensual = $this->agruparPorMeses($year, $todos, $mantenimientosContratos, $proyectosParaImputar);
 
         $totalFacturadoAnual = $resumenMensual->sum('total_facturado');
         
@@ -49,6 +52,8 @@ class ResumenHorasService
             'total_mantenimientos' => round($resumenMensual->sum('total_facturado_mantenimientos'), 2),
             'total_facturado' => round($totalFacturadoAnual, 2),
             'promedio_mensual_facturado' => $resumenMensual->count() > 0 ? round($totalFacturadoAnual / $resumenMensual->count(), 2) : 0,
+            'proyectos_en_ejecucion_presupuesto' => round(\App\Models\Proyecto::where('estado', 'En proceso')->sum('presupuesto'), 2),
+            'proyectos_en_ejecucion_count' => \App\Models\Proyecto::where('estado', 'En proceso')->count(),
         ];
 
         return [
@@ -71,24 +76,36 @@ class ResumenHorasService
             })
             ->get(['id', 'proyecto_id', 'fecha', 'duracion_minutos', 'precio_hora']);
             
-        $proyectosVistos = [];
-        
-        return $serviciosDb->map(function ($s) use ($basePrecioHora, &$proyectosVistos) {
+        return $serviciosDb->map(function ($s) use ($basePrecioHora) {
             $precioHora = $s->precio_hora ?: ($s->proyecto->precio_hora ?: $basePrecioHora);
             
-            $esUltimoServicioDelAno = !in_array($s->proyecto_id, $proyectosVistos);
-            if ($esUltimoServicioDelAno) {
-                $proyectosVistos[] = $s->proyecto_id;
-            }
-
             return [
                 'mes' => $s->fecha->format('m'),
                 'tipo' => 'Proyecto',
                 'minutos' => $s->duracion_minutos,
                 'importe_horas' => ($s->duracion_minutos / 60) * $precioHora,
-                'ingreso_fijo' => $esUltimoServicioDelAno ? (float) ($s->proyecto->presupuesto ?? 0) : 0 
+                'ingreso_fijo' => 0 
             ];
         });
+    }
+
+    /**
+     * Obtiene los proyectos finalizados en el año que deben imputarse proporcionalmente.
+     */
+    private function getProyectosParaImputar(int $year, ?int $clientId): Collection
+    {
+        return \App\Models\Proyecto::where('estado', 'Finalizado')
+            ->whereNotNull('fecha_inicio')
+            ->whereNotNull('fecha_fin')
+            ->where(function ($q) use ($year) {
+                $startOfYear = "$year-01-01";
+                $endOfYear = "$year-12-31";
+                $q->where('fecha_inicio', '<=', $endOfYear)
+                  ->where('fecha_fin', '>=', $startOfYear);
+            })
+            ->when($clientId, function ($query, $clientId) {
+                $query->where('client_id', $clientId);
+            })->get();
     }
 
     /**
@@ -142,7 +159,7 @@ class ResumenHorasService
     /**
      * Agrupa los servicios y mantenimientos por meses.
      */
-    private function agruparPorMeses(int $year, Collection $todos, Collection $mantenimientosContratos): Collection
+    private function agruparPorMeses(int $year, Collection $todos, Collection $mantenimientosContratos, Collection $proyectosParaImputar): Collection
     {
         $resumenMensual = collect();
 
@@ -155,7 +172,9 @@ class ResumenHorasService
                 return $item['mes'] === $mesStr;
             });
 
-            $ingresosProyectosMensual = $itemsDelMes->where('tipo', 'Proyecto')->sum('ingreso_fijo');
+            $ingresosProyectosMensual = $proyectosParaImputar->sum(function ($p) use ($m, $year) {
+                return $this->calcularImputacionMensualProyecto($p, $m, $year);
+            });
             
             $ingresosMantenimientosMensual = $mantenimientosContratos->sum(function ($mant) use ($m, $year) {
                 return (float) $mant->calculatePeriodIncome($m, $year);
@@ -179,6 +198,36 @@ class ResumenHorasService
         }
         
         return $resumenMensual->sortBy('mes')->values();
+    }
+
+    /**
+     * Calcula la imputación proporcional del presupuesto de un proyecto finalizado para un mes específico.
+     */
+    private function calcularImputacionMensualProyecto(\App\Models\Proyecto $proyecto, int $mes, int $year): float
+    {
+        // Usamos UTC para evitar problemas con cambios de hora (DST) al calcular diferencias de días
+        $inicio = Carbon::parse($proyecto->fecha_inicio)->setTimezone('UTC')->startOfDay();
+        $fin = Carbon::parse($proyecto->fecha_fin)->setTimezone('UTC')->startOfDay();
+        
+        $startOfMonth = Carbon::create($year, $mes, 1, 0, 0, 0, 'UTC')->startOfDay();
+        $endOfMonth = Carbon::create($year, $mes, 1, 0, 0, 0, 'UTC')->endOfMonth()->startOfDay();
+
+        // Comprobamos si el proyecto se solapa con este mes
+        if ($fin->lt($startOfMonth) || $inicio->gt($endOfMonth)) {
+            return 0;
+        }
+
+        $totalDiasProyecto = $inicio->diffInDays($fin) + 1; 
+        if ($totalDiasProyecto <= 0) return 0;
+        
+        $tarifaDiaria = (float) $proyecto->presupuesto / $totalDiasProyecto;
+
+        $overlapStart = $inicio->max($startOfMonth);
+        $overlapEnd = $fin->min($endOfMonth);
+        
+        $diasEnEsteMes = $overlapStart->diffInDays($overlapEnd) + 1;
+
+        return $diasEnEsteMes * $tarifaDiaria;
     }
 
     /**

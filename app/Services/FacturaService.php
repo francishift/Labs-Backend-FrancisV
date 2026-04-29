@@ -7,6 +7,7 @@ use App\Models\Configuracion;
 use App\Enums\FacturaStatus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Exception;
 
 class FacturaService
@@ -227,5 +228,29 @@ class FacturaService
         } catch (Exception $e) {
             Log::error('Fallo al guardar factura en Google Drive: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Envía la factura por correo electrónico.
+     */
+    public function enviarFacturaPorEmail(Factura $factura, array $datosEnvio, $usuarioLogueado = null): void
+    {
+        $pdfOutput = $this->pdfService->generateFacturaPdf($factura);
+
+        $mail = Mail::to($datosEnvio['email']);
+
+        if (!empty($datosEnvio['cc_emails'])) {
+            $ccList = array_map('trim', explode(',', $datosEnvio['cc_emails']));
+            $ccList = array_filter($ccList, fn($email) => filter_var($email, FILTER_VALIDATE_EMAIL));
+            if (!empty($ccList)) {
+                $mail->cc($ccList);
+            }
+        }
+
+        if (!empty($datosEnvio['send_copy_to_me']) && $usuarioLogueado) {
+            $mail->bcc($usuarioLogueado->email);
+        }
+
+        $mail->send(new \App\Mail\FacturaPdfMail($factura, $pdfOutput, $datosEnvio['message'] ?? null));
     }
 }

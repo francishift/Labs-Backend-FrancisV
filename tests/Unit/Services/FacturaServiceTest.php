@@ -174,4 +174,38 @@ class FacturaServiceTest extends TestCase
         $this->assertCount(1, $facturaClonada->lineas);
         $this->assertEquals('Clonar esto', $facturaClonada->lineas->first()->concepto);
     }
+
+    public function test_enviar_factura_por_email_usa_cc_y_bcc()
+    {
+        \Illuminate\Support\Facades\Mail::fake();
+
+        $client = Client::factory()->create();
+        $factura = $this->facturaService->crearFactura([
+            'client_id' => $client->id,
+            'date' => '2024-05-10',
+            'lineas' => [
+                ['concepto' => 'Línea 1', 'cantidad' => 1, 'precio_unitario' => 100]
+            ]
+        ]);
+
+        $usuarioLogueado = \App\Models\User::factory()->create(['email' => 'admin@test.com']);
+
+        $datosEnvio = [
+            'email' => 'cliente@test.com',
+            'cc_emails' => 'cc1@test.com, cc2@test.com',
+            'send_copy_to_me' => true,
+            'message' => 'Test message'
+        ];
+
+        $this->facturaService->enviarFacturaPorEmail($factura, $datosEnvio, $usuarioLogueado);
+
+        \Illuminate\Support\Facades\Mail::assertSent(\App\Mail\FacturaPdfMail::class, function ($mail) {
+            $this->assertTrue($mail->hasTo('cliente@test.com'));
+            $this->assertTrue($mail->hasCc('cc1@test.com'));
+            $this->assertTrue($mail->hasCc('cc2@test.com'));
+            $this->assertTrue($mail->hasBcc('admin@test.com'));
+
+            return true;
+        });
+    }
 }

@@ -334,6 +334,9 @@
             @foreach($presupuesto->lineas as $linea)
             @php
                 $subtotalLinea = $linea->cantidad * $linea->precio_unitario;
+                $ivaLinea = $subtotalLinea * ($linea->porcentaje_iva / 100);
+                $irpfLinea = $subtotalLinea * ($linea->porcentaje_irpf / 100);
+                $totalFinalLinea = $subtotalLinea + $ivaLinea - $irpfLinea;
             @endphp
             <tr>
                 <td>
@@ -345,11 +348,11 @@
                     @endif
                 </td>
                 <td class="text-right">{{ number_format($linea->precio_unitario, 2, ',', '.') }}€</td>
-                <td class="text-center">{{ number_format($linea->cantidad, 0) }}</td>
+                <td class="text-center">{{ number_format($linea->cantidad, 2, ',', '.') }}</td>
                 <td class="text-right">{{ number_format($subtotalLinea, 2, ',', '.') }}€</td>
                 <td class="text-center">{{ number_format($linea->porcentaje_iva, 0) }}%</td>
                 <td class="text-center">@if($linea->porcentaje_irpf > 0)-{{ number_format($linea->porcentaje_irpf, 0) }}%@endif</td>
-                <td class="text-right">{{ number_format($linea->total_linea, 2, ',', '.') }}€</td>
+                <td class="text-right">{{ number_format($totalFinalLinea, 2, ',', '.') }}€</td>
             </tr>
             @endforeach
         </tbody>

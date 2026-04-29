@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreFacturaRequest;
 use App\Http\Requests\UpdateFacturaRequest;
+use App\Http\Requests\SendFacturaEmailRequest;
 use App\Models\Factura;
 use App\Models\Client;
 use App\Models\Configuracion;
@@ -247,16 +248,9 @@ class FacturaController extends Controller
             ->header('Pragma', 'no-cache');
     }
 
-    public function sendPdfEmail(Factura $factura, Request $request)
+    public function sendPdfEmail(Factura $factura, SendFacturaEmailRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'message' => 'nullable|string'
-        ]);
-        
-        $pdfOutput = $this->pdfService->generateFacturaPdf($factura);
-
-        Mail::to($request->email)->send(new FacturaPdfMail($factura, $pdfOutput, $request->message));
+        $this->facturaService->enviarFacturaPorEmail($factura, $request->validated(), auth()->user());
 
         return back()->with('success', 'Factura enviada por correo electrónico a ' . $request->email);
     }
