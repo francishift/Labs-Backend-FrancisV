@@ -53,6 +53,7 @@ return [
     */
 
     'url' => env('APP_URL', 'http://localhost'),
+    'main_website_url' => env('MAIN_WEBSITE_URL', 'https://www.TU_DOMINIO'),
 
     /*
     |--------------------------------------------------------------------------
