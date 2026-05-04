@@ -29,3 +29,11 @@ Las facturas y presupuestos son entidades relacionadas:
 El renderizado de los listados web de ventas, que puede cargar miles de facturas y presupuestos de un plumazo, está altamente optimizado:
 - Se utiliza el Eager Loading (`->with(['cliente:id,name'])`) filtrando solo las columnas estrictamente necesarias (ID y Nombre del cliente), evitando el infame cuello de botella de Base de Datos N+1.
 - Todos los listados están paginados nativamente.
+
+## 📧 Envío de Correos y Archivos Adjuntos Seguros
+
+La plataforma cuenta con un sistema robusto para el envío de facturas por correo:
+1. **Generación al Vuelo:** El PDF se genera en memoria en el momento del envío usando `DocumentPdfService`.
+2. **Archivos Adjuntos Volátiles:** Se permite subir archivos adjuntos adicionales (hasta 5 archivos, 10MB c/u). Estos archivos nunca se guardan permanentemente en el disco duro; viven temporalmente durante el ciclo de vida de la petición HTTP (`multipart/form-data`) y son inyectados directamente al Mailable (`FacturaPdfMail`). Una vez enviado el correo, el framework (Laravel) destruye los archivos de la memoria temporal.
+3. **Validación Estricta:** El `SendFacturaEmailRequest` bloquea automáticamente scripts y ejecutables, admitiendo únicamente extensiones seguras (PDF, imágenes, ofimática) para prevenir inyecciones y *malware*.
+4. **Registro SMTP:** Al utilizar el servidor SMTP corporativo (p. ej. Google Workspace), cada factura enviada queda registrada automáticamente en la carpeta de "Enviados" de la cuenta remitente, sin necesidad de guardar copias locales redundantes.

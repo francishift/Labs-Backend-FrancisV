@@ -1,6 +1,8 @@
 /* Estilos modernos y adaptados para FullCalendar */
 .calendar-container .fc {
     font-family: inherit;
+    color: #374151; /* Asegurar que el texto general sea oscuro en modo claro */
+    --fc-neutral-text-color: #374151;
     --fc-page-bg-color: transparent;
     --fc-border-color: #e5e7eb;
     --fc-button-bg-color: #10b981;
@@ -9,8 +11,9 @@
     --fc-button-hover-border-color: #059669;
     --fc-button-active-bg-color: #047857;
     --fc-button-active-border-color: #047857;
-    --fc-event-bg-color: #10b981;
-    --fc-event-border-color: #10b981;
+    --fc-event-bg-color: #ecfdf5; /* emerald-50 */
+    --fc-event-border-color: #10b981; /* emerald-500 */
+    --fc-event-text-color: #047857; /* emerald-700 (evita que el texto sea blanco por defecto) */
     --fc-today-bg-color: rgba(16, 185, 129, 0.05);
 }
 

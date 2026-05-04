@@ -41,7 +41,22 @@ watch(
         router.get(
             route('admin.resumen-horas.index'),
             pickBy(filterForm.value),
-            { preserveState: true, replace: true }
+            { 
+                preserveState: true, 
+                replace: true,
+                onSuccess: () => {
+                    // Si hay un mes abierto, actualizamos su detalle automáticamente con los nuevos filtros
+                    if (expandedMonth.value) {
+                        const openMonth = props.resumenMensual.find(m => m.mes === expandedMonth.value);
+                        if (openMonth) {
+                            cargarDetalleMes(openMonth);
+                        } else {
+                            // Si el mes ya no está en los resultados (ej: no hay horas este mes con el filtro actual)
+                            expandedMonth.value = null;
+                        }
+                    }
+                }
+            }
         )
     }, 500),
     { deep: true }
@@ -55,6 +70,22 @@ const resetFilters = () => {
 
 const expandedMonth = ref(null);
 
+const cargarDetalleMes = async (mesObj) => {
+    if (mesObj.cargando_detalle) return;
+    mesObj.cargando_detalle = true;
+    try {
+        const response = await axios.get(route('admin.resumen-horas.detalle', { month: mesObj.mes }), {
+            params: filterForm.value
+        });
+        mesObj.detalle = response.data.detalle;
+        mesObj.detalle_cargado = true;
+    } catch (error) {
+        console.error("Error cargando el detalle del mes:", error);
+    } finally {
+        mesObj.cargando_detalle = false;
+    }
+};
+
 const toggleMonth = async (mesObj) => {
     if (expandedMonth.value === mesObj.mes) {
         expandedMonth.value = null;
@@ -62,19 +93,8 @@ const toggleMonth = async (mesObj) => {
         expandedMonth.value = mesObj.mes;
         
         // Lazy Loading: Solo cargar si no se ha cargado previamente
-        if (!mesObj.detalle_cargado && !mesObj.cargando_detalle) {
-            mesObj.cargando_detalle = true;
-            try {
-                const response = await axios.get(route('admin.resumen-horas.detalle', { month: mesObj.mes }), {
-                    params: filterForm.value
-                });
-                mesObj.detalle = response.data.detalle;
-                mesObj.detalle_cargado = true;
-            } catch (error) {
-                console.error("Error cargando el detalle del mes:", error);
-            } finally {
-                mesObj.cargando_detalle = false;
-            }
+        if (!mesObj.detalle_cargado) {
+            await cargarDetalleMes(mesObj);
         }
     }
 };

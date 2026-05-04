@@ -21,7 +21,7 @@ error_page 403 /error_docs/forbidden.html;
 # 2. Excepción para recursos estáticos del error (Logo, HTML)
 # El uso de 'alias' garantiza que Nginx encuentre los archivos fuera de la restricción
 location /error_docs/ {
-    alias /var/www/vhosts/tupagina/error_docs/;
+    alias /var/www/vhosts/TU_DOMINIO/error_docs/;
     allow all;
     access_log off;
 }
@@ -50,8 +50,8 @@ La página de error se encuentra en `/error_docs/forbidden.html`. Se ha diseñad
 ## 4. Mantenimiento
 
 Si en el futuro se desea cambiar el mensaje o el logo:
-1.  **Logo:** Reemplazar el archivo en `/var/www/vhosts/tupagina/error_docs/logo.png`.
-2.  **Texto/Diseño:** Editar el archivo `/var/www/vhosts/tupagina/error_docs/forbidden.html`.
+1.  **Logo:** Reemplazar el archivo en `/var/www/vhosts/TU_DOMINIO/error_docs/logo.png`.
+2.  **Texto/Diseño:** Editar el archivo `/var/www/vhosts/TU_DOMINIO/error_docs/forbidden.html`.
 3.  **IPs Permitidas:** Si cambia el rango de la VPN, actualizar la directiva `allow` en el panel de Plesk.
 
 ---

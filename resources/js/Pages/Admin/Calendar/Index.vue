@@ -53,11 +53,11 @@ const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
 const calendarOptions = ref({
     plugins: [ dayGridPlugin, timeGridPlugin, interactionPlugin ],
-    initialView: isMobile ? 'timeGridDay' : 'dayGridMonth',
+    initialView: 'timeGridDay',
     headerToolbar: {
-        left: isMobile ? 'prev,next' : 'prev,next today',
+        left: 'prev,next today',
         center: 'title',
-        right: isMobile ? 'today' : 'dayGridMonth,timeGridWeek,timeGridDay'
+        right: 'dayGridMonth,timeGridWeek,timeGridDay'
     },
     scrollTime: '08:00:00', // Las 24h están disponibles, pero el scroll baja automáticamente a las 8:00 AM
     events: loadEvents,
@@ -84,6 +84,20 @@ const calendarOptions = ref({
     allDayContent: function(arg) {
         return { html: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mx-auto text-gray-500 dark:text-zinc-400"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>' };
     },
+    dayHeaderContent: function(arg) {
+        if (window.innerWidth < 768 && arg.view.type === 'timeGridWeek') {
+            const date = arg.date;
+            let dayName = new Intl.DateTimeFormat('es', { weekday: 'short' }).format(date).replace('.', '');
+            let dateNum = new Intl.DateTimeFormat('es', { day: '2-digit', month: '2-digit' }).format(date);
+            
+            return {
+                html: `<div class="flex flex-col items-center justify-center leading-tight py-0.5">
+                           <span class="font-semibold text-xs capitalize">${dayName}</span>
+                           <span class="font-normal text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5">${dateNum}</span>
+                       </div>`
+            };
+        }
+    },
     locale: 'es',
     // --- Mejores prácticas para móvil ---
     longPressDelay: 250,       // Tiempo para considerar un 'mantener pulsado'
@@ -93,13 +107,9 @@ const calendarOptions = ref({
         if (!calendarRef.value) return;
         const width = window.innerWidth;
         const api = calendarRef.value.getApi();
-        if (width < 768) {
-            if (api.view.type !== 'timeGridDay') api.changeView('timeGridDay');
-            api.setOption('headerToolbar', { left: 'prev,next', center: 'title', right: 'today' });
-        } else {
-            if (api.view.type !== 'dayGridMonth' && api.view.type !== 'timeGridWeek') api.changeView('dayGridMonth');
-            api.setOption('headerToolbar', { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' });
-        }
+        // Mantenemos la misma toolbar para tener las mismas opciones en móvil y escritorio.
+        // FullCalendar envuelve automáticamente los botones si falta espacio.
+        api.setOption('headerToolbar', { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay' });
     }
 });
 

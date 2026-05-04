@@ -251,6 +251,11 @@ class FacturaService
             $mail->bcc($usuarioLogueado->email);
         }
 
-        $mail->send(new \App\Mail\FacturaPdfMail($factura, $pdfOutput, $datosEnvio['message'] ?? null));
+        $mail->send(new \App\Mail\FacturaPdfMail(
+            $factura, 
+            $pdfOutput, 
+            $datosEnvio['message'] ?? null, 
+            $datosEnvio['attachments'] ?? []
+        ));
     }
 }

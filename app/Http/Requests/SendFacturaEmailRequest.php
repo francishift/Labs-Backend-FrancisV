@@ -27,6 +27,8 @@ class SendFacturaEmailRequest extends FormRequest
             'cc_emails' => ['nullable', 'string', 'max:500'],
             'send_copy_to_me' => ['boolean'],
             'message' => ['nullable', 'string', 'max:2000'],
+            'attachments' => ['nullable', 'array', 'max:5'],
+            'attachments.*' => ['file', 'max:10240', 'mimes:pdf,jpg,jpeg,png,gif,doc,docx,xls,xlsx,txt,csv'],
         ];
     }
     
@@ -40,6 +42,8 @@ class SendFacturaEmailRequest extends FormRequest
             'cc_emails' => 'correos en copia (CC)',
             'send_copy_to_me' => 'enviarme copia a mí mismo',
             'message' => 'mensaje',
+            'attachments' => 'archivos adjuntos',
+            'attachments.*' => 'archivo adjunto',
         ];
     }
 }

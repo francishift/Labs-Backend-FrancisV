@@ -58,7 +58,7 @@ const colorClasses = computed(() => {
 </script>
 
 <template>
-    <div class="bg-white dark:bg-zinc-800/50 rounded-xl border border-gray-100 dark:border-zinc-700/50 p-5 flex flex-col gap-4 transition-all duration-200 hover:shadow-md hover:border-gray-200 dark:hover:border-zinc-600">
+    <div class="bg-white dark:bg-zinc-800 shadow-sm rounded-xl border border-gray-100 dark:border-zinc-700 p-5 flex flex-col gap-4 transition-all duration-200 hover:shadow-md hover:border-gray-200 dark:hover:border-zinc-600">
         <!-- Header -->
         <div class="flex items-center gap-3">
             <div :class="['p-2 rounded-lg', colorClasses.bg, colorClasses.text]">
