@@ -67,8 +67,9 @@ class FacturaController extends Controller
             $query->where('date', '<=', strtotime($dateTo . ' 23:59:59'));
         }
 
-        // Solo sumar Pagadas y Parciales (o pendientes, normalmente sumar todo o filtrar pendientes)
+        // Solo sumar Pagadas, Parciales y Pendientes (excluir Anuladas)
         $totalsQuery = clone $query;
+        $totalsQuery->where('status', '!=', \App\Enums\FacturaStatus::CANCELED->value);
         
         $totals = [
             'subtotal' => (float) $totalsQuery->sum('subtotal'),

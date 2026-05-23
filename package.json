@@ -4,8 +4,8 @@
     "type": "module",
     "license": "GPL-3.0-or-later",
     "scripts": {
-        "build": "vite build",
-        "dev": "vite"
+        "build": "NODE_OPTIONS='--max-old-space-size=1024' vite build",
+        "dev": "NODE_OPTIONS='--max-old-space-size=1024' vite"
     },
     "devDependencies": {
         "@fontsource/lato": "^5.2.7",

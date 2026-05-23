@@ -44,7 +44,7 @@ const sort = (key) => {
 }
 
 const getRowClass = (item) => {
-    return item.status == 2 
+    return item.status == 3 
         ? 'bg-red-50/60 dark:bg-red-900/10 hover:bg-red-100/60 dark:hover:bg-red-900/20' 
         : ''
 }
@@ -99,46 +99,46 @@ const formatCurrency = (val) => new Intl.NumberFormat('es-ES', { style: 'currenc
 const showCancelModal = ref(false)
 const showReactivateModal = ref(false)
 const showDuplicateModal = ref(false)
-const currentBudget = ref(null)
+const currentFactura = ref(null)
 
 const confirmDuplicate = (factura) => {
-    currentBudget.value = factura
+    currentFactura.value = factura
     showDuplicateModal.value = true
 }
 
 const executeDuplicate = () => {
-    if (currentBudget.value) {
-        router.post(route('admin.facturas.duplicate', currentBudget.value.id), {}, {
+    if (currentFactura.value) {
+        router.post(route('admin.facturas.duplicate', currentFactura.value.id), {}, {
             preserveScroll: true,
-            onSuccess: () => { showDuplicateModal.value = false; currentBudget.value = null; }
+            onSuccess: () => { showDuplicateModal.value = false; currentFactura.value = null; }
         })
     }
 }
 
-const confirmCancel = (budget) => {
-    currentBudget.value = budget
+const confirmCancel = (factura) => {
+    currentFactura.value = factura
     showCancelModal.value = true
 }
 
 const executeCancel = () => {
-    if (currentBudget.value) {
-        router.delete(route('admin.facturas.destroy', currentBudget.value.id), {
+    if (currentFactura.value) {
+        router.delete(route('admin.facturas.destroy', currentFactura.value.id), {
             preserveScroll: true,
-            onSuccess: () => { showCancelModal.value = false; currentBudget.value = null; }
+            onSuccess: () => { showCancelModal.value = false; currentFactura.value = null; }
         })
     }
 }
 
-const confirmReactivate = (budget) => {
-    currentBudget.value = budget
+const confirmReactivate = (factura) => {
+    currentFactura.value = factura
     showReactivateModal.value = true
 }
 
 const executeReactivate = () => {
-    if (currentBudget.value) {
-        router.patch(route('admin.facturas.reactivate', currentBudget.value.id), {}, {
+    if (currentFactura.value) {
+        router.patch(route('admin.facturas.reactivate', currentFactura.value.id), {}, {
             preserveScroll: true,
-            onSuccess: () => { showReactivateModal.value = false; currentBudget.value = null; }
+            onSuccess: () => { showReactivateModal.value = false; currentFactura.value = null; }
         })
     }
 }
@@ -172,9 +172,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <Head title="Facturas" />
-
   <AuthenticatedLayout>
+    <Head title="Facturas" />
     <template #header>
       <PageHeader title="Facturas">
         <template #actions>
@@ -327,8 +326,8 @@ onMounted(() => {
                     :class="{
                         'bg-gray-100 text-gray-800 dark:bg-zinc-800 dark:text-zinc-300': item.status == 0,
                         'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300': item.status == 1,
-                        'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300': item.status == 2,
-                        'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300': item.status == 3
+                        'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300': item.status == 2,
+                        'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300': item.status == 3
                     }"
                 >
                     <option v-for="s in statuses" :key="s.id" :value="s.id">{{ s.name }}</option>
@@ -336,7 +335,7 @@ onMounted(() => {
             </template>
             
             <template #cell-total="{ item }">
-                <span :class="[item.status == 2 ? 'text-gray-500 dark:text-gray-500 line-through font-normal' : 'font-bold text-gray-900 dark:text-white']">
+                <span :class="[item.status == 3 ? 'text-gray-500 dark:text-gray-500 line-through font-normal' : 'font-bold text-gray-900 dark:text-white']">
                     {{ formatCurrency(item.total) }}
                 </span>
             </template>
@@ -346,16 +345,16 @@ onMounted(() => {
                   <Link :href="route('admin.facturas.show', item.id)" class="text-emerald-500/70 hover:text-emerald-600 dark:text-emerald-400/70 dark:hover:text-emerald-400 transition-colors" title="Ver Propuesta / PDF" @click.stop>
                       <EyeIcon class="w-5 h-5 inline" />
                   </Link>
-                  <Link v-if="item.status != 2" :href="route('admin.facturas.edit', item.id)" class="text-blue-500/70 hover:text-blue-600 dark:text-blue-400/70 dark:hover:text-blue-400 transition-colors" title="Editar Factura" @click.stop>
+                  <Link v-if="item.status != 3" :href="route('admin.facturas.edit', item.id)" class="text-blue-500/70 hover:text-blue-600 dark:text-blue-400/70 dark:hover:text-blue-400 transition-colors" title="Editar Factura" @click.stop>
                       <PencilSquareIcon class="w-5 h-5 inline" />
                   </Link>
-                  <button v-if="item.status != 2" @click.stop="confirmDuplicate(item)" class="text-orange-500/70 hover:text-orange-600 dark:text-orange-400/70 dark:hover:text-orange-400 transition-colors" title="Duplicar Factura">
+                  <button v-if="item.status != 3" @click.stop="confirmDuplicate(item)" class="text-orange-500/70 hover:text-orange-600 dark:text-orange-400/70 dark:hover:text-orange-400 transition-colors" title="Duplicar Factura">
                       <DocumentDuplicateIcon class="w-5 h-5 inline" />
                   </button>
-                  <button v-if="item.status != 2" @click.stop="confirmCancel(item)" class="text-red-500/70 hover:text-red-600 dark:text-red-400/70 dark:hover:text-red-400 transition-colors" title="Anular Factura">
+                  <button v-if="item.status != 3" @click.stop="confirmCancel(item)" class="text-red-500/70 hover:text-red-600 dark:text-red-400/70 dark:hover:text-red-400 transition-colors" title="Anular Factura">
                       <NoSymbolIcon class="w-5 h-5 inline" />
                   </button>
-                  <button v-if="item.status == 2" @click.stop="confirmReactivate(item)" class="text-teal-500/70 hover:text-teal-600 dark:text-teal-400/70 dark:hover:text-teal-400 transition-colors" title="Aprobar / Reactivar Factura">
+                  <button v-if="item.status == 3" @click.stop="confirmReactivate(item)" class="text-teal-500/70 hover:text-teal-600 dark:text-teal-400/70 dark:hover:text-teal-400 transition-colors" title="Aprobar / Reactivar Factura">
                       <CheckCircleIcon class="w-5 h-5 inline" />
                   </button>
                 </div>
@@ -380,7 +379,7 @@ onMounted(() => {
     <ConfirmModal
       :show="showCancelModal"
       title="Anular Factura"
-      :content="`¿Estás seguro de anular el factura '${currentBudget?.number}'? El registro se mantendrá, pero será marcado como anulado.`"
+      :content="`¿Estás seguro de anular la factura '${currentFactura?.number}'? El registro se mantendrá, pero será marcado como anulado.`"
       confirm-text="Sí, anular"
       cancel-text="Cancelar"
       @close="showCancelModal = false"
@@ -390,7 +389,7 @@ onMounted(() => {
     <ConfirmModal
       :show="showReactivateModal"
       title="Reactivar Factura"
-      :content="`¿Estás seguro de reactivar el factura '${currentBudget?.number}'? Volverá al estado Activo normal.`"
+      :content="`¿Estás seguro de reactivar la factura '${currentFactura?.number}'? Volverá al estado Activo normal.`"
       confirm-text="Sí, reactivar"
       cancel-text="Cancelar"
       @close="showReactivateModal = false"

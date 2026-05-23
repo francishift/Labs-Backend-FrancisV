@@ -17,8 +17,23 @@ export default defineConfig({
             },
         }),
     ],
+    server: {
+        host: '0.0.0.0',
+        watch: {
+            usePolling: false,
+            ignored: [
+                '**/node_modules/**',
+                '**/vendor/**',
+                '**/storage/**',
+                '**/bootstrap/**',
+                '**/database/**'
+            ]
+        }
+    },
     build: {
+        sourcemap: false,
         rollupOptions: {
+            maxParallelFileOps: 2,
             output: {
                 manualChunks(id) {
                     if (id.includes('node_modules')) {

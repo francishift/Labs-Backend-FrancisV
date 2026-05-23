@@ -6,9 +6,9 @@
         "bold": "lexend_bold_3a8eff9bca402cd2df6110cd04090cb9"
     },
     "lato": {
-        "300": "\/var\/www\/vhosts\/TU_DOMINIO\/httpdocs\/storage\/fonts\/lato_300_9d79ac1be67495aaa1b8223a1f310885",
-        "normal": "\/var\/www\/vhosts\/TU_DOMINIO\/httpdocs\/storage\/fonts\/lato_normal_f566bfaf03aa32ae746942d9519599f6",
-        "600": "\/var\/www\/vhosts\/TU_DOMINIO\/httpdocs\/storage\/fonts\/lato_600_f08695c77a9242b3a09b74c1899296db",
-        "bold": "lato_bold_f08695c77a9242b3a09b74c1899296db"
+        "300": "\/var\/www\/vhosts\/labs.francisvalenzuela.com\/httpdocs\/storage\/fonts\/lato_300_9d79ac1be67495aaa1b8223a1f310885",
+        "normal": "\/var\/www\/vhosts\/labs.francisvalenzuela.com\/httpdocs\/storage\/fonts\/lato_normal_f566bfaf03aa32ae746942d9519599f6",
+        "600": "lato_600_f08695c77a9242b3a09b74c1899296db",
+        "bold": "\/var\/www\/vhosts\/labs.francisvalenzuela.com\/httpdocs\/storage\/fonts\/lato_bold_f08695c77a9242b3a09b74c1899296db"
     }
 }
