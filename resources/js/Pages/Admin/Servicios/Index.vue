@@ -6,7 +6,7 @@ import SecondaryButton from '@/Components/SecondaryButton.vue'
 import DialogModal from '@/Components/DialogModal.vue'
 import Pagination from '@/Components/Pagination.vue'
 import SearchInput from '@/Components/SearchInput.vue'
-import SearchableSelect from '@/Components/SearchableSelect.vue'
+import AjaxSearchableSelect from '@/Components/AjaxSearchableSelect.vue'
 import Card from '@/Components/Card.vue'
 import ConfirmModal from '@/Components/ConfirmModal.vue'
 import PageHeader from '@/Components/PageHeader.vue'
@@ -23,7 +23,6 @@ import { useFilters } from '@/Composables/useFilters'
 const props = defineProps({
   servicios: Object,
   filters: Object,
-  proyectos: Array,
 })
 
 const { filters } = useFilters({
@@ -69,9 +68,9 @@ const destroyServicio = () => {
             <h3 class="text-lg font-medium text-gray-900 dark:text-white">Gestión de servicios</h3>
             <div class="flex flex-col sm:flex-row w-full md:w-auto gap-4">
               <div class="w-full sm:w-64">
-                <SearchableSelect 
+                <AjaxSearchableSelect 
                   v-model="filters.proyecto_id"
-                  :options="proyectos"
+                  endpoint="/api/dropdown/proyectos"
                   label-key="proyecto"
                   value-key="id"
                   placeholder="Todos los proyectos..."
@@ -105,7 +104,7 @@ const destroyServicio = () => {
     <DialogModal :show="showCreateModal" @close="closeCreateModal">
       <template #title>Nuevo Servicio</template>
       <template #content>
-        <CreateServicioForm :proyectos="proyectos" :closeCreateModal="closeCreateModal" />
+        <CreateServicioForm :closeCreateModal="closeCreateModal" />
       </template>
       <template #footer>
         <SecondaryButton @click="closeCreateModal">Cancelar</SecondaryButton>
@@ -116,7 +115,7 @@ const destroyServicio = () => {
     <DialogModal :show="showEditModal" @close="closeEditModal">
       <template #title>Editar Servicio</template>
       <template #content>
-        <EditServicioForm :servicio="editingItem" :proyectos="proyectos" :closeEditModal="closeEditModal" />
+        <EditServicioForm :servicio="editingItem" :closeEditModal="closeEditModal" />
       </template>
       <template #footer>
         <SecondaryButton @click="closeEditModal">Cancelar</SecondaryButton>

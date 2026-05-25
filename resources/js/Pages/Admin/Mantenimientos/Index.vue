@@ -25,8 +25,6 @@ import { useCRUDModals } from '@/Composables/useCRUDModals'
 const props = defineProps({
   mantenimientos: Object,
   filters: Object,
-  clients: Array,
-  availableExtensions: Array,
   stats: Object,
 })
 
@@ -183,8 +181,6 @@ const navigateToShow = (item) => {
       <template #title>Nuevo Mantenimiento</template>
       <template #content>
         <CreateMantenimientoForm 
-          :clients="props.clients" 
-          :available-extensions="props.availableExtensions"
           :close-create-modal="closeCreateModal" 
         />
       </template>

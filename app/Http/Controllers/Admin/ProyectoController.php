@@ -52,8 +52,6 @@ class ProyectoController extends Controller
         return Inertia::render('Admin/Proyectos/Index', [
             'proyectos' => $proyectos,
             'filters' => $request->only(['search']),
-            'clients' => Client::orderBy('name')->get(['id', 'name']),
-            'availableExtensions' => Extension::orderBy('nombre')->get(['id', 'nombre', 'precio']),
             'stats' => array_merge(Proyecto::getAggregatedStatsForYear(), [
                 'gastos_anuales_soft_host' => $softwareAnual + $extensionesAnuales
             ]),
@@ -123,8 +121,6 @@ class ProyectoController extends Controller
         return Inertia::render('Admin/Proyectos/Show', [
             'proyecto' => $proyecto,
             'pagination' => $paginationData,
-            'clients' => Client::orderBy('name')->get(['id', 'name']),
-            'availableExtensions' => Extension::orderBy('nombre')->get(['id', 'nombre']),
             'stats' => $proyecto->getFinancialStats()
         ]);
     }

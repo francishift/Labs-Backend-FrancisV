@@ -3,13 +3,11 @@ import InputLabel from '@/Components/InputLabel.vue';
 import TextArea from '@/Components/TextArea.vue';
 import InputError from '@/Components/InputError.vue';
 import TextInput from '@/Components/TextInput.vue';
-import SearchableSelect from '@/Components/SearchableSelect.vue';
+import AjaxSearchableSelect from '@/Components/AjaxSearchableSelect.vue';
 import { useForm } from '@inertiajs/vue3';
 import { getTodayDate } from '@/Utils/date';
 
-const props = defineProps({
-    mantenimientos: Array,
-});
+
 
 const emit = defineEmits(['close']);
 
@@ -41,10 +39,10 @@ const submit = () => {
     <form id="create-mantenimiento-servicio-global-form" @submit.prevent="submit" class="space-y-4">
         <div>
             <InputLabel for="mantenimiento_id" value="Mantenimiento (Aplicación)" />
-            <SearchableSelect
+            <AjaxSearchableSelect
                 id="mantenimiento_id"
                 v-model="form.mantenimiento_id"
-                :options="mantenimientos"
+                endpoint="/api/dropdown/mantenimientos"
                 label-key="aplicacion"
                 placeholder="Seleccionar mantenimiento..."
                 class="mt-1"

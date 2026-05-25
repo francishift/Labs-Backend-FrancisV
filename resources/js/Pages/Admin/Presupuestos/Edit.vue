@@ -9,7 +9,7 @@ import SecondaryButton from '@/Components/SecondaryButton.vue'
 import TextInput from '@/Components/TextInput.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import InputError from '@/Components/InputError.vue'
-import SearchableSelect from '@/Components/SearchableSelect.vue'
+import AjaxSearchableSelect from '@/Components/AjaxSearchableSelect.vue'
 import { PlusIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
@@ -17,7 +17,7 @@ import { formatDateForInput } from '@/Utils/date'
 
 const props = defineProps({
   presupuesto: Object,
-  clientes: Array,
+
   statuses: Array,
   defaultIva: Number,
   defaultIrpf: Number,
@@ -47,21 +47,13 @@ const form = useForm({
 
 const showHtml = ref(false)
 
-const clientesOpciones = computed(() => {
-    return props.clientes.map(c => ({
-        ...c,
-        display_name: `${c.name} (${c.cif_nif || 'Sin NIF'})`
-    }))
-})
-
-watch(() => form.client_id, (newClientId) => {
-    const client = props.clientes.find(c => String(c.id) === String(newClientId))
+const handleClientSelect = (client) => {
     if (client) {
         form.contact_name = client.name
     } else {
         form.contact_name = ''
     }
-})
+}
 
 const addLinea = () => {
     form.lineas.push({
@@ -126,13 +118,14 @@ const goBack = () => {
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 pb-6 border-b border-gray-200 dark:border-zinc-700">
                 <div>
                     <InputLabel for="client" value="Cliente" />
-                    <SearchableSelect
+                    <AjaxSearchableSelect
                         id="client"
                         v-model="form.client_id"
-                        :options="clientesOpciones"
+                        endpoint="/api/dropdown/clientes"
                         label-key="display_name"
                         placeholder="Buscar y seleccionar cliente..."
                         class="mt-1 block w-full"
+                        @selected="handleClientSelect"
                     />
                     <InputError class="mt-2" :message="form.errors.client_id" />
                 </div>

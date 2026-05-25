@@ -51,8 +51,6 @@ class MantenimientoController extends Controller
         return Inertia::render('Admin/Mantenimientos/Index', [
             'mantenimientos' => $mantenimientos,
             'filters' => $request->only(['search']),
-            'clients' => Client::orderBy('name')->get(['id', 'name']),
-            'availableExtensions' => Extension::orderBy('nombre')->get(['id', 'nombre', 'precio']),
             'stats' => array_merge(Mantenimiento::getAggregatedStatsForYear(), [
                 'gastos_anuales_soft_host' => $softwareAnual + $extensionesAnuales
             ]),
@@ -137,8 +135,6 @@ class MantenimientoController extends Controller
             'mantenimiento' => $mantenimiento,
             'servicios' => $servicios,
             'pagination' => $paginationData,
-            'clients' => Client::orderBy('name')->get(['id', 'name']),
-            'availableExtensions' => Extension::orderBy('nombre')->get(['id', 'nombre']),
             'stats' => array_merge($financialStats, [
                 'periodo' => [
                     'month' => $month === 'all' ? 'all' : (int)$month,

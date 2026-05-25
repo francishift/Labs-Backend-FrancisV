@@ -4,17 +4,13 @@ import TextInput from '@/Components/TextInput.vue';
 import CurrencyInput from '@/Components/CurrencyInput.vue';
 import InputError from '@/Components/InputError.vue';
 import TextArea from '@/Components/TextArea.vue';
-import SearchableSelect from '@/Components/SearchableSelect.vue';
-import MultiSelect from '@/Components/MultiSelect.vue';
+import AjaxSearchableSelect from '@/Components/AjaxSearchableSelect.vue';
+import AjaxMultiSelect from '@/Components/AjaxMultiSelect.vue';
 import { useForm } from '@inertiajs/vue3';
 import { getTodayDate } from '@/Utils/date';
 import { watch, ref } from 'vue';
 
-const props = defineProps({
-    clients: Array,
-    availableExtensions: Array,
-    closeCreateModal: Function,
-});
+const emit = defineEmits(['close']);
 
 const createForm = useForm({
     proyecto: '',
@@ -68,7 +64,7 @@ const submitCreate = () => {
         preserveScroll: true,
         onSuccess: () => {
             createForm.reset();
-            props.closeCreateModal();
+            emit('close');
         },
     });
 };
@@ -85,10 +81,10 @@ const submitCreate = () => {
 
             <div class="md:col-span-2">
                 <InputLabel for="create_client_id" value="Cliente" />
-                <SearchableSelect
+                <AjaxSearchableSelect
                     id="create_client_id"
                     v-model="createForm.client_id"
-                    :options="clients"
+                    endpoint="/api/dropdown/clientes"
                     placeholder="Buscar y seleccionar cliente..."
                     class="mt-1"
                 />
@@ -125,10 +121,10 @@ const submitCreate = () => {
 
             <div class="md:col-span-2">
                 <InputLabel for="create_extensiones" value="Extensiones" />
-                <MultiSelect
+                <AjaxMultiSelect
                     id="create_extensiones"
                     v-model="createForm.extensiones"
-                    :options="availableExtensions"
+                    endpoint="/api/dropdown/extensiones"
                     placeholder="Seleccionar extensiones..."
                     class="mt-1"
                 />

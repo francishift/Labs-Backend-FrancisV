@@ -43,7 +43,6 @@ class ServicioController extends Controller
         return Inertia::render('Admin/Servicios/Index', [
             'servicios' => $servicios,
             'filters' => $request->only(['search', 'proyecto_id']),
-            'proyectos' => Proyecto::orderBy('proyecto')->get(['id', 'proyecto']),
         ]);
     }
 

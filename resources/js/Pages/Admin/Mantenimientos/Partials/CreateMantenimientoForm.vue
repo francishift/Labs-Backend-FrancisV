@@ -4,14 +4,13 @@ import TextInput from '@/Components/TextInput.vue';
 import CurrencyInput from '@/Components/CurrencyInput.vue';
 import InputError from '@/Components/InputError.vue';
 import TextArea from '@/Components/TextArea.vue';
+import AjaxSearchableSelect from '@/Components/AjaxSearchableSelect.vue';
+import AjaxMultiSelect from '@/Components/AjaxMultiSelect.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
-import MultiSelect from '@/Components/MultiSelect.vue';
 import { useForm } from '@inertiajs/vue3';
 import { getTodayDate } from '@/Utils/date';
 
 const props = defineProps({
-    clients: Array,
-    availableExtensions: Array,
     closeCreateModal: Function,
 });
 
@@ -56,10 +55,10 @@ const submitCreate = () => {
 
             <div class="md:col-span-2">
                 <InputLabel for="create_client_id" value="Cliente" />
-                <SearchableSelect
+                <AjaxSearchableSelect
                     id="create_client_id"
                     v-model="createForm.client_id"
-                    :options="clients"
+                    endpoint="/api/dropdown/clientes"
                     placeholder="Seleccionar cliente..."
                     class="mt-1"
                 />
@@ -68,10 +67,10 @@ const submitCreate = () => {
 
             <div class="md:col-span-2">
                 <InputLabel for="create_extensiones" value="Extensiones Utilizadas" />
-                <MultiSelect
+                <AjaxMultiSelect
                     id="create_extensiones"
                     v-model="createForm.extensiones"
-                    :options="availableExtensions"
+                    endpoint="/api/dropdown/extensiones"
                     placeholder="Seleccionar extensiones..."
                     class="mt-1"
                 />

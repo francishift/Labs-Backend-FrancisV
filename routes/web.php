@@ -33,6 +33,14 @@ Route::middleware(['auth'])->group(function () {
         return redirect()->route('dashboard');
     })->name('admin.dashboard');
 
+    // API Dropdowns (Lazy Loading)
+    Route::prefix('api/dropdown')->group(function () {
+        Route::get('clientes', [\App\Http\Controllers\Api\DropdownController::class, 'clientes'])->name('api.dropdown.clientes');
+        Route::get('proyectos', [\App\Http\Controllers\Api\DropdownController::class, 'proyectos'])->name('api.dropdown.proyectos');
+        Route::get('mantenimientos', [\App\Http\Controllers\Api\DropdownController::class, 'mantenimientos'])->name('api.dropdown.mantenimientos');
+        Route::get('extensiones', [\App\Http\Controllers\Api\DropdownController::class, 'extensiones'])->name('api.dropdown.extensiones');
+    });
+
     // Rutas exclusivas de Admin
     Route::middleware('role:admin')->group(function () {
         Route::get('/admin/usuarios', [UserController::class, 'index'])->name('admin.usuarios.index');

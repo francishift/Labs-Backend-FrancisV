@@ -4,16 +4,15 @@ import TextInput from '@/Components/TextInput.vue';
 import CurrencyInput from '@/Components/CurrencyInput.vue';
 import InputError from '@/Components/InputError.vue';
 import TextArea from '@/Components/TextArea.vue';
+import AjaxSearchableSelect from '@/Components/AjaxSearchableSelect.vue';
+import AjaxMultiSelect from '@/Components/AjaxMultiSelect.vue';
 import SearchableSelect from '@/Components/SearchableSelect.vue';
-import MultiSelect from '@/Components/MultiSelect.vue';
 import { useForm } from '@inertiajs/vue3';
 import { onMounted, watch } from 'vue';
 import { formatDateForInput } from '@/Utils/date';
 
 const props = defineProps({
     mantenimiento: Object,
-    clients: Array,
-    availableExtensions: Array,
     closeEditModal: Function,
 });
 
@@ -75,10 +74,10 @@ const submitUpdate = () => {
 
             <div class="md:col-span-2">
                 <InputLabel for="edit_client_id" value="Cliente" />
-                <SearchableSelect
+                <AjaxSearchableSelect
                     id="edit_client_id"
                     v-model="editForm.client_id"
-                    :options="clients"
+                    endpoint="/api/dropdown/clientes"
                     placeholder="Seleccionar cliente..."
                     class="mt-1"
                 />
@@ -87,10 +86,10 @@ const submitUpdate = () => {
 
             <div class="md:col-span-2">
                 <InputLabel for="edit_extensiones" value="Extensiones Utilizadas" />
-                <MultiSelect
+                <AjaxMultiSelect
                     id="edit_extensiones"
                     v-model="editForm.extensiones"
-                    :options="availableExtensions"
+                    endpoint="/api/dropdown/extensiones"
                     placeholder="Seleccionar extensiones..."
                     class="mt-1"
                 />

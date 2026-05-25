@@ -9,15 +9,14 @@ import SecondaryButton from '@/Components/SecondaryButton.vue'
 import TextInput from '@/Components/TextInput.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import InputError from '@/Components/InputError.vue'
-import SearchableSelect from '@/Components/SearchableSelect.vue'
+import AjaxSearchableSelect from '@/Components/AjaxSearchableSelect.vue'
 import { PlusIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import { QuillEditor } from '@vueup/vue-quill'
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import { getTodayDate } from '@/Utils/date'
 
 const props = defineProps({
-  clientes: Array,
-  proyectos: Array,
+
   defaultIva: Number,
   defaultIrpf: Number,
   defaultVencimientoDias: Number,
@@ -55,21 +54,13 @@ const showHtml = ref(false)
 
 const selectedClient = ref(null)
 
-const clientesOpciones = computed(() => {
-    return props.clientes.map(c => ({
-        ...c,
-        display_name: `${c.name} (${c.cif_nif || 'Sin NIF'})`
-    }))
-})
-
-watch(() => form.client_id, (newClientId) => {
-    const client = props.clientes.find(c => String(c.id) === String(newClientId))
+const handleClientSelect = (client) => {
     if (client) {
         form.contact_name = client.name
     } else {
         form.contact_name = ''
     }
-})
+}
 
 const addLinea = () => {
     form.lineas.push({
@@ -137,28 +128,27 @@ const goBack = () => {
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pb-6 border-b border-gray-200 dark:border-zinc-700">
                 <div>
                     <InputLabel for="client" value="Cliente" />
-                    <SearchableSelect
+                    <AjaxSearchableSelect
                         id="client"
                         v-model="form.client_id"
-                        :options="clientesOpciones"
+                        endpoint="/api/dropdown/clientes"
                         label-key="display_name"
                         placeholder="Buscar y seleccionar cliente..."
                         class="mt-1 block w-full"
+                        @selected="handleClientSelect"
                     />
                     <InputError class="mt-2" :message="form.errors.client_id" />
                 </div>
                 <div>
                     <InputLabel for="proyecto" value="Proyecto (Opcional)" />
-                    <select
+                    <AjaxSearchableSelect
                         id="proyecto"
                         v-model="form.proyecto_id"
-                        class="mt-1 block w-full border-gray-300 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 focus:border-indigo-500 rounded-md shadow-sm h-[42px]"
-                    >
-                        <option value="">Ninguno</option>
-                        <option v-for="proyecto in proyectos" :key="proyecto.id" :value="proyecto.id">
-                            {{ proyecto.proyecto }}
-                        </option>
-                    </select>
+                        endpoint="/api/dropdown/proyectos"
+                        label-key="proyecto"
+                        placeholder="Seleccionar proyecto..."
+                        class="mt-1 block w-full"
+                    />
                     <InputError class="mt-2" :message="form.errors.proyecto_id" />
                 </div>
                 <div class="grid grid-cols-2 gap-6 w-full md:col-span-3">

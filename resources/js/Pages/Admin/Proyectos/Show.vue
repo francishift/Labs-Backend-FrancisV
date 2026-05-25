@@ -29,8 +29,7 @@ import { Link } from '@inertiajs/vue3'
 const props = defineProps({
     proyecto: Object,
     pagination: Object,
-    clients: Array,
-    availableExtensions: Array,
+    pagination: Object,
     stats: Object,
 })
 
@@ -159,9 +158,7 @@ const sendEmail = () => {
             <template #content>
                 <EditProyectoForm 
                     :proyecto="proyecto"
-                    :clients="clients"
-                    :available-extensions="availableExtensions"
-                    :close-edit-modal="closeEditMainModal"
+                    @close="closeEditMainModal"
                 />
             </template>
             <template #footer>

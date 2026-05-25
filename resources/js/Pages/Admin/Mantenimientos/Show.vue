@@ -32,8 +32,7 @@ const props = defineProps({
     stats: Object,
     aniosDisponibles: Array,
     pagination: Object,
-    clients: Array,
-    availableExtensions: Array,
+    pagination: Object,
 })
 
 const page = usePage()
@@ -259,8 +258,6 @@ const sendEmail = () => {
             <template #content>
                 <EditMantenimientoForm 
                     :mantenimiento="mantenimiento"
-                    :clients="clients"
-                    :available-extensions="availableExtensions"
                     :close-edit-modal="closeEditMainModal"
                 />
             </template>

@@ -25,8 +25,6 @@ import { useCRUDModals } from '@/Composables/useCRUDModals'
 const props = defineProps({
   proyectos: Object,
   filters: Object,
-  clients: Array,
-  availableExtensions: Array,
   stats: Object,
 })
 
@@ -198,9 +196,7 @@ const navigateToShow = (item) => {
       <template #title>Nuevo Proyecto</template>
       <template #content>
         <CreateProyectoForm 
-          :clients="props.clients" 
-          :available-extensions="props.availableExtensions"
-          :close-create-modal="closeCreateModal" 
+          @close="closeCreateModal"
         />
       </template>
       <template #footer>

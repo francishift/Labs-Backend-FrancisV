@@ -121,12 +121,7 @@ class FacturaController extends Controller
 
     public function create()
     {
-        $clientes = Client::orderBy('name')->get(['id', 'name', 'cif_nif', 'email']);
-        $proyectos = Proyecto::orderBy('proyecto')->get(['id', 'proyecto']);
-        
         return Inertia::render('Admin/Facturas/Create', [
-            'clientes' => $clientes,
-            'proyectos' => $proyectos,
             'defaultIva' => (float) Configuracion::get('default_iva', 21),
             'defaultIrpf' => (float) Configuracion::get('default_irpf', 0),
             'defaultVencimientoDias' => (int) Configuracion::get('default_vencimiento_dias', 30),
@@ -154,13 +149,9 @@ class FacturaController extends Controller
     public function edit(Factura $factura)
     {
         $factura->loadMissing('lineas');
-        $clientes = Client::orderBy('name')->get(['id', 'name', 'cif_nif', 'email']);
-        $proyectos = Proyecto::orderBy('proyecto')->get(['id', 'proyecto']);
         
         return Inertia::render('Admin/Facturas/Edit', [
             'factura' => $factura,
-            'clientes' => $clientes,
-            'proyectos' => $proyectos,
             'statuses' => FacturaStatus::options(),
             'defaultIva' => (float) Configuracion::get('default_iva', 21),
             'defaultIrpf' => (float) Configuracion::get('default_irpf', 0),

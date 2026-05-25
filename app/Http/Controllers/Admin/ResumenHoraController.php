@@ -35,13 +35,10 @@ class ResumenHoraController extends Controller
         
         $data = $this->resumenHorasService->getResumenAnual($year, $clientId, $tipoServicio);
         
-        $clientes = Client::orderBy('name')->get(['id', 'name']);
-
         return Inertia::render('Admin/Horas/Index', [
             'resumenMensual' => $data['resumenMensual'],
             'stats' => $data['stats'],
             'filters' => $filters,
-            'clientes' => $clientes,
         ]);
     }
 

@@ -36,7 +36,6 @@ class MantenimientoServicioController extends Controller
         return Inertia::render('Admin/MantenimientoServicios/Index', [
             'servicios' => $servicios,
             'filters' => $request->only(['search', 'mantenimiento_id']),
-            'mantenimientos' => Mantenimiento::orderBy('aplicacion')->get(['id', 'aplicacion']),
         ]);
     }
 

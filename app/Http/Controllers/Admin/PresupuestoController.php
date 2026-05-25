@@ -115,9 +115,7 @@ class PresupuestoController extends Controller
 
     public function create()
     {
-        $clientes = Client::orderBy('name')->get(['id', 'name', 'cif_nif', 'email']);
         return Inertia::render('Admin/Presupuestos/Create', [
-            'clientes' => $clientes,
             'defaultIva' => (float) Configuracion::get('default_iva', 21),
             'defaultIrpf' => (float) Configuracion::get('default_irpf', 0),
             'defaultVencimientoDias' => (int) Configuracion::get('default_vencimiento_dias', 30),
@@ -145,11 +143,9 @@ class PresupuestoController extends Controller
     public function edit(Presupuesto $presupuesto)
     {
         $presupuesto->loadMissing('lineas');
-        $clientes = Client::orderBy('name')->get(['id', 'name', 'cif_nif', 'email']);
         
         return Inertia::render('Admin/Presupuestos/Edit', [
             'presupuesto' => $presupuesto,
-            'clientes' => $clientes,
             'statuses' => PresupuestoStatus::options(),
             'defaultIva' => (float) Configuracion::get('default_iva', 21),
             'defaultIrpf' => (float) Configuracion::get('default_irpf', 0),

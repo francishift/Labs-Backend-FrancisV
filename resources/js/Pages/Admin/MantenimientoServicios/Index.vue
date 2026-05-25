@@ -9,7 +9,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue'
 import SecondaryButton from '@/Components/SecondaryButton.vue'
 import DialogModal from '@/Components/DialogModal.vue'
 import ConfirmModal from '@/Components/ConfirmModal.vue'
-import SearchableSelect from '@/Components/SearchableSelect.vue'
+import AjaxSearchableSelect from '@/Components/AjaxSearchableSelect.vue'
 import { PlusIcon } from '@heroicons/vue/24/outline'
 
 // Partials
@@ -24,7 +24,6 @@ import { useFilters } from '@/Composables/useFilters'
 const props = defineProps({
     servicios: Object,
     filters: Object,
-    mantenimientos: Array,
 })
 
 const {
@@ -83,9 +82,9 @@ const destroyService = () => {
                         />
                     </div>
                     <div class="w-full sm:w-1/2 md:w-1/3">
-                        <SearchableSelect 
+                        <AjaxSearchableSelect
                             v-model="filters.mantenimiento_id"
-                            :options="mantenimientos"
+                            endpoint="/api/dropdown/mantenimientos"
                             label-key="aplicacion"
                             value-key="id"
                             placeholder="Todos los mantenimientos..."
@@ -112,7 +111,6 @@ const destroyService = () => {
             <template #title>Registrar Tarea de Mantenimiento</template>
             <template #content>
                 <CreateMantenimientoServicioGlobalForm 
-                    :mantenimientos="mantenimientos"
                     @close="closeCreateModal"
                 />
             </template>

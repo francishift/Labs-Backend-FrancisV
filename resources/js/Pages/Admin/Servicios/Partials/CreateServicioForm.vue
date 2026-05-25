@@ -6,11 +6,10 @@ import TextInput from '@/Components/TextInput.vue'
 import CurrencyInput from '@/Components/CurrencyInput.vue'
 import InputError from '@/Components/InputError.vue'
 import TextArea from '@/Components/TextArea.vue'
-import SearchableSelect from '@/Components/SearchableSelect.vue'
+import AjaxSearchableSelect from '@/Components/AjaxSearchableSelect.vue'
 import { getTodayDate } from '@/Utils/date'
 
 const props = defineProps({
-  proyectos: Array,
   proyectoId: [Number, String],
   closeCreateModal: Function,
 })
@@ -50,10 +49,11 @@ const submit = () => {
   <form @submit.prevent="submit" id="create-servicio-form" class="space-y-6">
     <div v-if="!proyectoId">
       <InputLabel for="proyecto_id" value="Proyecto" required />
-      <SearchableSelect
+      <AjaxSearchableSelect
         id="proyecto_id"
         v-model="form.proyecto_id"
-        :options="proyectos.map(p => ({ id: p.id, name: p.proyecto }))"
+        endpoint="/api/dropdown/proyectos"
+        label-key="proyecto"
         class="mt-1 block w-full"
         placeholder="Seleccionar un proyecto..."
         required

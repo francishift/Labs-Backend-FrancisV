@@ -4,7 +4,7 @@ import { Head, router } from '@inertiajs/vue3';
 import { ref, watch } from 'vue';
 import StatCard from '@/Components/StatCard.vue';
 import DataTable from '@/Components/DataTable.vue';
-import SearchableSelect from '@/Components/SearchableSelect.vue';
+import AjaxSearchableSelect from '@/Components/AjaxSearchableSelect.vue';
 import Badge from '@/Components/Badge.vue';
 import Card from '@/Components/Card.vue';
 import InputLabel from '@/Components/InputLabel.vue';
@@ -17,7 +17,6 @@ import axios from 'axios';
 const props = defineProps({
     resumenMensual: Array,
     stats: Object,
-    clientes: Array,
     filters: Object
 });
 
@@ -154,10 +153,10 @@ const tableColumns = [
                         <!-- Select: Cliente -->
                         <div class="space-y-1">
                             <InputLabel for="filter_client" value="Filtrar por Cliente" />
-                            <SearchableSelect
+                            <AjaxSearchableSelect
                                 id="filter_client"
                                 v-model="filterForm.client_id"
-                                :options="[{id: '', name: 'Todos los clientes'}, ...clientes]"
+                                endpoint="/api/dropdown/clientes"
                                 placeholder="Buscar cliente..."
                                 class="w-full"
                             />
