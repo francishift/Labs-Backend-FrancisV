@@ -34,6 +34,9 @@ class ResumenHoraTest extends TestCase
             'proyecto' => 'Test Project',
             'precio_hora' => 50,
             'presupuesto' => 1000,
+            'estado' => 'Finalizado',
+            'fecha_inicio' => '2024-06-01',
+            'fecha_fin' => '2024-06-30',
         ]);
         
         $mantenimiento = Mantenimiento::factory()->create([
@@ -80,6 +83,7 @@ class ResumenHoraTest extends TestCase
                 ->where('total_mantenimientos', 2400) // 200€ al mes x 12 meses
                 ->where('total_facturado', 3400) 
                 ->where('promedio_mensual_facturado', round(3400 / 12, 2))
+                ->etc()
             )
         );
 

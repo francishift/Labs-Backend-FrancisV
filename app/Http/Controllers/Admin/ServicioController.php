@@ -16,6 +16,11 @@ class ServicioController extends Controller
      */
     public function index(Request $request)
     {
+        $validated = $request->validate([
+            'search' => 'nullable|string|max:255',
+            'proyecto_id' => 'nullable|integer|exists:proyectos,id',
+        ]);
+
         $servicios = Servicio::query()
             ->select(['id', 'servicio', 'descripcion', 'fecha', 'duracion_minutos', 'precio', 'proyecto_id'])
             ->with('proyecto:id,proyecto')
@@ -28,13 +33,16 @@ class ServicioController extends Controller
                       });
                 });
             })
+            ->when($request->input('proyecto_id'), function ($query, $proyectoId) {
+                $query->where('proyecto_id', $proyectoId);
+            })
             ->orderBy('fecha', 'desc')
             ->paginate(20)
             ->withQueryString();
 
         return Inertia::render('Admin/Servicios/Index', [
             'servicios' => $servicios,
-            'filters' => $request->only(['search']),
+            'filters' => $request->only(['search', 'proyecto_id']),
             'proyectos' => Proyecto::orderBy('proyecto')->get(['id', 'proyecto']),
         ]);
     }

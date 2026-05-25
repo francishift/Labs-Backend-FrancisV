@@ -135,7 +135,7 @@ const settingsLink = { name: 'Ajustes', href: route('admin.settings.index'), ico
         </div>
     </aside>
 
-    <!-- Mobile Sidebar (Drawer) -->
+    <!-- Mobile Sidebar (Full Screen Modal Grid) -->
     <div v-if="showMobile" class="relative z-[60] lg:hidden" role="dialog" aria-modal="true">
         <!-- Backdrop -->
         <transition
@@ -147,80 +147,115 @@ const settingsLink = { name: 'Ajustes', href: route('admin.settings.index'), ico
             leave-from-class="opacity-100"
             leave-to-class="opacity-0"
         >
-            <div @click="$emit('close')" class="fixed inset-0 bg-black/60 backdrop-blur-sm"></div>
+            <div @click="$emit('close')" class="fixed inset-0 bg-black/80 backdrop-blur-md"></div>
         </transition>
 
-        <div class="fixed inset-0 flex">
-            <!-- Sidebar panel -->
+        <div class="fixed inset-0 flex justify-center items-center p-4 sm:p-6">
+            <!-- Full-Screen Panel -->
             <transition
                 appear
-                enter-active-class="transition ease-in-out duration-300 transform"
-                enter-from-class="-translate-x-full"
-                enter-to-class="translate-x-0"
-                leave-active-class="transition ease-in-out duration-300 transform"
-                leave-from-class="translate-x-0"
-                leave-to-class="-translate-x-full"
+                enter-active-class="transition ease-out duration-300 transform"
+                enter-from-class="opacity-0 translate-y-8 scale-95"
+                enter-to-class="opacity-100 translate-y-0 scale-100"
+                leave-active-class="transition ease-in duration-200 transform"
+                leave-from-class="opacity-100 translate-y-0 scale-100"
+                leave-to-class="opacity-0 translate-y-8 scale-95"
             >
-                <div class="relative flex-1 flex flex-col max-w-xs w-full bg-zinc-900 pt-5 pb-4 will-change-transform translate-z-0">
-                    <div class="absolute top-0 right-0 -mr-12 pt-2">
-                        <button 
-                            @click="$emit('close')"
-                            class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
-                        >
-                            <span class="sr-only">Cerrar menú</span>
-                            <XMarkIcon class="h-6 w-6 text-white" aria-hidden="true" />
-                        </button>
-                    </div>
-
-                    <div class="flex-shrink-0 flex items-center px-6">
-                        <Link :href="route('dashboard')" class="flex items-center justify-start w-full" @click="$emit('close')">
-                            <ApplicationLogo class="h-10 w-auto fill-current text-white" />
+                <div class="relative w-full h-full max-h-[90vh] bg-zinc-900 rounded-3xl shadow-2xl flex flex-col overflow-hidden border border-zinc-800/60 will-change-transform">
+                    <!-- Header -->
+                    <div class="flex flex-shrink-0 items-center justify-between px-5 py-4 border-b border-zinc-800/50">
+                        <Link :href="route('dashboard')" class="flex items-center" @click="$emit('close')">
+                            <ApplicationLogo class="h-7 w-auto fill-current text-white" />
                         </Link>
+                        
+                        <div class="flex items-center gap-3">
+                            <!-- Panel de Control Integrado en el Header -->
+                            <Link 
+                                :href="route('dashboard')"
+                                @click="$emit('close')"
+                                :class="[
+                                    route().current('dashboard') || route().current('admin.dashboard')
+                                        ? 'bg-zinc-800 text-white border-zinc-700'
+                                        : 'bg-zinc-900/50 text-zinc-400 border-zinc-800/60 hover:text-white hover:bg-zinc-800',
+                                    'flex items-center gap-1.5 px-3 py-2 rounded-xl border transition-colors'
+                                ]"
+                            >
+                                <Squares2X2Icon 
+                                    class="h-4 w-4" 
+                                    :class="route().current('dashboard') || route().current('admin.dashboard') ? 'text-emerald-500' : 'text-zinc-400'" 
+                                />
+                                <span class="text-[11px] font-bold tracking-wide">Panel</span>
+                            </Link>
+
+                            <button 
+                                @click="$emit('close')"
+                                class="flex items-center justify-center h-9 w-9 rounded-full bg-zinc-800/50 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors focus:outline-none"
+                            >
+                                <span class="sr-only">Cerrar menú</span>
+                                <XMarkIcon class="h-5 w-5" aria-hidden="true" />
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="mt-8 flex-1 h-0 overflow-y-auto px-4 custom-scrollbar">
-                        <nav class="space-y-2">
-                            <SidebarAccordion 
-                                v-for="(group, idx) in navigationGroups" 
-                                :key="idx"
-                                :group="group"
-                                :auth="auth"
-                                :isMobile="true"
-                                @close="$emit('close')"
-                            />
-                        </nav>
+                    <!-- Scrollable Content: Grid -->
+                    <div class="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar">
+                        <div class="space-y-8">
+                            <template v-for="(group, idx) in navigationGroups" :key="idx">
+                                <!-- Omitimos el idx === 0 porque es el Panel de Control, que ya está en el header -->
+                                <div v-if="group.show !== false && idx !== 0">
+                                    <h3 v-if="group.title" class="px-2 text-[11px] font-bold text-zinc-500 uppercase tracking-widest mb-4">
+                                        {{ group.title }}
+                                    </h3>
+                                    <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                                        <template v-for="item in group.items" :key="item.name">
+                                            <Link 
+                                                v-if="!item.role || hasRole(item.role)"
+                                                :href="item.href"
+                                                @click="$emit('close')"
+                                                :class="[
+                                                    item.active 
+                                                        ? 'bg-zinc-800 border-zinc-700 text-white shadow-sm' 
+                                                        : 'bg-zinc-900/40 border-zinc-800/50 text-zinc-400 hover:text-white hover:bg-zinc-800 hover:border-zinc-700',
+                                                    'flex flex-col items-center justify-center p-4 sm:p-5 rounded-2xl border transition-all duration-200'
+                                                ]"
+                                            >
+                                                <component 
+                                                    :is="item.icon" 
+                                                    :class="[item.active ? 'text-emerald-500' : 'text-zinc-500', 'h-7 w-7 mb-2.5']" 
+                                                    aria-hidden="true" 
+                                                />
+                                                <span class="text-[11px] sm:text-xs font-semibold text-center leading-tight">{{ item.name }}</span>
+                                            </Link>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
                     </div>
 
-                    <!-- Pie del Sidebar Móvil -->
-                    <div class="mt-auto p-4 border-t border-zinc-800/50 flex items-center justify-between gap-x-2">
+                    <!-- Footer -->
+                    <div class="flex-shrink-0 p-5 bg-zinc-900/80 border-t border-zinc-800/50 flex items-center justify-between">
                         <div class="flex items-center gap-x-3 overflow-hidden">
-                            <ShieldCheckIcon class="h-5 w-5 text-emerald-500/80 flex-shrink-0" />
-                            <span class="text-zinc-300 text-sm font-semibold truncate">
-                                {{ auth.user.name }}
-                            </span>
+                            <div class="h-10 w-10 rounded-full bg-zinc-800 flex items-center justify-center border border-zinc-700">
+                                <ShieldCheckIcon class="h-5 w-5 text-emerald-500" />
+                            </div>
+                            <div class="flex flex-col truncate">
+                                <span class="text-white text-sm font-semibold truncate">{{ auth.user.name }}</span>
+                                <span class="text-zinc-500 text-xs truncate">{{ auth.roles?.includes('admin') ? 'Administrador' : 'Usuario' }}</span>
+                            </div>
                         </div>
 
                         <Link
                             v-if="hasRole(settingsLink.role)"
                             :href="settingsLink.href"
                             @click="$emit('close')"
-                            title="Ajustes de sistema"
-                            :class="[
-                                settingsLink.active
-                                    ? 'text-white bg-zinc-800 border border-zinc-700/50'
-                                    : 'text-zinc-400 hover:text-white hover:bg-zinc-800',
-                                'p-2.5 rounded-xl transition-all duration-200 flex-shrink-0'
-                            ]"
+                            class="p-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-zinc-400 hover:text-white transition-colors flex-shrink-0 ml-2"
                         >
-                            <component :is="settingsLink.icon" class="h-6 w-6" aria-hidden="true" />
+                            <component :is="settingsLink.icon" class="h-5 w-5" aria-hidden="true" />
                         </Link>
                     </div>
                 </div>
             </transition>
-
-            <div class="flex-shrink-0 w-14" aria-hidden="true">
-                <!-- Dummy element to force sidebar to shrink to fit close button -->
-            </div>
         </div>
     </div>
 </template>

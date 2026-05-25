@@ -1,8 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import { Head, useForm, router } from '@inertiajs/vue3'
-import { ref, watch } from 'vue'
-import debounce from 'lodash/debounce'
+import { Head, useForm } from '@inertiajs/vue3'
 import PageHeader from '@/Components/PageHeader.vue'
 import Card from '@/Components/Card.vue'
 import Pagination from '@/Components/Pagination.vue'
@@ -11,7 +9,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue'
 import SecondaryButton from '@/Components/SecondaryButton.vue'
 import DialogModal from '@/Components/DialogModal.vue'
 import ConfirmModal from '@/Components/ConfirmModal.vue'
-import SelectInput from '@/Components/SelectInput.vue'
+import SearchableSelect from '@/Components/SearchableSelect.vue'
 import { PlusIcon } from '@heroicons/vue/24/outline'
 
 // Partials
@@ -21,6 +19,7 @@ import EditMantenimientoServicioForm from '../Mantenimientos/Partials/EditManten
 
 // Composables
 import { useCRUDModals } from '@/Composables/useCRUDModals'
+import { useFilters } from '@/Composables/useFilters'
 
 const props = defineProps({
     servicios: Object,
@@ -42,23 +41,10 @@ const {
     closeConfirmModal
 } = useCRUDModals()
 
-const search = ref(props.filters.search)
-const mantenimientoId = ref(props.filters.mantenimiento_id || '')
-
-const mantenimientoOptions = [
-    { value: '', label: 'Todos los mantenimientos' },
-    ...props.mantenimientos.map(m => ({ value: m.id, label: m.aplicacion }))
-]
-
-watch([search, mantenimientoId], debounce(([searchVal, mantenimientoVal]) => {
-    router.get(route('admin.mantenimiento-servicios.index'), { 
-        search: searchVal,
-        mantenimiento_id: mantenimientoVal
-    }, {
-        preserveState: true,
-        replace: true
-    })
-}, 300))
+const { filters } = useFilters({
+    search: props.filters.search || '',
+    mantenimiento_id: props.filters.mantenimiento_id ? Number(props.filters.mantenimiento_id) : ''
+}, 'admin.mantenimiento-servicios.index')
 
 const destroyService = () => {
     if (!itemToDelete.value) return
@@ -91,15 +77,18 @@ const destroyService = () => {
                         <SearchInput 
                             id="search-mantenimiento-servicios"
                             name="search-mantenimiento-servicios"
-                            v-model="search" 
+                            v-model="filters.search" 
                             placeholder="Busca por descripción o aplicación..." 
                             class="w-full"
                         />
                     </div>
                     <div class="w-full sm:w-1/2 md:w-1/3">
-                        <SelectInput 
-                            v-model="mantenimientoId"
-                            :options="mantenimientoOptions"
+                        <SearchableSelect 
+                            v-model="filters.mantenimiento_id"
+                            :options="mantenimientos"
+                            label-key="aplicacion"
+                            value-key="id"
+                            placeholder="Todos los mantenimientos..."
                             class="w-full"
                         />
                     </div>

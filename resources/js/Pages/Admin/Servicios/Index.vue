@@ -6,6 +6,7 @@ import SecondaryButton from '@/Components/SecondaryButton.vue'
 import DialogModal from '@/Components/DialogModal.vue'
 import Pagination from '@/Components/Pagination.vue'
 import SearchInput from '@/Components/SearchInput.vue'
+import SearchableSelect from '@/Components/SearchableSelect.vue'
 import Card from '@/Components/Card.vue'
 import ConfirmModal from '@/Components/ConfirmModal.vue'
 import PageHeader from '@/Components/PageHeader.vue'
@@ -16,9 +17,8 @@ import ServiciosTable from './Partials/ServiciosTable.vue'
 import CreateServicioForm from './Partials/CreateServicioForm.vue'
 import EditServicioForm from './Partials/EditServicioForm.vue'
 
-// Composables
-import { useDebouncedSearch } from '@/Composables/useDebouncedSearch'
 import { useCRUDModals } from '@/Composables/useCRUDModals'
+import { useFilters } from '@/Composables/useFilters'
 
 const props = defineProps({
   servicios: Object,
@@ -26,7 +26,11 @@ const props = defineProps({
   proyectos: Array,
 })
 
-const { search } = useDebouncedSearch(props.filters.search, 'admin.servicios.index')
+const { filters } = useFilters({
+  search: props.filters.search || '',
+  proyecto_id: props.filters.proyecto_id ? Number(props.filters.proyecto_id) : ''
+}, 'admin.servicios.index')
+
 const {
     showCreateModal, showEditModal, showConfirmModal, 
     editingItem, itemToDelete,
@@ -63,15 +67,27 @@ const destroyServicio = () => {
         <Card class="p-4 sm:p-6">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
             <h3 class="text-lg font-medium text-gray-900 dark:text-white">Gestión de servicios</h3>
-            <div class="w-full md:w-80">
-              <SearchInput 
-                id="search-servicios"
-                name="search-servicios"
-                placeholder="Buscar por servicio o proyecto..." 
-                class="w-full" 
-                v-model="search" 
-              />
-           </div>
+            <div class="flex flex-col sm:flex-row w-full md:w-auto gap-4">
+              <div class="w-full sm:w-64">
+                <SearchableSelect 
+                  v-model="filters.proyecto_id"
+                  :options="proyectos"
+                  label-key="proyecto"
+                  value-key="id"
+                  placeholder="Todos los proyectos..."
+                  class="w-full"
+                />
+              </div>
+              <div class="w-full sm:w-80">
+                <SearchInput 
+                  id="search-servicios"
+                  name="search-servicios"
+                  placeholder="Buscar por servicio o proyecto..." 
+                  class="w-full" 
+                  v-model="filters.search" 
+                />
+              </div>
+            </div>
           </div>
 
           <ServiciosTable 
