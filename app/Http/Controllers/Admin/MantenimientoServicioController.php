@@ -25,6 +25,9 @@ class MantenimientoServicioController extends Controller
                       });
                 });
             })
+            ->when($request->input('mantenimiento_id'), function ($query, $mantenimiento_id) {
+                $query->where('mantenimiento_id', $mantenimiento_id);
+            })
             ->orderBy('fecha', 'desc')
             ->orderBy('created_at', 'desc')
             ->paginate(20)
@@ -32,7 +35,7 @@ class MantenimientoServicioController extends Controller
 
         return Inertia::render('Admin/MantenimientoServicios/Index', [
             'servicios' => $servicios,
-            'filters' => $request->only(['search']),
+            'filters' => $request->only(['search', 'mantenimiento_id']),
             'mantenimientos' => Mantenimiento::orderBy('aplicacion')->get(['id', 'aplicacion']),
         ]);
     }

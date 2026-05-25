@@ -41,7 +41,6 @@ const {
 
 const columns = [
   { key: 'aplicacion', label: 'Aplicación' },
-  { key: 'url', label: 'URL', align: 'center' },
   { key: 'fecha_inicio', label: 'Inicio' },
   { key: 'tipo_pago', label: 'Pago' },
   { key: 'importe', label: 'Importe' },
@@ -140,12 +139,6 @@ const navigateToShow = (item) => {
                 <span class="font-medium text-gray-900 dark:text-zinc-200">
                   {{ item.aplicacion }}
                 </span>
-              </template>
-              <template #cell-url="{ item }">
-                <a v-if="item.url" :href="item.url" target="_blank" class="text-gray-400 hover:text-emerald-500 transition-colors" title="Visitar sitio">
-                  <ArrowTopRightOnSquareIcon class="h-5 w-5 mx-auto" />
-                </a>
-                <span v-else class="text-gray-300 dark:text-zinc-700">-</span>
               </template>
               <template #cell-fecha_inicio="{ item }">
                 {{ formatDate(item.fecha_inicio) }}

@@ -11,6 +11,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue'
 import SecondaryButton from '@/Components/SecondaryButton.vue'
 import DialogModal from '@/Components/DialogModal.vue'
 import ConfirmModal from '@/Components/ConfirmModal.vue'
+import SelectInput from '@/Components/SelectInput.vue'
 import { PlusIcon } from '@heroicons/vue/24/outline'
 
 // Partials
@@ -42,9 +43,18 @@ const {
 } = useCRUDModals()
 
 const search = ref(props.filters.search)
+const mantenimientoId = ref(props.filters.mantenimiento_id || '')
 
-watch(search, debounce((value) => {
-    router.get(route('admin.mantenimiento-servicios.index'), { search: value }, {
+const mantenimientoOptions = [
+    { value: '', label: 'Todos los mantenimientos' },
+    ...props.mantenimientos.map(m => ({ value: m.id, label: m.aplicacion }))
+]
+
+watch([search, mantenimientoId], debounce(([searchVal, mantenimientoVal]) => {
+    router.get(route('admin.mantenimiento-servicios.index'), { 
+        search: searchVal,
+        mantenimiento_id: mantenimientoVal
+    }, {
         preserveState: true,
         replace: true
     })
@@ -76,13 +86,23 @@ const destroyService = () => {
 
         <div class="py-6 space-y-6">
             <Card class="p-4 sm:p-6">
-                <div class="mb-6">
-                    <SearchInput 
-                        id="search-mantenimiento-servicios"
-                        name="search-mantenimiento-servicios"
-                        v-model="search" 
-                        placeholder="Busca por descripción o aplicación..." 
-                    />
+                <div class="mb-6 flex flex-col sm:flex-row gap-4">
+                    <div class="w-full sm:w-1/2 md:w-1/3">
+                        <SearchInput 
+                            id="search-mantenimiento-servicios"
+                            name="search-mantenimiento-servicios"
+                            v-model="search" 
+                            placeholder="Busca por descripción o aplicación..." 
+                            class="w-full"
+                        />
+                    </div>
+                    <div class="w-full sm:w-1/2 md:w-1/3">
+                        <SelectInput 
+                            v-model="mantenimientoId"
+                            :options="mantenimientoOptions"
+                            class="w-full"
+                        />
+                    </div>
                 </div>
 
                 <MantenimientoServiciosTable 
