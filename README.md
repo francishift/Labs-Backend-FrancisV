@@ -21,6 +21,7 @@ Una solución **ERP y CRM completa y premium**, diseñada para agencias digitale
 - **🔄 Sincronización Google Calendar**: Sincronización bidireccional silenciosa (vía Eloquent Observers) que enlaza el CRM local con tu calendario personal.
 - **📊 Analítica y MRR en Tiempo Real**: Dashboards financieros y cuadros de mando creados con Apache ECharts, con cálculos automatizados de Ingresos Recurrentes Mensuales.
 - **⚡ Rendimiento y Base de Datos**: Optimización extrema con Eager Loading (`with()`) para prevenir cuellos de botella N+1 y paginación en todos los recursos.
+- **🚀 Alto Rendimiento con Redis**: Manejo de sesiones en memoria, sistema de colas (Queues) y caché ultrarrápida impulsada por Redis.
 - **🌓 Interfaz Premium**: UI/UX responsive con modo oscuro integrado, creado con Vue 3 (Composition API) e Inertia.js para navegación ultrarrápida sin recargas de página.
 
 ---
@@ -30,6 +31,7 @@ Una solución **ERP y CRM completa y premium**, diseñada para agencias digitale
 | Capa | Tecnologías |
 | :--- | :--- |
 | **Backend** | Laravel 13, PHP 8.4, Eloquent ORM |
+| **Caché & Colas** | Redis (phpredis) |
 | **Arquitectura** | Patrón de Servicios, FormRequests, Observers, Traits |
 | **Frontend** | Vue 3 (Composition API), Inertia.js |
 | **Estilo** | Tailwind CSS, Headless UI |
@@ -148,6 +150,7 @@ A premium, full-featured **Enterprise Resource Planning (ERP) and CRM solution**
 - **🔄 Google Calendar Synchronization**: Silent, bidirectional background syncing (via Eloquent Observers) connecting the local CRM workflow to your personal calendar.
 - **📊 Real-time Analytics & MRR**: Beautiful, interactive financial dashboards powered by Apache ECharts, computing Monthly Recurring Revenue instantaneously.
 - **⚡ Extreme Optimization**: Total elimination of N+1 database queries through strategic eager loading, paired with paginated indexing for instantaneous UX.
+- **🚀 High Performance via Redis**: In-memory sessions, robust queuing system, and ultra-fast caching powered by Redis.
 - **🌓 Adaptive Premium UI**: A highly responsive, built-in dark mode interface crafted with Vue 3 and Inertia.js for seamless, SPA-like navigation.
 
 ---
@@ -157,6 +160,7 @@ A premium, full-featured **Enterprise Resource Planning (ERP) and CRM solution**
 | Layer | Technologies |
 | :--- | :--- |
 | **Backend** | Laravel 13, PHP 8.4, Eloquent ORM |
+| **Cache & Queues**| Redis (phpredis) |
 | **Architecture** | Service Pattern, FormRequests, Observers, Traits |
 | **Frontend** | Vue 3 (Composition API), Inertia.js |
 | **Styling** | Tailwind CSS, Headless UI |
