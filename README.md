@@ -74,7 +74,7 @@ graph TD
 
 1. **Clonar el repositorio**
    ```bash
-   git clone git@github.com:tu-usuario-git/Labs-Backend-FrancisV.git
+   git clone git@github.com:francishift/Labs-Backend-FrancisV.git
    cd Labs-Backend-FrancisV
    ```
 
@@ -106,8 +106,8 @@ graph TD
 ## 👨‍💻 Autor
 
 **Francis Valenzuela**
-- GitHub: [@tu-usuario-git](https://github.com/tu-usuario-git)
-- Web: [www.TU_DOMINIO](https://www.TU_DOMINIO)
+- GitHub: [@francishift](https://github.com/francishift)
+- Web: [www.francisvalenzuela.com](https://www.francisvalenzuela.com)
 
 ---
 
