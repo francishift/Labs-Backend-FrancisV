@@ -6,6 +6,7 @@ use App\Models\Presupuesto;
 use App\Enums\PresupuestoStatus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Exception;
 
 class PresupuestoService
@@ -165,5 +166,34 @@ class PresupuestoService
         } catch (Exception $e) {
             Log::error('Fallo al guardar presupuesto en Google Drive: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Envía el presupuesto por correo electrónico.
+     */
+    public function enviarPresupuestoPorEmail(Presupuesto $presupuesto, array $datosEnvio, $usuarioLogueado = null): void
+    {
+        $pdfOutput = $this->pdfService->generatePresupuestoPdf($presupuesto);
+
+        $mail = Mail::to($datosEnvio['email']);
+
+        if (!empty($datosEnvio['cc_emails'])) {
+            $ccList = array_map('trim', explode(',', $datosEnvio['cc_emails']));
+            $ccList = array_filter($ccList, fn($email) => filter_var($email, FILTER_VALIDATE_EMAIL));
+            if (!empty($ccList)) {
+                $mail->cc($ccList);
+            }
+        }
+
+        if (!empty($datosEnvio['send_copy_to_me']) && $usuarioLogueado) {
+            $mail->bcc($usuarioLogueado->email);
+        }
+
+        $mail->send(new \App\Mail\PresupuestoPdfMail(
+            $presupuesto, 
+            $pdfOutput, 
+            $datosEnvio['message'] ?? null, 
+            $datosEnvio['attachments'] ?? []
+        ));
     }
 }

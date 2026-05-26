@@ -1,7 +1,6 @@
 <script setup>
 import { computed } from 'vue'
 import { Link } from '@inertiajs/vue3'
-import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/vue'
 import { ChevronDownIcon } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
@@ -16,10 +15,14 @@ const props = defineProps({
     isMobile: {
         type: Boolean,
         default: false
+    },
+    isOpen: {
+        type: Boolean,
+        default: false
     }
 })
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'toggle'])
 
 const hasRole = (role) => {
     if (!props.auth?.roles) return false
@@ -28,10 +31,6 @@ const hasRole = (role) => {
     }
     return props.auth.roles.includes(role)
 }
-
-const isGroupActive = computed(() => {
-    return props.group.items.some(item => item.active)
-})
 
 const visibleItems = computed(() => {
     return props.group.items.filter(item => !item.role || hasRole(item.role))
@@ -69,11 +68,12 @@ const visibleItems = computed(() => {
         </div>
 
         <!-- Grupo con título (Acordeón) -->
-        <Disclosure as="div" v-else :defaultOpen="isGroupActive || group.defaultOpen" v-slot="{ open }">
-            <DisclosureButton
+        <div v-else class="mb-2">
+            <button
+                @click="$emit('toggle')"
                 class="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left font-semibold uppercase tracking-wider transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
                 :class="[
-                    open ? 'text-zinc-300 bg-zinc-800/40' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/20',
+                    isOpen ? 'text-zinc-300 bg-zinc-800/40' : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/20',
                     isMobile ? 'text-sm mt-3' : 'text-xs'
                 ]"
             >
@@ -82,9 +82,9 @@ const visibleItems = computed(() => {
                     <span>{{ group.title }}</span>
                 </div>
                 <ChevronDownIcon
-                    :class="[open ? 'rotate-180 text-zinc-300' : 'text-zinc-500', 'h-4 w-4 flex-shrink-0 transition-transform duration-300 ease-in-out']"
+                    :class="[isOpen ? 'rotate-180 text-zinc-300' : 'text-zinc-500', 'h-4 w-4 flex-shrink-0 transition-transform duration-300 ease-in-out']"
                 />
-            </DisclosureButton>
+            </button>
             
             <transition
                 enter-active-class="transition duration-200 ease-out"
@@ -95,7 +95,7 @@ const visibleItems = computed(() => {
                 leave-to-class="transform -translate-y-2 opacity-0"
             >
                 <!-- Contenedor del panel con línea vertical guía a la izquierda -->
-                <DisclosurePanel class="space-y-1 pt-1 ml-2 relative before:absolute before:inset-y-0 before:left-[11px] before:w-px before:bg-zinc-800/50">
+                <div v-show="isOpen" class="space-y-1 pt-1 ml-2 relative before:absolute before:inset-y-0 before:left-[11px] before:w-px before:bg-zinc-800/50">
                     <template v-for="item in visibleItems" :key="item.name">
                         <Link
                             :href="item.href"
@@ -122,8 +122,8 @@ const visibleItems = computed(() => {
                             {{ item.name }}
                         </Link>
                     </template>
-                </DisclosurePanel>
+                </div>
             </transition>
-        </Disclosure>
+        </div>
     </template>
 </template>

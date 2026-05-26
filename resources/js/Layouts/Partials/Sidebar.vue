@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { Link } from '@inertiajs/vue3'
 import ApplicationLogo from '@/Components/ApplicationLogo.vue'
 import SidebarAccordion from '@/Components/SidebarAccordion.vue'
@@ -84,6 +84,16 @@ const navigationGroups = computed(() => [
 ])
 
 const settingsLink = { name: 'Ajustes', href: route('admin.settings.index'), icon: Cog6ToothIcon, active: route().current('admin.settings.*'), role: 'admin' }
+
+const openGroupIndex = ref(
+    navigationGroups.value.findIndex(g => g.items && g.items.some(i => i.active)) !== -1
+        ? navigationGroups.value.findIndex(g => g.items && g.items.some(i => i.active))
+        : navigationGroups.value.findIndex(g => g.defaultOpen)
+)
+
+const toggleGroup = (index) => {
+    openGroupIndex.value = openGroupIndex.value === index ? null : index
+}
 </script>
 
 <template>
@@ -104,6 +114,8 @@ const settingsLink = { name: 'Ajustes', href: route('admin.settings.index'), ico
                     :key="idx"
                     :group="group"
                     :auth="auth"
+                    :is-open="openGroupIndex === idx"
+                    @toggle="toggleGroup(idx)"
                     @close="$emit('close')"
                 />
             </nav>

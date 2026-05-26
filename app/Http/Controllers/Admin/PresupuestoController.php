@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\StorePresupuestoRequest;
 use App\Http\Requests\UpdatePresupuestoRequest;
+use App\Http\Requests\SendPresupuestoEmailRequest;
 use App\Models\Presupuesto;
 use App\Models\Client;
 use App\Models\Configuracion;
@@ -224,16 +225,9 @@ class PresupuestoController extends Controller
             ->header('Pragma', 'no-cache');
     }
 
-    public function sendPdfEmail(Presupuesto $presupuesto, Request $request)
+    public function sendPdfEmail(Presupuesto $presupuesto, SendPresupuestoEmailRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'message' => 'nullable|string'
-        ]);
-        
-        $pdfOutput = $this->pdfService->generatePresupuestoPdf($presupuesto);
-
-        Mail::to($request->email)->send(new PresupuestoPdfMail($presupuesto, $pdfOutput, $request->message));
+        $this->presupuestoService->enviarPresupuestoPorEmail($presupuesto, $request->validated(), auth()->user());
 
         return back()->with('success', 'Presupuesto enviado por correo electrónico a ' . $request->email);
     }

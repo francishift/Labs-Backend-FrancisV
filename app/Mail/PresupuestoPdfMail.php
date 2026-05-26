@@ -18,15 +18,17 @@ class PresupuestoPdfMail extends Mailable
     public $presupuesto;
     protected $pdfOutput;
     public $customMessage;
+    protected $archivosAdjuntos;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(Presupuesto $presupuesto, $pdfOutput, $customMessage = null)
+    public function __construct(Presupuesto $presupuesto, $pdfOutput, $customMessage = null, array $archivosAdjuntos = [])
     {
         $this->presupuesto = $presupuesto;
         $this->pdfOutput = $pdfOutput;
         $this->customMessage = $customMessage;
+        $this->archivosAdjuntos = $archivosAdjuntos;
     }
 
     /**
@@ -58,9 +60,17 @@ class PresupuestoPdfMail extends Mailable
     {
         $safeDocNumber = str_replace(['/', '\\'], '-', $this->presupuesto->number ?? $this->presupuesto->id);
 
-        return [
+        $attachments = [
             Attachment::fromData(fn () => $this->pdfOutput, $safeDocNumber . '.pdf')
                     ->withMime('application/pdf'),
         ];
+
+        foreach ($this->archivosAdjuntos as $archivo) {
+            $attachments[] = Attachment::fromPath($archivo->getRealPath())
+                                       ->as($archivo->getClientOriginalName())
+                                       ->withMime($archivo->getClientMimeType());
+        }
+
+        return $attachments;
     }
 }
