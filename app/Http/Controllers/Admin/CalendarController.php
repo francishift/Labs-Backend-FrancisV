@@ -20,9 +20,15 @@ class CalendarController extends Controller
         $this->calendarService = $calendarService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        return Inertia::render('Admin/Calendar/Index');
+        $validated = $request->validate([
+            'date' => ['nullable', 'date_format:Y-m-d'],
+        ]);
+
+        return Inertia::render('Admin/Calendar/Index', [
+            'initialDate' => $validated['date'] ?? null,
+        ]);
     }
 
     public function events(Request $request)

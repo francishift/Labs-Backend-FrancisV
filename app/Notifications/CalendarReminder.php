@@ -26,23 +26,25 @@ class CalendarReminder extends Notification
 
     public function toArray($notifiable)
     {
+        $dateParam = $this->event->start_date ? $this->event->start_date->format('Y-m-d') : null;
         return [
             'icon' => 'calendar',
             'title' => 'Recordatorio de Calendario',
             'message' => $this->event->name . ($this->event->description ? ': ' . $this->event->description : ''),
-            'url' => route('admin.calendar.index'),
+            'url' => route('admin.calendar.index', $dateParam ? ['date' => $dateParam] : []),
             'type' => 'calendar_event',
         ];
     }
 
     public function toWebPush($notifiable, $notification)
     {
+        $dateParam = $this->event->start_date ? $this->event->start_date->format('Y-m-d') : null;
         return (new WebPushMessage)
             ->title('Francis Valenzuela')
             ->icon('/logo-icono.png') 
             ->body($this->event->name . ($this->event->description ? ': ' . $this->event->description : ''))
             ->action('Ver Calendario', 'view_calendar')
-            ->data(['url' => route('admin.calendar.index')])
+            ->data(['url' => route('admin.calendar.index', $dateParam ? ['date' => $dateParam] : [])])
             ->vibrate([100, 50, 100]);
     }
 }

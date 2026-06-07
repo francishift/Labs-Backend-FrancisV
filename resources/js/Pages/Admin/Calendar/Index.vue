@@ -18,6 +18,10 @@ const calendarRef = ref(null);
 const showEventModal = ref(false);
 const isEditing = ref(false);
 
+const props = defineProps({
+    initialDate: String,
+});
+
 const defaultEventData = {
     id: null,
     name: '',
@@ -54,6 +58,7 @@ const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 const calendarOptions = ref({
     plugins: [ dayGridPlugin, timeGridPlugin, interactionPlugin ],
     initialView: 'timeGridDay',
+    initialDate: props.initialDate || undefined,
     headerToolbar: {
         left: 'prev,next today',
         center: 'title',
