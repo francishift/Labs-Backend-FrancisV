@@ -13,7 +13,7 @@ Una solución **ERP y CRM completa y premium**, diseñada para agencias digitale
 
 ## ✨ Funcionalidades Clave
 
-- **🏗️ Arquitectura Limpia (Clean Architecture)**: Lógica de negocio 100% aislada en clases de Servicio transaccionales, Controladores ligeros y validación estricta vía FormRequests. Cero código espagueti.
+- **🏗️ Arquitectura Limpia**: Lógica de negocio 100% aislada en clases de Servicio transaccionales, Controladores ligeros y validación estricta vía FormRequests.
 - **🛡️ Alta Fiabilidad (75+ Tests Automatizados)**: Suite completa de pruebas unitarias y de integración que verifican la creación de facturas, cálculos de rentabilidad, envíos de emails y sincronizaciones VPN, garantizando cero regresiones.
 - **💼 Ecosistema Nativo e Independiente**: Generación ultrarrápida al vuelo (sin estado) de Presupuestos y Facturas de Venta en PDF. Todo persiste en base de datos local y Google Drive, logrando independencia total de ERPs externos.
 - **🤖 Inteligencia Artificial (Gemini AI)**: Sistema automatizado que escanea, clasifica y extrae datos financieros de las facturas de proveedores enviadas por PDF, almacenándolas de forma resiliente en Google Drive.
@@ -142,9 +142,9 @@ A premium, full-featured **Enterprise Resource Planning (ERP) and CRM solution**
 
 ## ✨ Key Features
 
-- **🏗️ Clean Architecture**: 100% decoupled business logic utilizing transactional Services, extremely thin Controllers, and strict FormRequests validation. Zero spaghetti code.
+- **🏗️ Clean Architecture**: 100% decoupled business logic utilizing transactional Services, extremely thin Controllers, and strict FormRequests validation.
 - **🛡️ Bulletproof Reliability (75+ Automated Tests)**: Comprehensive test suite guaranteeing stability across PDF rendering, financial calculations, VPN orchestration, and API integrations.
-- **💼 Native & Independent Ecosystem**: Ultra-fast, stateless, on-the-fly PDF generation for Estimates and Invoices. The system relies purely on local database persistence, effectively eliminating dependencies on third-party ERPs like Holded.
+- **💼 Native & Independent Ecosystem**: Ultra-fast, stateless, on-the-fly PDF generation for Estimates and Invoices. The system relies purely on local database persistence, effectively eliminating dependencies on third-party ERPs.
 - **🤖 Artificial Intelligence (Gemini AI)**: Smart ingestion system that scans, classifies, and extracts financial data from supplier invoices, securely archiving the original PDFs on Google Drive.
 - **🔐 Automated VPN Provisioning (WireGuard)**: Integrated orchestrator that generates private network peers, assigns IPs, and emails secure configuration profiles to new employees upon creation.
 - **🔄 Google Calendar Synchronization**: Silent, bidirectional background syncing (via Eloquent Observers) connecting the local CRM workflow to your personal calendar.
