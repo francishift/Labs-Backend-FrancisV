@@ -99,3 +99,15 @@
         font-size: 0.85rem;
     }
 }
+
+/* Scroll horizontal en móvil para la vista semanal */
+@media (max-width: 768px) {
+    .calendar-container .fc-view-harness {
+        overflow-x: auto !important;
+    }
+    
+    .calendar-container .fc-timeGridWeek-view,
+    .calendar-container .fc-dayGridMonth-view {
+        min-width: 700px !important;
+    }
+}

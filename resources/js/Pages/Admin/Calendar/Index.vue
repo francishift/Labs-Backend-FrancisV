@@ -89,19 +89,57 @@ const calendarOptions = ref({
     allDayContent: function(arg) {
         return { html: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 mx-auto text-gray-500 dark:text-zinc-400"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>' };
     },
+    eventContent: function(arg) {
+        let title = arg.event.title;
+        let timeText = arg.timeText;
+        
+        return {
+            html: `<div class="flex flex-col h-full overflow-hidden leading-tight py-0.5">
+                       <span class="font-semibold text-[11px] md:text-xs text-emerald-800 dark:text-emerald-200 truncate shrink-0" title="${title}">
+                           ${title}
+                       </span>
+                       ${timeText ? `
+                       <span class="text-[9px] md:text-[10px] text-emerald-600/80 dark:text-emerald-400/80 mt-0.5 font-medium truncate">
+                           ${timeText}
+                       </span>` : ''}
+                   </div>`
+        };
+    },
     dayHeaderContent: function(arg) {
-        if (window.innerWidth < 768 && arg.view.type === 'timeGridWeek') {
-            const date = arg.date;
-            let dayName = new Intl.DateTimeFormat('es', { weekday: 'short' }).format(date).replace('.', '');
-            let dateNum = new Intl.DateTimeFormat('es', { day: '2-digit', month: '2-digit' }).format(date);
-            
+        const date = arg.date;
+        const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+        
+        // Formatear el nombre del día
+        let dayName = new Intl.DateTimeFormat('es', { 
+            weekday: isMobile ? 'short' : 'long' 
+        }).format(date).replace('.', '');
+        
+        // Si es la vista mensual, solo mostramos el nombre del día (sin número/fecha de ejemplo)
+        if (arg.view.type === 'dayGridMonth') {
             return {
-                html: `<div class="flex flex-col items-center justify-center leading-tight py-0.5">
-                           <span class="font-semibold text-xs capitalize">${dayName}</span>
-                           <span class="font-normal text-[10px] text-gray-500 dark:text-zinc-400 mt-0.5">${dateNum}</span>
+                html: `<div class="flex flex-col items-center justify-center leading-tight py-1">
+                           <span class="font-semibold text-xs md:text-sm capitalize text-gray-700 dark:text-zinc-200">
+                               ${dayName}
+                           </span>
                        </div>`
             };
         }
+        
+        // Formatear el número/fecha
+        let dateNum = isMobile 
+            ? new Intl.DateTimeFormat('es', { day: '2-digit', month: '2-digit' }).format(date)
+            : new Intl.DateTimeFormat('es', { day: 'numeric' }).format(date);
+            
+        return {
+            html: `<div class="flex flex-col items-center justify-center leading-tight py-1">
+                       <span class="font-semibold text-xs md:text-sm capitalize text-gray-700 dark:text-zinc-200">
+                           ${dayName}
+                       </span>
+                       <span class="font-bold text-sm md:text-lg text-emerald-600 dark:text-emerald-400 mt-0.5">
+                           ${dateNum}
+                       </span>
+                   </div>`
+        };
     },
     locale: 'es',
     // --- Mejores prácticas para móvil ---
