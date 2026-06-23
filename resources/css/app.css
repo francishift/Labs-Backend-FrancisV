@@ -79,3 +79,11 @@
   background-color: #27272a; /* bg-zinc-800 */
   border-radius: 0.375rem 0.375rem 0 0;
 }
+
+/* Evitar el anillo y contorno de foco tosco en los selects de las tablas y desplegables redondeados (status badges) */
+table select:focus,
+select.rounded-full:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}

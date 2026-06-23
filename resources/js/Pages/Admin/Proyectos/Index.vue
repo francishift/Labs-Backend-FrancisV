@@ -213,7 +213,7 @@ const navigateToShow = (item) => {
           :proyecto="editingItem" 
           :clients="props.clients" 
           :available-extensions="props.availableExtensions"
-          :close-edit-modal="closeEditModal" 
+          @close="closeEditModal" 
         />
       </template>
       <template #footer>

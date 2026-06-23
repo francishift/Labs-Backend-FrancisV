@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\PurchaseFactura;
+use App\Enums\PurchaseFacturaStatus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\UploadedFile;
@@ -86,7 +87,7 @@ class PurchaseFacturaService
      */
     public function resolverDuplicado(PurchaseFactura $factura): void
     {
-        if ($factura->status !== 'duplicada') return;
+        if ($factura->status !== PurchaseFacturaStatus::DUPLICADA) return;
         
         $duplicateOfId = $factura->raw_data['duplicate_of'] ?? null;
         if (!$duplicateOfId) return;

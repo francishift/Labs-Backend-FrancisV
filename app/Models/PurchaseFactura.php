@@ -31,5 +31,6 @@ class PurchaseFactura extends Model
         'tax_amount' => 'decimal:2',
         'irpf_amount' => 'decimal:2',
         'raw_data' => 'array',
+        'status' => \App\Enums\PurchaseFacturaStatus::class,
     ];
 }

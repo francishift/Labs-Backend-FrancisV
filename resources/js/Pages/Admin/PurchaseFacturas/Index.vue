@@ -39,7 +39,8 @@ const props = defineProps({
     facturas: Object,
     providers: Array,
     filters: Object,
-    totals: Object
+    totals: Object,
+    statuses: Array
 })
 
 const filterForm = ref({
@@ -157,6 +158,12 @@ const viewPdf = (item) => {
         title: `Factura: ${item.number}`,
         backUrl: window.location.href
     });
+}
+
+const updateStatusInline = (id, e) => {
+    router.patch(route('admin.purchase-facturas.update-status', id), { status: e.target.value }, {
+        preserveScroll: true
+    })
 }
 
 const setDateRange = (rangeType) => {
@@ -313,15 +320,20 @@ const setDateRange = (rangeType) => {
                 <span class="font-medium text-gray-900 dark:text-zinc-100 whitespace-nowrap">{{ formatCurrency(item.total) }}</span>
             </template>
             <template #cell-status="{ item }">
-                <span class="px-2.5 py-1 rounded-full text-xs font-medium capitalize border border-transparent dark:border-zinc-800/50" 
+                <select 
+                    :value="item.status"
+                    @change="updateStatusInline(item.id, $event)"
+                    @click.stop
+                    class="text-xs font-semibold rounded-full border border-transparent shadow-sm focus:ring-2 focus:ring-offset-1 focus:ring-emerald-500 cursor-pointer py-1 pl-3 pr-8 capitalize"
                     :class="{
-                    'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-500': item.status === 'pagado' || item.status === 'recibida',
-                    'bg-amber-100 dark:bg-amber-500/10 text-amber-700 dark:text-amber-500': item.status === 'procesando',
-                    'bg-red-100 dark:bg-red-500/10 text-red-700 dark:text-red-500': item.status === 'duplicada',
-                    'bg-purple-100 dark:bg-purple-500/10 text-purple-700 dark:text-purple-500': item.status === 'error_ia'
-                    }">
-                    {{ item.status === 'error_ia' ? 'Error IA' : item.status }}
-                </span>
+                        'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300': item.status === 'pagado',
+                        'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300': item.status === 'recibida' || item.status === 'duplicada' || item.status === 'error',
+                        'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300': item.status === 'procesando',
+                        'bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300': item.status === 'error_ia'
+                    }"
+                >
+                    <option v-for="s in statuses" :key="s.id" :value="s.id">{{ s.name }}</option>
+                </select>
             </template>
             <template #cell-actions="{ item }">
                 <div class="flex justify-end gap-x-2">

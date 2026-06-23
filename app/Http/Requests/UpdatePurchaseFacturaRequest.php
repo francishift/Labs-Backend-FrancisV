@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Enum;
+use App\Enums\PurchaseFacturaStatus;
 
 class UpdatePurchaseFacturaRequest extends FormRequest
 {
@@ -21,7 +23,7 @@ class UpdatePurchaseFacturaRequest extends FormRequest
             'net_amount' => 'nullable|numeric',
             'tax_amount' => 'nullable|numeric',
             'irpf_amount' => 'nullable|numeric',
-            'status' => 'required|string',
+            'status' => ['required', new Enum(PurchaseFacturaStatus::class)],
             'notes' => 'nullable|string',
         ];
     }

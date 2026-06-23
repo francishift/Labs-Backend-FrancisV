@@ -192,4 +192,45 @@ class PurchaseFacturaAITest extends TestCase
             'status' => 'recibida'
         ]);
     }
+
+    public function test_update_status_updates_database_successfully()
+    {
+        $factura = PurchaseFactura::create([
+            'number' => 'INV-005',
+            'provider_name' => 'Test Provider',
+            'date' => '2024-01-01',
+            'status' => 'recibida',
+            'total' => 100
+        ]);
+
+        $response = $this->actingAs($this->admin)
+            ->patch(route('admin.purchase-facturas.update-status', $factura->id), [
+                'status' => 'pagado'
+            ]);
+
+        $response->assertRedirect();
+        
+        $this->assertDatabaseHas('purchase_facturas', [
+            'id' => $factura->id,
+            'status' => 'pagado'
+        ]);
+    }
+
+    public function test_update_status_fails_on_invalid_status()
+    {
+        $factura = PurchaseFactura::create([
+            'number' => 'INV-006',
+            'provider_name' => 'Test Provider',
+            'date' => '2024-01-01',
+            'status' => 'recibida',
+            'total' => 100
+        ]);
+
+        $response = $this->actingAs($this->admin)
+            ->patch(route('admin.purchase-facturas.update-status', $factura->id), [
+                'status' => 'invalido'
+            ]);
+
+        $response->assertSessionHasErrors(['status']);
+    }
 }

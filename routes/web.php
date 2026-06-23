@@ -94,6 +94,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/admin/purchase-facturas/{purchaseFactura}', [\App\Http\Controllers\Admin\PurchaseFacturaController::class, 'update'])->name('admin.purchase-facturas.update');
         Route::delete('/admin/purchase-facturas/{purchaseFactura}', [\App\Http\Controllers\Admin\PurchaseFacturaController::class, 'destroy'])->name('admin.purchase-facturas.destroy');
         Route::post('/admin/purchase-facturas/{purchaseFactura}/overwrite', [\App\Http\Controllers\Admin\PurchaseFacturaController::class, 'confirmOverwrite'])->name('admin.purchase-facturas.overwrite');
+        Route::patch('/admin/purchase-facturas/{purchaseFactura}/status', [\App\Http\Controllers\Admin\PurchaseFacturaController::class, 'updateStatus'])->name('admin.purchase-facturas.update-status');
         
         // Presupuestos Nativos
         Route::get('/admin/presupuestos', [\App\Http\Controllers\Admin\PresupuestoController::class, 'index'])->name('admin.presupuestos.index');

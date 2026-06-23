@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PurchaseFactura;
+use App\Enums\PurchaseFacturaStatus;
+use Illuminate\Validation\Rules\Enum;
 use App\Http\Requests\StorePurchaseFacturaRequest;
 use App\Http\Requests\UpdatePurchaseFacturaRequest;
 use App\Services\PurchaseFacturaService;
@@ -85,6 +87,7 @@ class PurchaseFacturaController extends Controller
         return Inertia::render('Admin/PurchaseFacturas/Index', [
             'facturas' => $facturas,
             'providers' => $providers,
+            'statuses' => PurchaseFacturaStatus::options(),
             'totals' => $totals,
             'filters' => array_merge($request->only(['search', 'provider', 'sort', 'direction']), [
                 'date_from' => $dateFrom,
@@ -138,5 +141,19 @@ class PurchaseFacturaController extends Controller
         $this->purchaseService->resolverDuplicado($purchaseFactura);
         
         return redirect()->back()->with('success', "Factura corregida.");
+    }
+
+    /**
+     * Actualiza el estado de una factura de compra directamente desde el listado.
+     */
+    public function updateStatus(Request $request, PurchaseFactura $purchaseFactura)
+    {
+        $validated = $request->validate([
+            'status' => ['required', new Enum(PurchaseFacturaStatus::class)],
+        ]);
+
+        $purchaseFactura->update(['status' => $validated['status']]);
+
+        return redirect()->back()->with('success', 'Estado modificado correctamente.');
     }
 }
