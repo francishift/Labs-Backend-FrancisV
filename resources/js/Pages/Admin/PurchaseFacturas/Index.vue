@@ -305,6 +305,7 @@ const setDateRange = (rangeType) => {
             :sort-key="filterForm.sort"
             :sort-dir="filterForm.direction"
             @sort="sort"
+            @row-click="viewPdf"
             :hoverable="true"
         >
             <template #cell-date="{ item }">

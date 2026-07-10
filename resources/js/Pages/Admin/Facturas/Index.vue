@@ -310,6 +310,7 @@ onMounted(() => {
             :sort-key="filterForm.sort"
             :sort-dir="filterForm.direction"
             @sort="sort"
+            @row-click="(item) => router.visit(route('admin.facturas.show', item.id))"
             :hoverable="true"
             :row-class="getRowClass"
         >
