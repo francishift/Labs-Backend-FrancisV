@@ -8,14 +8,16 @@ enum PresupuestoStatus: int
     case APPROVED = 1;
     case CANCELED = 2; // Anulado
     case REJECTED = 3;
+    case INVOICED = 4; // Convertido a factura
 
     public function label(): string
     {
         return match ($this) {
-            self::PENDING => 'Pendiente',
-            self::APPROVED => 'Aprobado',
-            self::CANCELED => 'Anulado',
-            self::REJECTED => 'Rechazado',
+            self::PENDING   => 'Pendiente',
+            self::APPROVED  => 'Aprobado',
+            self::CANCELED  => 'Anulado',
+            self::REJECTED  => 'Rechazado',
+            self::INVOICED  => 'Facturado',
         };
     }
 

@@ -14,7 +14,7 @@ import SearchableSelect from '@/Components/SearchableSelect.vue'
 import ConfirmModal from '@/Components/ConfirmModal.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import debounce from 'lodash/debounce'
-import { PlusIcon, EyeIcon, PencilIcon, PencilSquareIcon, NoSymbolIcon, CheckCircleIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
+import { PlusIcon, EyeIcon, PencilIcon, PencilSquareIcon, NoSymbolIcon, CheckCircleIcon, ArrowPathIcon, DocumentArrowUpIcon } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
   presupuestos: Object,
@@ -98,6 +98,7 @@ const formatCurrency = (val) => new Intl.NumberFormat('es-ES', { style: 'currenc
 
 const showCancelModal = ref(false)
 const showReactivateModal = ref(false)
+const showConvertModal = ref(false)
 const currentBudget = ref(null)
 
 const confirmCancel = (budget) => {
@@ -124,6 +125,20 @@ const executeReactivate = () => {
         router.patch(route('admin.presupuestos.reactivate', currentBudget.value.id), {}, {
             preserveScroll: true,
             onSuccess: () => { showReactivateModal.value = false; currentBudget.value = null; }
+        })
+    }
+}
+
+// Conversión a factura
+const confirmConvert = (budget) => {
+    currentBudget.value = budget
+    showConvertModal.value = true
+}
+
+const executeConvert = () => {
+    if (currentBudget.value) {
+        router.post(route('admin.presupuestos.convertir-a-factura', currentBudget.value.id), {}, {
+            onSuccess: () => { showConvertModal.value = false; currentBudget.value = null; }
         })
     }
 }
@@ -314,7 +329,8 @@ onMounted(() => {
                         'bg-gray-100 text-gray-800 dark:bg-zinc-800 dark:text-zinc-300': item.status == 0,
                         'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300': item.status == 1,
                         'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300': item.status == 2,
-                        'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300': item.status == 3
+                        'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300': item.status == 3,
+                        'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300': item.status == 4
                     }"
                 >
                     <option v-for="s in statuses" :key="s.id" :value="s.id">{{ s.name }}</option>
@@ -335,6 +351,10 @@ onMounted(() => {
                   <Link v-if="item.status != 2" :href="route('admin.presupuestos.edit', item.id)" class="text-blue-500/70 hover:text-blue-600 dark:text-blue-400/70 dark:hover:text-blue-400 transition-colors" title="Editar Presupuesto" @click.stop>
                       <PencilSquareIcon class="w-5 h-5 inline" />
                   </Link>
+                  <!-- Convertir a factura: visible si no está cancelado (2), rechazado (3) ni ya facturado (4) -->
+                  <button v-if="item.status != 2 && item.status != 3 && item.status != 4" @click.stop="confirmConvert(item)" class="text-indigo-500/70 hover:text-indigo-600 dark:text-indigo-400/70 dark:hover:text-indigo-400 transition-colors" title="Convertir a Factura">
+                      <DocumentArrowUpIcon class="w-5 h-5 inline" />
+                  </button>
                   <button v-if="item.status != 2" @click.stop="confirmCancel(item)" class="text-red-500/70 hover:text-red-600 dark:text-red-400/70 dark:hover:text-red-400 transition-colors" title="Anular Presupuesto">
                       <NoSymbolIcon class="w-5 h-5 inline" />
                   </button>
@@ -369,6 +389,16 @@ onMounted(() => {
       cancel-text="Cancelar"
       @close="showReactivateModal = false"
       @confirm="executeReactivate"
+    />
+
+    <ConfirmModal
+      :show="showConvertModal"
+      title="Convertir a Factura"
+      :content="`¿Confirmas convertir el presupuesto '${currentBudget?.number}' en una nueva factura? El presupuesto quedará marcado como 'Facturado'.`"
+      confirm-text="Sí, convertir"
+      cancel-text="Cancelar"
+      @close="showConvertModal = false"
+      @confirm="executeConvert"
     />
   </AuthenticatedLayout>
 </template>

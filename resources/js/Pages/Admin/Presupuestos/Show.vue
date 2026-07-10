@@ -1,6 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import { Head, Link, useForm } from '@inertiajs/vue3'
+import { Head, Link, useForm, router } from '@inertiajs/vue3'
 import Card from '@/Components/Card.vue'
 import PageHeader from '@/Components/PageHeader.vue'
 import PrimaryButton from '@/Components/PrimaryButton.vue'
@@ -10,14 +10,25 @@ import TextArea from '@/Components/TextArea.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import InputError from '@/Components/InputError.vue'
 import Modal from '@/Components/Modal.vue'
+import ConfirmModal from '@/Components/ConfirmModal.vue'
 import { ref } from 'vue'
-import { ArrowDownTrayIcon, PaperAirplaneIcon, PencilIcon, ArrowLeftIcon, PaperClipIcon, XMarkIcon } from '@heroicons/vue/24/outline'
+import { ArrowDownTrayIcon, PaperAirplaneIcon, PencilIcon, ArrowLeftIcon, PaperClipIcon, XMarkIcon, DocumentArrowUpIcon } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
   presupuesto: Object,
 })
 
 const emailModal = ref(false)
+const showConvertModal = ref(false)
+
+// Estados en los que NO se permite convertir: cancelado (2), rechazado (3), ya facturado (4)
+const puedeConvertirse = [0, 1].includes(props.presupuesto.status?.value ?? props.presupuesto.status)
+
+const executeConvert = () => {
+    router.post(route('admin.presupuestos.convertir-a-factura', props.presupuesto.id), {}, {
+        onSuccess: () => { showConvertModal.value = false }
+    })
+}
 const emailForm = useForm({
     email: props.presupuesto.cliente?.email || '',
     cc_emails: '',
@@ -109,6 +120,11 @@ const formatCurrency = (val) => new Intl.NumberFormat('es-ES', { style: 'currenc
               <PrimaryButton @click="emailModal = true">
                 <PaperAirplaneIcon class="w-4 h-4 mr-2 inline" />
                 Enviar por Correo
+              </PrimaryButton>
+              <!-- Convertir a factura: solo si no está cancelado, rechazado ni ya facturado -->
+              <PrimaryButton v-if="puedeConvertirse" @click="showConvertModal = true" class="bg-indigo-600 hover:bg-indigo-700">
+                <DocumentArrowUpIcon class="w-4 h-4 mr-2 inline" />
+                Convertir a Factura
               </PrimaryButton>
               <Link :href="route('admin.presupuestos.edit', presupuesto.id)">
                 <SecondaryButton>
@@ -225,5 +241,14 @@ const formatCurrency = (val) => new Intl.NumberFormat('es-ES', { style: 'currenc
             </form>
         </div>
     </Modal>
+    <ConfirmModal
+      :show="showConvertModal"
+      title="Convertir a Factura"
+      :content="`¿Confirmas convertir el presupuesto '${presupuesto.number}' en una nueva factura? El presupuesto quedará marcado como 'Facturado' y serás redirigido a la factura generada.`"
+      confirm-text="Sí, convertir"
+      cancel-text="Cancelar"
+      @close="showConvertModal = false"
+      @confirm="executeConvert"
+    />
   </AuthenticatedLayout>
 </template>

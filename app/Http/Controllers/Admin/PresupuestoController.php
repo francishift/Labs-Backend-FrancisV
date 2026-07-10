@@ -11,6 +11,7 @@ use App\Models\Presupuesto;
 use App\Models\Client;
 use App\Models\Configuracion;
 use App\Enums\PresupuestoStatus;
+use App\Services\FacturaService;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
@@ -23,13 +24,16 @@ class PresupuestoController extends Controller
 {
     private PresupuestoService $presupuestoService;
     private DocumentPdfService $pdfService;
+    private FacturaService $facturaService;
 
     public function __construct(
         PresupuestoService $presupuestoService,
-        DocumentPdfService $pdfService
+        DocumentPdfService $pdfService,
+        FacturaService $facturaService
     ) {
         $this->presupuestoService = $presupuestoService;
         $this->pdfService = $pdfService;
+        $this->facturaService = $facturaService;
     }
 
     public function index(Request $request)
@@ -230,5 +234,31 @@ class PresupuestoController extends Controller
         $this->presupuestoService->enviarPresupuestoPorEmail($presupuesto, $request->validated(), auth()->user());
 
         return back()->with('success', 'Presupuesto enviado por correo electrónico a ' . $request->email);
+    }
+
+    /**
+     * Convierte un presupuesto en factura.
+     * Solo se permite si el presupuesto no está cancelado, rechazado ni ya facturado.
+     */
+    public function convertirAFactura(Presupuesto $presupuesto)
+    {
+        $estadosNoPermitidos = [
+            PresupuestoStatus::CANCELED,
+            PresupuestoStatus::REJECTED,
+            PresupuestoStatus::INVOICED,
+        ];
+
+        if (in_array($presupuesto->status, $estadosNoPermitidos)) {
+            return redirect()->back()->with('error', 'Este presupuesto no puede convertirse en factura en su estado actual.');
+        }
+
+        $factura = $this->facturaService->convertirDesdePresupuesto($presupuesto);
+
+        // Subir PDF de la nueva factura a Drive de forma asíncrona
+        defer(fn () => $this->facturaService->guardarEnDriveAsync($factura));
+
+        return redirect()
+            ->route('admin.facturas.show', $factura->id)
+            ->with('success', "Presupuesto {$presupuesto->number} convertido a factura {$factura->number} con éxito.");
     }
 }

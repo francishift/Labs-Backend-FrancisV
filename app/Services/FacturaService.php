@@ -3,8 +3,10 @@
 namespace App\Services;
 
 use App\Models\Factura;
+use App\Models\Presupuesto;
 use App\Models\Configuracion;
 use App\Enums\FacturaStatus;
+use App\Enums\PresupuestoStatus;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -77,6 +79,65 @@ class FacturaService
             
             // Forzar actualización de fecha para caché si no hubo cambios en cabecera
             $factura->touch();
+
+            return $factura;
+        });
+    }
+
+    /**
+     * Convierte un presupuesto existente en una nueva factura.
+     * Copia cabecera y líneas. Marca el presupuesto como INVOICED.
+     * Usa lockForUpdate para garantizar numeración correlativa.
+     */
+    public function convertirDesdePresupuesto(Presupuesto $presupuesto): Factura
+    {
+        return DB::transaction(function () use ($presupuesto) {
+            $presupuesto->loadMissing('lineas');
+
+            // Obtener siguiente número de factura con bloqueo para garantizar correlatividad
+            $lastFactura = Factura::where('number', 'like', 'FV-%')
+                ->orderByRaw('CAST(SUBSTRING(number, 4) AS UNSIGNED) DESC')
+                ->lockForUpdate()
+                ->first();
+
+            $nextNum = 1;
+            if ($lastFactura && preg_match('/^FV-(\d+)$/', $lastFactura->number, $matches)) {
+                $nextNum = intval($matches[1]) + 1;
+            }
+            $number = sprintf('FV-%d', $nextNum);
+
+            $defaultVencimientoDias = Configuracion::get('default_vencimiento_dias', 30);
+
+            $factura = Factura::create([
+                'number'       => $number,
+                'client_id'    => $presupuesto->client_id,
+                'proyecto_id'  => null,
+                'date'         => time(),
+                'due_date'     => strtotime('+' . $defaultVencimientoDias . ' days'),
+                'status'       => FacturaStatus::PENDING,
+                'notes'        => $presupuesto->notes,
+                'description'  => $presupuesto->description,
+                'subtotal'     => $presupuesto->subtotal,
+                'tax_amount'   => $presupuesto->tax_amount,
+                'irpf_amount'  => $presupuesto->irpf_amount,
+                'total'        => $presupuesto->total,
+            ]);
+
+            // Copiar líneas del presupuesto a la factura
+            foreach ($presupuesto->lineas as $linea) {
+                $factura->lineas()->create([
+                    'concepto'         => $linea->concepto,
+                    'descripcion'      => $linea->descripcion,
+                    'cantidad'         => $linea->cantidad,
+                    'precio_unitario'  => $linea->precio_unitario,
+                    'porcentaje_iva'   => $linea->porcentaje_iva,
+                    'porcentaje_irpf'  => $linea->porcentaje_irpf,
+                    'total_linea'      => $linea->total_linea,
+                ]);
+            }
+
+            // Marcar el presupuesto como facturado
+            $presupuesto->updateQuietly(['status' => PresupuestoStatus::INVOICED]);
 
             return $factura;
         });
