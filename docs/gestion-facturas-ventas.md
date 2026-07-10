@@ -10,6 +10,36 @@ Tanto los Presupuestos como las Facturas de Venta están regidos por un patrón 
 2. **Servicios (`FacturaService`, `PresupuestoService`)**: Son el núcleo. Se encargan de procesar las líneas, calcular el IVA, sumar los totales y ejecutar operaciones en transacciones seguras de base de datos (`DB::transaction`). Si una sola línea del presupuesto falla al guardarse, se hace un *rollback* completo y no se guardan datos corruptos.
 3. **Controladores Ligeros (`FacturaController`, `PresupuestoController`)**: Su única misión es recibir la petición del frontend, pasársela al servicio, y devolver la redirección o el PDF al usuario.
 
+## 🔄 Conversión de Presupuesto a Factura
+
+La plataforma permite convertir un presupuesto directamente en una factura de venta con un solo clic.
+
+### Flujo
+1. El usuario accede al **listado** o a la **vista de detalle** (`Show`) del presupuesto.
+2. Pulsa el botón/icono **"Convertir a Factura"** (disponible en ambos puntos de entrada).
+3. Un modal de confirmación le pide que ratifique la acción.
+4. El sistema crea la factura copiando todos los datos (cabecera + líneas) y redirige automáticamente a la nueva factura generada.
+
+### Reglas de negocio
+- **Solo se permite** convertir presupuestos en estado `Pendiente (0)` o `Aprobado (1)`.
+- **Queda bloqueada** la conversión si el presupuesto está `Anulado (2)`, `Rechazado (3)` o ya `Facturado (4)`.
+- Tras la conversión, el presupuesto queda marcado automáticamente como **`Facturado (4)`** (badge índigo).
+- La nueva factura se genera con fecha de **hoy** y vencimiento según la configuración global (`default_vencimiento_dias`).
+- Su PDF se sube a Google Drive de forma **asíncrona** (igual que en la creación manual).
+
+### Numeración correlativa garantizada
+El método `FacturaService::convertirDesdePresupuesto()` usa `lockForUpdate()` dentro de un `DB::transaction` para obtener el último número `FV-N` con bloqueo pesimista, garantizando que no se generen huecos ni duplicados aunque haya peticiones concurrentes.
+
+### Estados del presupuesto (`PresupuestoStatus`)
+
+| Valor | Nombre | Badge | Descripción |
+|---|---|---|---|
+| 0 | Pendiente | Gris | Recién creado, pendiente de revisión |
+| 1 | Aprobado | Verde | Aceptado por el cliente |
+| 2 | Anulado | Rojo | Cancelado, no generará factura |
+| 3 | Rechazado | Rosa | Rechazado por el cliente |
+| 4 | Facturado | Índigo | Convertido en factura de venta |
+
 ## 📄 Generación de PDFs "Stateless" (Al Vuelo)
 
 **Regla de Oro:** En Labs Backend, los PDFs financieros generados por el sistema **no se guardan en el disco duro**. 
