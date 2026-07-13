@@ -97,12 +97,11 @@
             line-height: 1.6;
         }
 
-        table.items-table {
+        table.items-header-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 30px;
         }
-        table.items-table th {
+        table.items-header-table th {
             border-bottom: 1px solid #18181b;
             padding: 10px 5px;
             font-size: 8.5pt;
@@ -110,11 +109,29 @@
             color: #18181b;
             text-align: left;
         }
-        table.items-table td {
-            padding: 15px 5px;
+        .items-body-container {
+            margin-bottom: 30px;
+        }
+        .item-row-container {
             border-bottom: 1px solid #e4e4e7;
+            page-break-inside: auto;
+        }
+        table.item-data-table {
+            width: 100%;
+            border-collapse: collapse;
+            page-break-inside: avoid;
+        }
+        table.item-data-table td {
+            padding: 15px 5px 5px 5px;
             vertical-align: top;
             color: #3f3f46;
+        }
+        table.item-data-table.no-desc td {
+            padding-bottom: 15px;
+        }
+        .item-desc-container {
+            padding: 0 5px 15px 5px;
+            page-break-inside: auto;
         }
         .text-right { text-align: right !important; }
         .text-center { text-align: center !important; }
@@ -318,7 +335,7 @@
         <div class="clear"></div>
     </div>
 
-    <table class="items-table">
+    <table class="items-header-table">
         <thead>
             <tr>
                 <th style="width: 45%;">Concepto</th>
@@ -330,33 +347,55 @@
                 <th style="width: 12%;" class="text-right">Total</th>
             </tr>
         </thead>
-        <tbody>
-            @foreach($presupuesto->lineas as $linea)
-            @php
-                $subtotalLinea = $linea->cantidad * $linea->precio_unitario;
-                $ivaLinea = $subtotalLinea * ($linea->porcentaje_iva / 100);
-                $irpfLinea = $subtotalLinea * ($linea->porcentaje_irpf / 100);
-                $totalFinalLinea = $subtotalLinea + $ivaLinea - $irpfLinea;
-            @endphp
-            <tr>
-                <td>
-                    <div class="item-concept">{{ $linea->concepto }}</div>
-                    @if($linea->descripcion)
-                        <div class="item-desc" style="white-space: pre-line;">{{ trim($linea->descripcion) }}</div>
-                    @elseif(str_contains($linea->concepto, "\n"))
-                        <div class="item-desc">{!! nl2br(e(explode("\n", $linea->concepto, 2)[1] ?? '')) !!}</div>
-                    @endif
-                </td>
-                <td class="text-right">{{ number_format($linea->precio_unitario, 2, ',', '.') }}€</td>
-                <td class="text-center">{{ number_format($linea->cantidad, 2, ',', '.') }}</td>
-                <td class="text-right">{{ number_format($subtotalLinea, 2, ',', '.') }}€</td>
-                <td class="text-center">{{ number_format($linea->porcentaje_iva, 0) }}%</td>
-                <td class="text-center">@if($linea->porcentaje_irpf > 0)-{{ number_format($linea->porcentaje_irpf, 0) }}%@endif</td>
-                <td class="text-right">{{ number_format($totalFinalLinea, 2, ',', '.') }}€</td>
-            </tr>
-            @endforeach
-        </tbody>
     </table>
+
+    <div class="items-body-container">
+        @foreach($presupuesto->lineas as $linea)
+        @php
+            $subtotalLinea = $linea->cantidad * $linea->precio_unitario;
+            $ivaLinea = $subtotalLinea * ($linea->porcentaje_iva / 100);
+            $irpfLinea = $subtotalLinea * ($linea->porcentaje_irpf / 100);
+            $totalFinalLinea = $subtotalLinea + $ivaLinea - $irpfLinea;
+            
+            $mainConcept = $linea->concepto;
+            $hasDesc = false;
+            
+            if($linea->descripcion) {
+                $hasDesc = true;
+            } elseif(str_contains($linea->concepto, "\n")) {
+                $parts = explode("\n", $linea->concepto, 2);
+                $mainConcept = $parts[0];
+                $hasDesc = true;
+            }
+        @endphp
+        <div class="item-row-container">
+            <table class="item-data-table {{ $hasDesc ? '' : 'no-desc' }}">
+                <tbody>
+                    <tr>
+                        <td style="width: 45%;">
+                            <div class="item-concept">{{ $mainConcept }}</div>
+                        </td>
+                        <td style="width: 11%;" class="text-right">{{ number_format($linea->precio_unitario, 2, ',', '.') }}€</td>
+                        <td style="width: 10%;" class="text-center">{{ number_format($linea->cantidad, 2, ',', '.') }}</td>
+                        <td style="width: 11%;" class="text-right">{{ number_format($subtotalLinea, 2, ',', '.') }}€</td>
+                        <td style="width: 6%;" class="text-center">{{ number_format($linea->porcentaje_iva, 0) }}%</td>
+                        <td style="width: 8%;" class="text-center">@if($linea->porcentaje_irpf > 0)-{{ number_format($linea->porcentaje_irpf, 0) }}%@endif</td>
+                        <td style="width: 12%;" class="text-right">{{ number_format($totalFinalLinea, 2, ',', '.') }}€</td>
+                    </tr>
+                </tbody>
+            </table>
+            @if($linea->descripcion)
+            <div class="item-desc-container">
+                <div class="item-desc" style="white-space: pre-line;">{{ trim($linea->descripcion) }}</div>
+            </div>
+            @elseif(str_contains($linea->concepto, "\n"))
+            <div class="item-desc-container">
+                <div class="item-desc">{!! nl2br(e(explode("\n", $linea->concepto, 2)[1] ?? '')) !!}</div>
+            </div>
+            @endif
+        </div>
+        @endforeach
+    </div>
 
     @php
         $hasDescription = $presupuesto->description && trim(strip_tags(str_replace(['&nbsp;', ' ', "\n", "\r"], '', $presupuesto->description))) !== '';
