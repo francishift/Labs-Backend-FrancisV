@@ -14,7 +14,7 @@ import SearchableSelect from '@/Components/SearchableSelect.vue'
 import ConfirmModal from '@/Components/ConfirmModal.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import debounce from 'lodash/debounce'
-import { PlusIcon, EyeIcon, PencilIcon, PencilSquareIcon, NoSymbolIcon, CheckCircleIcon, ArrowPathIcon, DocumentDuplicateIcon } from '@heroicons/vue/24/outline'
+import { PlusIcon, EyeIcon, ArrowDownTrayIcon, PencilIcon, PencilSquareIcon, NoSymbolIcon, CheckCircleIcon, ArrowPathIcon, DocumentDuplicateIcon } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
   facturas: Object,
@@ -342,22 +342,44 @@ onMounted(() => {
             </template>
             
             <template #cell-acciones="{ item }">
-                <div class="space-x-4 w-full flex justify-center items-center">
-                  <Link :href="route('admin.facturas.show', item.id)" class="text-emerald-500/70 hover:text-emerald-600 dark:text-emerald-400/70 dark:hover:text-emerald-400 transition-colors" title="Ver Propuesta / PDF" @click.stop>
-                      <EyeIcon class="w-5 h-5 inline" />
-                  </Link>
-                  <Link v-if="item.status != 3" :href="route('admin.facturas.edit', item.id)" class="text-blue-500/70 hover:text-blue-600 dark:text-blue-400/70 dark:hover:text-blue-400 transition-colors" title="Editar Factura" @click.stop>
-                      <PencilSquareIcon class="w-5 h-5 inline" />
-                  </Link>
-                  <button v-if="item.status != 3" @click.stop="confirmDuplicate(item)" class="text-orange-500/70 hover:text-orange-600 dark:text-orange-400/70 dark:hover:text-orange-400 transition-colors" title="Duplicar Factura">
-                      <DocumentDuplicateIcon class="w-5 h-5 inline" />
-                  </button>
-                  <button v-if="item.status != 3" @click.stop="confirmCancel(item)" class="text-red-500/70 hover:text-red-600 dark:text-red-400/70 dark:hover:text-red-400 transition-colors" title="Anular Factura">
-                      <NoSymbolIcon class="w-5 h-5 inline" />
-                  </button>
-                  <button v-if="item.status == 3" @click.stop="confirmReactivate(item)" class="text-teal-500/70 hover:text-teal-600 dark:text-teal-400/70 dark:hover:text-teal-400 transition-colors" title="Aprobar / Reactivar Factura">
-                      <CheckCircleIcon class="w-5 h-5 inline" />
-                  </button>
+                <div class="flex items-center justify-center gap-x-1.5 w-full">
+                  <!-- 1. Ver -->
+                  <div class="w-7 h-7 flex items-center justify-center">
+                    <Link :href="route('admin.facturas.show', item.id)" class="text-emerald-500/70 hover:text-emerald-600 dark:text-emerald-400/70 dark:hover:text-emerald-400 transition-colors" title="Ver Propuesta / PDF" @click.stop>
+                        <EyeIcon class="w-5 h-5" />
+                    </Link>
+                  </div>
+
+                  <!-- 2. Descargar -->
+                  <div class="w-7 h-7 flex items-center justify-center">
+                    <a :href="route('admin.facturas.pdf', { factura: item.id, download: 1 })" class="text-sky-500/70 hover:text-sky-600 dark:text-sky-400/70 dark:hover:text-sky-400 transition-colors" title="Descargar PDF" @click.stop>
+                        <ArrowDownTrayIcon class="w-5 h-5" />
+                    </a>
+                  </div>
+
+                  <!-- 3. Editar -->
+                  <div class="w-7 h-7 flex items-center justify-center">
+                    <Link v-if="item.status != 3" :href="route('admin.facturas.edit', item.id)" class="text-blue-500/70 hover:text-blue-600 dark:text-blue-400/70 dark:hover:text-blue-400 transition-colors" title="Editar Factura" @click.stop>
+                        <PencilSquareIcon class="w-5 h-5" />
+                    </Link>
+                  </div>
+
+                  <!-- 4. Duplicar -->
+                  <div class="w-7 h-7 flex items-center justify-center">
+                    <button v-if="item.status != 3" @click.stop="confirmDuplicate(item)" class="text-orange-500/70 hover:text-orange-600 dark:text-orange-400/70 dark:hover:text-orange-400 transition-colors" title="Duplicar Factura">
+                        <DocumentDuplicateIcon class="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <!-- 5. Anular / Reactivar -->
+                  <div class="w-7 h-7 flex items-center justify-center">
+                    <button v-if="item.status != 3" @click.stop="confirmCancel(item)" class="text-red-500/70 hover:text-red-600 dark:text-red-400/70 dark:hover:text-red-400 transition-colors" title="Anular Factura">
+                        <NoSymbolIcon class="w-5 h-5" />
+                    </button>
+                    <button v-else-if="item.status == 3" @click.stop="confirmReactivate(item)" class="text-teal-500/70 hover:text-teal-600 dark:text-teal-400/70 dark:hover:text-teal-400 transition-colors" title="Aprobar / Reactivar Factura">
+                        <CheckCircleIcon class="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
             </template>
         </DataTable>

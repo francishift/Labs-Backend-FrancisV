@@ -54,10 +54,12 @@ Las facturas y presupuestos son entidades relacionadas:
 - Un **Presupuesto** puede estar enlazado a un **Proyecto**. Desde el panel de control del proyecto puedes ver y emitir su presupuesto nativo.
 - Las **Facturas** pueden asignarse a proyectos (agrupándolas) para tener un cálculo real del MRR (Ingreso Recurrente) y del *Profit* global del proyecto.
 
-## 📊 Optimización de Listados (N+1)
-
-El renderizado de los listados web de ventas, que puede cargar miles de facturas y presupuestos de un plumazo, está altamente optimizado:
-- Se utiliza el Eager Loading (`->with(['cliente:id,name'])`) filtrando solo las columnas estrictamente necesarias (ID y Nombre del cliente), evitando el infame cuello de botella de Base de Datos N+1.
+## 📊 Optimización de Listados (N+1) y UX
+ 
+ El renderizado de los listados web de ventas, que puede cargar miles de facturas y presupuestos de un plumazo, está altamente optimizado:
+ - Se utiliza el Eager Loading (`->with(['cliente:id,name'])`) filtrando solo las columnas estrictamente necesarias (ID y Nombre del cliente), evitando el infame cuello de botella de Base de Datos N+1.
+- **Descarga directa de PDF**: Desde la tabla de listado es posible descargar el archivo con un solo clic (vía parámetro `?download=1`) sin necesidad de abrir previamente la ficha o el visor.
+- **Alineación matricial de acciones**: Las columnas de acciones de las tablas emplean ranuras de tamaño fijo (`w-7 h-7`) que preservan el espacio de cada función (ver, descargar, editar, convertir/duplicar, anular), asegurando que los iconos queden siempre perfectamente alineados en columnas verticales independientemente del estado de cada registro.
 - Todos los listados están paginados nativamente.
 
 ## 📧 Envío de Correos y Archivos Adjuntos Seguros

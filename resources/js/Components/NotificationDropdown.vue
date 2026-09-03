@@ -50,6 +50,17 @@ const markAsRead = async (id, url) => {
     }
 };
 
+const markAllAsRead = async () => {
+    try {
+        await axios.post('/admin/notifications/mark-all-read');
+        notifications.value = [];
+        count.value = 0;
+        isOpen.value = false;
+    } catch (e) {
+        console.error(e);
+    }
+};
+
 const toggleDropdown = () => {
     isOpen.value = !isOpen.value;
 };
@@ -107,10 +118,20 @@ onUnmounted(() => {
             >
                 <div class="px-4 py-3 border-b border-gray-100 dark:border-zinc-800 flex justify-between items-center">
                     <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Notificaciones</h3>
-                    <button @click="isOpen = false" class="text-gray-400 hover:text-gray-600 dark:text-zinc-400 dark:hover:text-zinc-200 transition">
-                        <span class="sr-only">Cerrar panel</span>
-                        <XMarkIcon class="h-5 w-5" />
-                    </button>
+                    <div class="flex items-center gap-3">
+                        <button 
+                            v-if="count > 0"
+                            @click="markAllAsRead" 
+                            class="text-xs text-emerald-600 hover:text-emerald-500 dark:text-emerald-400 font-medium transition"
+                            title="Marcar todas como leídas"
+                        >
+                            Marcar todas leídas
+                        </button>
+                        <button @click="isOpen = false" class="text-gray-400 hover:text-gray-600 dark:text-zinc-400 dark:hover:text-zinc-200 transition">
+                            <span class="sr-only">Cerrar panel</span>
+                            <XMarkIcon class="h-5 w-5" />
+                        </button>
+                    </div>
                 </div>
                 
                 <div class="max-h-80 overflow-y-auto">
@@ -119,25 +140,47 @@ onUnmounted(() => {
                     </div>
                     
                     <template v-else>
-                        <button 
+                        <div 
                             v-for="notification in notifications" 
                             :key="notification.id"
-                            @click="markAsRead(notification.id, notification.data.url)"
-                            class="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-zinc-800/50 border-b border-gray-50 dark:border-zinc-800 last:border-0 transition"
+                            class="group relative flex items-start justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-zinc-800/50 border-b border-gray-100 dark:border-zinc-800 last:border-0 transition"
                         >
-                            <div class="flex items-start">
+                            <!-- Click para ver la notificación en el calendario -->
+                            <button 
+                                type="button"
+                                @click="markAsRead(notification.id, notification.data.url)"
+                                class="flex items-start text-left flex-1 min-w-0 pr-2 focus:outline-none cursor-pointer"
+                                title="Ir a la notificación en el calendario"
+                            >
                                 <div class="shrink-0 pt-0.5">
                                     <div class="h-8 w-8 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center">
                                         <BellAlertIcon class="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                                     </div>
                                 </div>
-                                <div class="ml-3 w-0 flex-1">
-                                    <p class="text-sm font-medium text-gray-900 dark:text-zinc-100">{{ notification.data.title || 'Notificación' }}</p>
-                                    <p class="text-xs text-gray-500 dark:text-zinc-400 mt-0.5 line-clamp-2">{{ notification.data.message || '' }}</p>
-                                    <p class="text-[10px] text-gray-400 mt-1">{{ formatDateTime(notification.created_at) }}</p>
+                                <div class="ml-3 min-w-0 flex-1">
+                                    <p class="text-sm font-medium text-gray-900 dark:text-zinc-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                                        {{ notification.data.title || 'Notificación' }}
+                                    </p>
+                                    <p class="text-xs text-gray-500 dark:text-zinc-400 mt-0.5 line-clamp-2">
+                                        {{ notification.data.message || '' }}
+                                    </p>
+                                    <p class="text-[10px] text-gray-400 dark:text-zinc-500 mt-1">
+                                        {{ formatDateTime(notification.created_at) }}
+                                    </p>
                                 </div>
-                            </div>
-                        </button>
+                            </button>
+
+                            <!-- Cruz para cerrar y marcar como notificada/leída sin salir de la pantalla -->
+                            <button
+                                type="button"
+                                @click.stop="markAsRead(notification.id, null)"
+                                class="shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:text-zinc-500 dark:hover:text-zinc-300 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors focus:outline-none cursor-pointer"
+                                title="Cerrar y dar por notificada"
+                            >
+                                <span class="sr-only">Cerrar y dar por notificada</span>
+                                <XMarkIcon class="h-4 w-4" />
+                            </button>
+                        </div>
                     </template>
                 </div>
                 

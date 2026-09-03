@@ -22,7 +22,7 @@ import EditFacturaModal from './Components/EditFacturaModal.vue'
 import DeleteFacturaModal from './Components/DeleteFacturaModal.vue'
 import OverwriteFacturaModal from './Components/OverwriteFacturaModal.vue'
 import DataTable from '@/Components/DataTable.vue'
-import { PlusIcon, ArrowUpTrayIcon, EyeIcon, TrashIcon, ExclamationTriangleIcon, ChevronUpIcon, ChevronDownIcon, PencilSquareIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
+import { PlusIcon, ArrowUpTrayIcon, ArrowDownTrayIcon, EyeIcon, TrashIcon, ExclamationTriangleIcon, ChevronUpIcon, ChevronDownIcon, PencilSquareIcon, ArrowPathIcon } from '@heroicons/vue/24/outline'
 
 const columns = [
   { key: 'number', label: 'Número', sortable: true },
@@ -337,38 +337,64 @@ const setDateRange = (rangeType) => {
                 </select>
             </template>
             <template #cell-actions="{ item }">
-                <div class="flex justify-end gap-x-2">
-                  <button 
-                    v-if="item.google_drive_file_id"
-                    @click.stop="viewPdf(item)"
-                    class="inline-flex items-center p-2 text-emerald-500/70 hover:text-emerald-600 dark:text-emerald-400/70 dark:hover:text-emerald-400 transition-colors"
-                    title="Ver PDF"
-                  >
-                    <EyeIcon class="h-5 w-5" />
-                  </button>
+                <div class="flex justify-end items-center gap-x-1.5">
+                  <!-- Sustituir si está duplicada -->
                   <button 
                     v-if="item.status === 'duplicada'"
                     @click.stop="confirmOverwrite(item)"
-                    class="inline-flex items-center p-2 text-amber-500/70 hover:text-amber-600 dark:text-amber-400/70 dark:hover:text-amber-400 transition-colors"
+                    class="inline-flex items-center px-2 py-1 text-amber-500/70 hover:text-amber-600 dark:text-amber-400/70 dark:hover:text-amber-400 transition-colors text-xs font-bold uppercase whitespace-nowrap"
                     :title="'Sobreescribir factura ' + (item.raw_data?.intended_number || item.number)"
                   >
-                    <ExclamationTriangleIcon class="h-5 w-5" />
-                    <span class="ml-1 text-xs font-bold uppercase whitespace-nowrap">Sustituir #{{ item.raw_data?.intended_number || item.number.replace('DUP-', '') }}</span>
+                    <ExclamationTriangleIcon class="h-4 w-4 mr-1" />
+                    <span>Sustituir #{{ item.raw_data?.intended_number || item.number.replace('DUP-', '') }}</span>
                   </button>
-                  <button 
-                    @click.stop="editFactura(item)"
-                    class="inline-flex items-center p-2 text-blue-500/70 hover:text-blue-600 dark:text-blue-400/70 dark:hover:text-blue-400 transition-colors"
-                    title="Editar / Revisión Manual"
-                  >
-                    <PencilSquareIcon class="h-5 w-5" />
-                  </button>
-                  <button 
-                    @click.stop="confirmFacturaDeletion(item.id)"
-                    class="inline-flex items-center p-2 text-red-500/70 hover:text-red-600 dark:text-red-400/70 dark:hover:text-red-400 transition-colors"
-                    title="Eliminar factura"
-                  >
-                    <TrashIcon class="h-5 w-5" />
-                  </button>
+
+                  <!-- 1. Ver PDF -->
+                  <div class="w-7 h-7 flex items-center justify-center">
+                    <button 
+                      v-if="item.google_drive_file_id"
+                      @click.stop="viewPdf(item)"
+                      class="text-emerald-500/70 hover:text-emerald-600 dark:text-emerald-400/70 dark:hover:text-emerald-400 transition-colors"
+                      title="Ver PDF"
+                    >
+                      <EyeIcon class="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  <!-- 2. Descargar PDF -->
+                  <div class="w-7 h-7 flex items-center justify-center">
+                    <a 
+                      v-if="item.google_drive_file_id"
+                      :href="route('admin.purchase-facturas.pdf', { purchaseFactura: item.id, download: 1 })"
+                      @click.stop
+                      class="text-sky-500/70 hover:text-sky-600 dark:text-sky-400/70 dark:hover:text-sky-400 transition-colors"
+                      title="Descargar PDF"
+                    >
+                      <ArrowDownTrayIcon class="h-5 w-5" />
+                    </a>
+                  </div>
+
+                  <!-- 3. Editar -->
+                  <div class="w-7 h-7 flex items-center justify-center">
+                    <button 
+                      @click.stop="editFactura(item)"
+                      class="text-blue-500/70 hover:text-blue-600 dark:text-blue-400/70 dark:hover:text-blue-400 transition-colors"
+                      title="Editar / Revisión Manual"
+                    >
+                      <PencilSquareIcon class="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  <!-- 4. Eliminar -->
+                  <div class="w-7 h-7 flex items-center justify-center">
+                    <button 
+                      @click.stop="confirmFacturaDeletion(item.id)"
+                      class="text-red-500/70 hover:text-red-600 dark:text-red-400/70 dark:hover:text-red-400 transition-colors"
+                      title="Eliminar factura"
+                    >
+                      <TrashIcon class="h-5 w-5" />
+                    </button>
+                  </div>
                 </div>
             </template>
         </DataTable>

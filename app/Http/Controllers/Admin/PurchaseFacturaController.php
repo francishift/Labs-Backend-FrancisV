@@ -119,7 +119,7 @@ class PurchaseFacturaController extends Controller
         return redirect()->back()->with('success', 'Factura eliminada.');
     }
 
-    public function showPdf(PurchaseFactura $purchaseFactura)
+    public function showPdf(Request $request, PurchaseFactura $purchaseFactura)
     {
         if (!$purchaseFactura->google_drive_file_id) {
             abort(404);
@@ -131,9 +131,14 @@ class PurchaseFacturaController extends Controller
             abort(500, 'No se pudo descargar el archivo de Google Drive.');
         }
 
+        $safeDocNumber = str_replace(['/', '\\'], '-', $purchaseFactura->number ?? (string) $purchaseFactura->id);
+        $disposition = $request->has('download') ? 'attachment' : 'inline';
+
         return response($content)
             ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'inline; filename="' . $purchaseFactura->number . '.pdf"');
+            ->header('Content-Disposition', $disposition . '; filename="' . $safeDocNumber . '.pdf"')
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0')
+            ->header('Pragma', 'no-cache');
     }
 
     public function confirmOverwrite(PurchaseFactura $purchaseFactura)
